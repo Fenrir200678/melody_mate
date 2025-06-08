@@ -17,7 +17,7 @@ const displayMelody = computed(() => {
 <template>
   <Card>
     <template #title>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center justify-center gap-2">
         <i class="pi pi-chart-line text-2xl"></i>
         <span>Generated Melody</span>
       </div>

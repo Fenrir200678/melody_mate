@@ -15,9 +15,10 @@ function handleGenerate() {
 </script>
 
 <template>
-  <div class="card flex justify-center">
+  <div class="flex justify-center">
     <Button
       label="Generate Melody"
+      size="large"
       icon="pi pi-sparkles"
       :loading="store.isGenerating"
       :disabled="isGenerationDisabled"

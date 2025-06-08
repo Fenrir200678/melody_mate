@@ -7,9 +7,12 @@ import BpmSelector from './components/BpmSelector.vue'
 import MelodyGenerator from './components/MelodyGenerator.vue'
 import MelodyVisualizer from './components/MelodyVisualizer.vue'
 import Controls from './components/Controls.vue'
+import useMusicStore from './stores/music.store'
 
 import Card from 'primevue/card'
-import Divider from 'primevue/divider'
+import Checkbox from 'primevue/checkbox'
+
+const store = useMusicStore()
 </script>
 
 <template>
@@ -21,9 +24,9 @@ import Divider from 'primevue/divider'
       </header>
 
       <main>
-        <Card>
+        <Card class="mb-8">
           <template #title>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center justify-center gap-2">
               <i class="pi pi-cog text-2xl"></i>
               <span>Settings</span>
             </div>
@@ -50,24 +53,33 @@ import Divider from 'primevue/divider'
                 <label class="font-bold text-sm">BPM</label>
                 <BpmSelector />
               </div>
+              <div class="flex flex-col items-center justify-center gap-2">
+                <label for="motif-repetition" class="font-bold text-sm">Motif Repetition</label>
+                <Checkbox
+                  v-model="store.useMotifRepetition"
+                  :binary="true"
+                  inputId="motif-repetition"
+                  @update:modelValue="store.setUseMotifRepetition"
+                />
+              </div>
             </div>
           </template>
         </Card>
 
-        <Divider class="my-8" />
-
-        <div class="flex justify-center mb-8">
+        <div class="mb-8">
           <MelodyGenerator />
         </div>
 
-        <MelodyVisualizer />
+        <div class="mb-8">
+          <MelodyVisualizer />
+        </div>
 
-        <Divider class="my-8" />
-
-        <Controls />
+        <div class="mb-8">
+          <Controls />
+        </div>
       </main>
 
-      <footer class="text-center mt-12 text-sm text-surface-500 dark:text-surface-400">
+      <footer class="text-center mt-8 text-sm">
         <p>
           v1.0.0 beta &copy; 2025
           <a

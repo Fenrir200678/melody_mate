@@ -1,5 +1,3 @@
-import { chooseWeighted } from './random'
-
 // Type for the Markov chain transition table
 export type MarkovTable = Map<string, Map<string, number>>
 
@@ -32,19 +30,15 @@ export function buildMarkovTable(sequences: string[][]): MarkovTable {
 }
 
 /**
- * Gets the next state from the Markov table based on the current state.
+ * Gets the transition map for a given state from the Markov table.
  * @param table - The Markov transition table.
  * @param currentState - The current state.
- * @returns The next state, or null if the current state has no transitions.
+ * @returns The transition map (nextState -> count), or null if the state has no transitions.
  */
-export function getNextState(table: MarkovTable, currentState: string): string | null {
+export function getTransitions(table: MarkovTable, currentState: string): Map<string, number> | null {
   const transitions = table.get(currentState)
   if (!transitions || transitions.size === 0) {
     return null
   }
-
-  const items = Array.from(transitions.keys())
-  const weights = Array.from(transitions.values())
-
-  return chooseWeighted(items, weights)
+  return transitions
 }

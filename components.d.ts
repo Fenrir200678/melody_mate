@@ -10,6 +10,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     BpmSelector: typeof import('./src/components/BpmSelector.vue')['default']
     Controls: typeof import('./src/components/Controls.vue')['default']
+    Divider: typeof import('primevue/divider')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     KeySelector: typeof import('./src/components/KeySelector.vue')['default']
     LengthSelector: typeof import('./src/components/LengthSelector.vue')['default']

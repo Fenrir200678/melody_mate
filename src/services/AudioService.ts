@@ -56,7 +56,8 @@ function getSynth(instrument: InstrumentKey = 'default'): Tone.PolySynth {
       voice = Tone.Synth
       voiceOptions = {
         oscillator: { type: 'fatsawtooth', count: 3, spread: 30 },
-        envelope: { attack: 0.01, decay: 0.4, sustain: 0.2, release: 0.4 }
+        envelope: { attack: 0.01, decay: 0.4, sustain: 0.2, release: 0.4 },
+        volume: -8
       }
       break
   }
