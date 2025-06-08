@@ -1,0 +1,32 @@
+@import 'tailwindcss';
+@import 'primeicons/primeicons.css';
+
+:root {
+  color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  background-color: #242424;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  place-items: center;
+  min-height: 100vh;
+}
+
+h1 {
+  @apply text-3xl font-bold;
+}
+
+p {
+  @apply mb-2;
+}

@@ -1,0 +1,5 @@
+export type { Note } from './Note'
+export type { Scale } from './Scale'
+export type { RhythmPattern } from './Rhythm'
+export type { Melody } from './Melody'
+export type { Config, AIConfig } from './Config'
