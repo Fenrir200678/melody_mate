@@ -1,6 +1,19 @@
-export const ALL_KEYS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+export const ALL_KEYS = [
+  { name: 'C', value: 'C' },
+  { name: 'C#', value: 'C#' },
+  { name: 'D', value: 'D' },
+  { name: 'D#', value: 'D#' },
+  { name: 'E', value: 'E' },
+  { name: 'F', value: 'F' },
+  { name: 'F#', value: 'F#' },
+  { name: 'G', value: 'G' },
+  { name: 'G#', value: 'G#' },
+  { name: 'A', value: 'A' },
+  { name: 'A#', value: 'A#' },
+  { name: 'B', value: 'B' }
+]
 
-const noteIndexMap: Map<string, number> = new Map(ALL_KEYS.map((note, i) => [note, i]))
+const noteIndexMap: Map<string, number> = new Map(ALL_KEYS.map((note, i) => [note.value, i]))
 
 /**
  * Converts a scale pattern (intervals) and a root note into an array of note names.
@@ -17,7 +30,7 @@ export function getNotesForScale(intervals: number[], rootNote: string, octave: 
 
   return intervals.map((interval) => {
     const noteIndex = (rootIndex + interval) % 12
-    return ALL_KEYS[noteIndex] + octave
+    return ALL_KEYS[noteIndex].value + octave
   })
 }
 
@@ -44,7 +57,7 @@ export function noteNameToMidi(noteName: string): number {
 export function midiToNoteName(midi: number): string {
   const noteIndex = midi % 12
   const octave = Math.floor(midi / 12) - 1
-  return ALL_KEYS[noteIndex] + octave
+  return ALL_KEYS[noteIndex].value + octave
 }
 
 /**

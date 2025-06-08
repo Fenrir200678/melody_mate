@@ -28,13 +28,12 @@ function onScaleChange(value: string) {
 </script>
 
 <template>
-  <div class="flex justify-center">
-    <Select
-      v-model="selectedScaleName"
-      :options="availableScaleNames"
-      placeholder="Select a Scale"
-      height="3rem"
-      @update:modelValue="onScaleChange"
-    />
-  </div>
+  <Select
+    class="w-[50%]"
+    v-model="selectedScaleName"
+    :options="availableScaleNames"
+    placeholder="Select a Scale"
+    height="3rem"
+    @update:modelValue="onScaleChange"
+  />
 </template>

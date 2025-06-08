@@ -72,41 +72,47 @@ watch(activeTab, (newIndex) => {
 </script>
 
 <template>
-  <div class="p-0 border border-surface-200 dark:border-surface-700">
-    <Tabs v-model:value="activeTab" class="w-full">
+  <div class="">
+    <Tabs v-model:value="activeTab">
       <TabList>
         <Tab :value="0">Euclidean Generator</Tab>
         <Tab :value="1">Presets</Tab>
       </TabList>
+
       <TabPanels>
         <TabPanel :value="0">
-          <div class="p-4 flex flex-col gap-4">
-            <div class="flex flex-col gap-2">
-              <label :for="'pulses-slider'">Pulses: {{ pulses }}</label>
+          <div class="pt-2 flex flex-col gap-4">
+            <div class="mb-2">
+              <label :for="'pulses-slider'" class="text-sm pb-2 flex items-center gap-2">
+                <span>Pulses</span>
+                <span class="text-zinc-400">{{ pulses }}</span>
+              </label>
               <Slider v-model="pulses" :min="1" :max="steps" :id="'pulses-slider'" />
             </div>
-            <div class="flex flex-col gap-2">
-              <label :for="'steps-slider'">Steps: {{ steps }}</label>
+            <div class="mb-2">
+              <label :for="'steps-slider'" class="text-sm pb-2 flex items-center gap-2">
+                <span>Steps</span>
+                <span class="text-zinc-400">{{ steps }}</span>
+              </label>
               <Slider v-model="steps" :min="2" :max="32" :id="'steps-slider'" />
             </div>
           </div>
         </TabPanel>
         <TabPanel :value="1">
-          <div class="p-4 flex justify-center">
-            <ul class="w-full max-w-xs flex flex-col gap-1">
+          <div class="p-1">
+            <ul class="flex flex-col gap-1">
               <li
                 v-for="rhythm in availableRhythms"
                 :key="rhythm.name"
                 @click="onRhythmChange(rhythm)"
                 :class="[
-                  'cursor-pointer rounded transition-colors flex items-center justify-between text-sm',
+                  'cursor-pointer rounded transition-colors flex items-center justify-between text-sm hover:text-zinc-400',
                   selectedRhythm?.name === rhythm.name
                     ? 'bg-primary-100 dark:bg-primary-700 text-primary-900 dark:text-primary-50 font-bold'
                     : 'bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600'
                 ]"
               >
-                <span>{{ rhythm.name }}</span>
-                <span v-if="selectedRhythm?.name === rhythm.name" aria-label="Ausgewählt">✔️</span>
+                <span class="mr-4">{{ rhythm.name }}</span>
               </li>
             </ul>
           </div>

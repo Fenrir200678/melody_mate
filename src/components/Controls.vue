@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
+import Divider from 'primevue/divider'
+
 import useMusicStore from '@/stores/music.store'
 
 const store = useMusicStore()

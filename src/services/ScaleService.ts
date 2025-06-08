@@ -37,7 +37,7 @@ export function getAvailableScaleNames(): string[] {
 /**
  * Returns a list of all available musical keys (root notes).
  */
-export function getAvailableKeys(): string[] {
+export function getAvailableKeys(): { name: string; value: string }[] {
   return ALL_KEYS
 }
 

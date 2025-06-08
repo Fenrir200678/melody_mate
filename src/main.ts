@@ -12,6 +12,7 @@ const pinia = createPinia()
 
 app.use(pinia)
 app.use(PrimeVue, {
+  ripple: true,
   theme: {
     preset: Aura
   }
