@@ -117,6 +117,10 @@ export async function playMelody(
     return event
   })
 
+  if (import.meta.env.DEBUG_MODE) {
+    console.log('Events:', events)
+  }
+
   // Create and start the Part
   part = new Tone.Part((time, value) => {
     synthesizer.triggerAttackRelease(value.pitch, value.duration, time, value.velocity)

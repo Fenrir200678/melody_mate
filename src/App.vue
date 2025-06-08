@@ -11,6 +11,8 @@ import useMusicStore from './stores/music.store'
 
 import Card from 'primevue/card'
 import Checkbox from 'primevue/checkbox'
+import InputNumber from 'primevue/inputnumber'
+import ToggleSwitch from 'primevue/toggleswitch'
 
 const store = useMusicStore()
 </script>
@@ -67,6 +69,41 @@ const store = useMusicStore()
                   :binary="true"
                   inputId="n-grams"
                   @update:modelValue="store.setUseNGrams"
+                />
+              </div>
+
+              <div class="flex flex-col items-center justify-center gap-2 lg:col-span-1">
+                <label class="font-bold text-sm">Octave</label>
+                <InputNumber
+                  v-model="store.octave"
+                  :min="1"
+                  :max="8"
+                  :step="1"
+                  showButtons
+                  buttonLayout="horizontal"
+                  @update:modelValue="store.setOctave"
+                  inputId="octave-input"
+                  class="w-24"
+                />
+              </div>
+              <div class="flex items-center justify-center gap-4 sm:col-span-2 lg:col-span-2">
+                <ToggleSwitch
+                  v-model="store.useFixedVelocity"
+                  inputId="fixed-velocity-switch"
+                  @update:modelValue="store.setUseFixedVelocity"
+                />
+                <label for="fixed-velocity-switch" class="font-bold text-sm">Use fixed velocity</label>
+                <InputNumber
+                  v-model="store.fixedVelocity"
+                  :min="1"
+                  :max="127"
+                  :step="1"
+                  showButtons
+                  buttonLayout="horizontal"
+                  @update:modelValue="store.setFixedVelocity"
+                  inputId="velocity-input"
+                  class="w-24"
+                  :disabled="!store.useFixedVelocity"
                 />
               </div>
             </div>

@@ -54,7 +54,10 @@ export function generateMelody(
   rhythm: RhythmPattern,
   bars: number,
   useMotifRepetition: boolean,
-  useNGrams: boolean
+  useNGrams: boolean,
+  octave: number,
+  useFixedVelocity: boolean,
+  fixedVelocity: number
 ): Melody {
   const notes: Note[] = []
   if (!scale.notes.length || !rhythm.steps.length) {
@@ -62,13 +65,21 @@ export function generateMelody(
   }
 
   if (useNGrams) {
-    return generateNGramMelody(scale, rhythm, bars)
+    return generateNGramMelody(scale, rhythm, bars, octave, useFixedVelocity, fixedVelocity)
   } else {
-    return generateSimpleMelody(scale, rhythm, bars, useMotifRepetition)
+    return generateSimpleMelody(scale, rhythm, bars, useMotifRepetition, octave, useFixedVelocity, fixedVelocity)
   }
 }
 
-function generateSimpleMelody(scale: Scale, rhythm: RhythmPattern, bars: number, useMotifRepetition: boolean): Melody {
+function generateSimpleMelody(
+  scale: Scale,
+  rhythm: RhythmPattern,
+  bars: number,
+  useMotifRepetition: boolean,
+  octave: number,
+  useFixedVelocity: boolean,
+  fixedVelocity: number
+): Melody {
   const notes: Note[] = []
   const trainingData = createTrainingData(scale.notes)
   const markovTable = buildMarkovTable(trainingData, 1)
@@ -98,10 +109,12 @@ function generateSimpleMelody(scale: Scale, rhythm: RhythmPattern, bars: number,
         nextPitch = chooseWeighted(possibleNotes, newWeights)
       }
       currentPitch = nextPitch
+      const notePitch = getPitchWithOctave(currentPitch, octave)
+      const velocity = useFixedVelocity ? fixedVelocity / 127 : 0.8 + Math.random() * 0.2
       const newNote: Note = {
-        pitch: currentPitch,
+        pitch: notePitch,
         duration,
-        velocity: 0.8 + Math.random() * 0.2
+        velocity
       }
       currentBarNotes.push(newNote)
     }
@@ -114,7 +127,14 @@ function generateSimpleMelody(scale: Scale, rhythm: RhythmPattern, bars: number,
   return { notes }
 }
 
-function generateNGramMelody(scale: Scale, rhythm: RhythmPattern, bars: number): Melody {
+function generateNGramMelody(
+  scale: Scale,
+  rhythm: RhythmPattern,
+  bars: number,
+  octave: number,
+  useFixedVelocity: boolean,
+  fixedVelocity: number
+): Melody {
   const notes: Note[] = []
   const trainingData = createTrainingData(scale.notes)
   const markovTable = buildMarkovTable(trainingData, 2)
@@ -122,9 +142,9 @@ function generateNGramMelody(scale: Scale, rhythm: RhythmPattern, bars: number):
 
   let pitchHistory: string[] = [choose(scale.notes)]
   notes.push({
-    pitch: pitchHistory[0],
+    pitch: getPitchWithOctave(pitchHistory[0], octave),
     duration: rhythm.steps[0] || '4n',
-    velocity: 0.8 + Math.random() * 0.2
+    velocity: useFixedVelocity ? fixedVelocity / 127 : 0.8 + Math.random() * 0.2
   })
 
   // This loop needs to account for the first note already being added.
@@ -159,12 +179,17 @@ function generateNGramMelody(scale: Scale, rhythm: RhythmPattern, bars: number):
     }
 
     notes.push({
-      pitch: nextPitch,
+      pitch: getPitchWithOctave(nextPitch, octave),
       duration,
-      velocity: 0.8 + Math.random() * 0.2
+      velocity: useFixedVelocity ? fixedVelocity / 127 : 0.8 + Math.random() * 0.2
     })
     generatedNotesCount++
   }
 
   return { notes }
+}
+
+function getPitchWithOctave(pitch: string, octave: number): string {
+  // Entfernt alle Ziffern am Ende (Oktave) und hängt die gewünschte Oktave an
+  return pitch.replace(/[0-9]+$/, '') + octave
 }

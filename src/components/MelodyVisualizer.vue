@@ -38,15 +38,17 @@ function convertMelodyToCurrentScale() {
         <p class="text-center text-sm text-surface-600 dark:text-surface-300 font-mono">
           {{ displayMelody }}
         </p>
-        <div class="flex justify-center mt-4">
-          <Button
-            label="Convert to chosen scale"
-            icon="pi pi-refresh"
-            :disabled="!store.melody || !store.melody.notes.length"
-            @click="convertMelodyToCurrentScale"
-            severity="secondary"
-          />
-        </div>
+      </div>
+    </template>
+    <template #footer>
+      <div class="flex justify-end mt-4">
+        <Button
+          label="Convert to chosen scale"
+          icon="pi pi-refresh"
+          :disabled="!store.melody || !store.melody.notes.length"
+          @click="convertMelodyToCurrentScale"
+          severity="secondary"
+        />
       </div>
     </template>
   </Card>

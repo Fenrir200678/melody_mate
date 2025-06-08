@@ -8,7 +8,7 @@ export const useMusicStore = defineStore('music', {
     scaleName: 'Minor Scale' as string,
     key: 'C' as string,
     rhythm: null as RhythmPattern | null,
-    bars: 4,
+    bars: 2,
     bpm: 120,
     useMotifRepetition: true,
     useNGrams: false,
@@ -21,7 +21,10 @@ export const useMusicStore = defineStore('music', {
     melody: null as Melody | null,
     isGenerating: false,
     isPlaying: false,
-    selectedInstrument: 'default' as InstrumentKey
+    selectedInstrument: 'default' as InstrumentKey,
+    octave: 4,
+    useFixedVelocity: true,
+    fixedVelocity: 127
   }),
 
   actions: {
@@ -57,6 +60,16 @@ export const useMusicStore = defineStore('music', {
       this.selectedInstrument = instrument
     },
 
+    setOctave(octave: number) {
+      this.octave = octave
+    },
+    setUseFixedVelocity(use: boolean) {
+      this.useFixedVelocity = use
+    },
+    setFixedVelocity(velocity: number) {
+      this.fixedVelocity = velocity
+    },
+
     async generate() {
       const scale = generateScale(this.scaleName, this.key)
       if (!scale || !this.rhythm) {
@@ -73,7 +86,16 @@ export const useMusicStore = defineStore('music', {
           console.log('AI generation is not yet implemented.')
         } else {
           const { generateMelody } = await import('@/services/MelodyService')
-          this.melody = generateMelody(scale, this.rhythm, this.bars, this.useMotifRepetition, this.useNGrams)
+          this.melody = generateMelody(
+            scale,
+            this.rhythm,
+            this.bars,
+            this.useMotifRepetition,
+            this.useNGrams,
+            this.octave,
+            this.useFixedVelocity,
+            this.fixedVelocity
+          )
         }
       } catch (error) {
         console.error('Error during melody generation:', error)
