@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import useMusicStore from '@/stores/music.store'
-import { generateEuclideanPattern, PREDEFINED_RHYTHMS } from '@/services/RhythmService'
+import { generateEuclideanPattern } from '@/services/RhythmService'
+import { PREDEFINED_RHYTHMS } from '@/data/rhythms'
 import type { RhythmPattern } from '@/models'
 import Slider from 'primevue/slider'
-import Select from 'primevue/select'
 import Tabs from 'primevue/tabs'
 import TabList from 'primevue/tablist'
 import Tab from 'primevue/tab'
@@ -72,10 +72,10 @@ watch(activeTab, (newIndex) => {
 </script>
 
 <template>
-  <div class="p-0 border rounded-lg border-surface-200 dark:border-surface-700">
+  <div class="p-0 border border-surface-200 dark:border-surface-700">
     <Tabs v-model:value="activeTab" class="w-full">
       <TabList>
-        <Tab :value="0">Generator</Tab>
+        <Tab :value="0">Euclidean Generator</Tab>
         <Tab :value="1">Presets</Tab>
       </TabList>
       <TabPanels>
@@ -93,13 +93,22 @@ watch(activeTab, (newIndex) => {
         </TabPanel>
         <TabPanel :value="1">
           <div class="p-4 flex justify-center">
-            <Select
-              v-model="selectedRhythm"
-              :options="availableRhythms"
-              optionLabel="name"
-              placeholder="Select a Rhythm"
-              @update:modelValue="onRhythmChange"
-            />
+            <ul class="w-full max-w-xs flex flex-col gap-1">
+              <li
+                v-for="rhythm in availableRhythms"
+                :key="rhythm.name"
+                @click="onRhythmChange(rhythm)"
+                :class="[
+                  'cursor-pointer rounded transition-colors flex items-center justify-between text-sm',
+                  selectedRhythm?.name === rhythm.name
+                    ? 'bg-primary-100 dark:bg-primary-700 text-primary-900 dark:text-primary-50 font-bold'
+                    : 'bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600'
+                ]"
+              >
+                <span>{{ rhythm.name }}</span>
+                <span v-if="selectedRhythm?.name === rhythm.name" aria-label="Ausgewählt">✔️</span>
+              </li>
+            </ul>
           </div>
         </TabPanel>
       </TabPanels>

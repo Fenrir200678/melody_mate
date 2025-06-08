@@ -3,15 +3,12 @@ import type { RhythmPattern, Melody, AIConfig } from '@/models'
 import { generateScale } from '@/services/ScaleService'
 import type { InstrumentKey } from '@/services/AudioService'
 
-// Services are dynamically imported in actions to enable code splitting.
-// This is especially useful for the AI service, which can be large.
-
 export const useMusicStore = defineStore('music', {
   state: () => ({
     scaleName: 'Minor Scale' as string,
     key: 'C' as string,
     rhythm: null as RhythmPattern | null,
-    bars: 2,
+    bars: 4,
     bpm: 120,
     useMotifRepetition: true,
     useNGrams: false,
