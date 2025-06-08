@@ -49,34 +49,45 @@ function createTrainingData(notes: string[]): string[][] {
   return sequences
 }
 
-export function generateMelody(scale: Scale, rhythm: RhythmPattern, bars: number, useMotifRepetition: boolean): Melody {
+export function generateMelody(
+  scale: Scale,
+  rhythm: RhythmPattern,
+  bars: number,
+  useMotifRepetition: boolean,
+  useNGrams: boolean
+): Melody {
   const notes: Note[] = []
   if (!scale.notes.length || !rhythm.steps.length) {
     return { notes }
   }
 
-  const trainingData = createTrainingData(scale.notes)
-  const markovTable = buildMarkovTable(trainingData)
+  if (useNGrams) {
+    return generateNGramMelody(scale, rhythm, bars)
+  } else {
+    return generateSimpleMelody(scale, rhythm, bars, useMotifRepetition)
+  }
+}
 
+function generateSimpleMelody(scale: Scale, rhythm: RhythmPattern, bars: number, useMotifRepetition: boolean): Melody {
+  const notes: Note[] = []
+  const trainingData = createTrainingData(scale.notes)
+  const markovTable = buildMarkovTable(trainingData, 1)
   let currentPitch = choose(scale.notes)
   const motif: Note[] = []
 
   for (let i = 0; i < bars; i++) {
-    // On bar 3 (index 2), repeat the motif if it exists and the option is enabled
     if (useMotifRepetition && i === 2 && motif.length > 0) {
       notes.push(...motif)
-      // Update the current pitch to the last note of the motif to ensure smooth transition
       currentPitch = motif[motif.length - 1].pitch
-      continue // Skip generation for this bar
+      continue
     }
 
     const currentBarNotes: Note[] = []
     for (const duration of rhythm.steps) {
-      const transitions = getTransitions(markovTable, currentPitch)
+      const transitions = getTransitions(markovTable, [currentPitch])
       let nextPitch: string
 
       if (!transitions) {
-        // No learned transition from this note, pick a random one from the scale
         nextPitch = choose(scale.notes)
       } else {
         const { notes: possibleNotes, weights: newWeights } = applyMusicalWeighting(
@@ -87,20 +98,72 @@ export function generateMelody(scale: Scale, rhythm: RhythmPattern, bars: number
         nextPitch = chooseWeighted(possibleNotes, newWeights)
       }
       currentPitch = nextPitch
-
       const newNote: Note = {
         pitch: currentPitch,
         duration,
-        velocity: 0.8 + Math.random() * 0.2 // slight variation
+        velocity: 0.8 + Math.random() * 0.2
       }
       currentBarNotes.push(newNote)
     }
 
-    // Save the first bar as the motif if the option is enabled
     if (useMotifRepetition && i === 0) {
       motif.push(...currentBarNotes)
     }
     notes.push(...currentBarNotes)
+  }
+  return { notes }
+}
+
+function generateNGramMelody(scale: Scale, rhythm: RhythmPattern, bars: number): Melody {
+  const notes: Note[] = []
+  const trainingData = createTrainingData(scale.notes)
+  const markovTable = buildMarkovTable(trainingData, 2)
+  const simpleMarkovTable = buildMarkovTable(trainingData, 1)
+
+  let pitchHistory: string[] = [choose(scale.notes)]
+  notes.push({
+    pitch: pitchHistory[0],
+    duration: rhythm.steps[0] || '4n',
+    velocity: 0.8 + Math.random() * 0.2
+  })
+
+  // This loop needs to account for the first note already being added.
+  let totalNotesToGenerate = bars * rhythm.steps.length
+  let generatedNotesCount = 1
+
+  while (generatedNotesCount < totalNotesToGenerate) {
+    const currentStepIndex = (generatedNotesCount - 1) % rhythm.steps.length
+
+    const state = pitchHistory.length >= 2 ? pitchHistory.slice(-2) : pitchHistory.slice(-1)
+    const tableToUse = pitchHistory.length >= 2 ? markovTable : simpleMarkovTable
+    const currentPitchForWeighting = pitchHistory[pitchHistory.length - 1]
+    const duration = rhythm.steps[currentStepIndex]
+
+    const transitions = getTransitions(tableToUse, state)
+    let nextPitch: string
+
+    if (!transitions) {
+      nextPitch = choose(scale.notes)
+    } else {
+      const { notes: possibleNotes, weights: newWeights } = applyMusicalWeighting(
+        transitions,
+        currentPitchForWeighting,
+        scale.notes
+      )
+      nextPitch = chooseWeighted(possibleNotes, newWeights)
+    }
+
+    pitchHistory.push(nextPitch)
+    if (pitchHistory.length > 2) {
+      pitchHistory.shift()
+    }
+
+    notes.push({
+      pitch: nextPitch,
+      duration,
+      velocity: 0.8 + Math.random() * 0.2
+    })
+    generatedNotesCount++
   }
 
   return { notes }

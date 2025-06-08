@@ -14,6 +14,7 @@ export const useMusicStore = defineStore('music', {
     bars: 2,
     bpm: 120,
     useMotifRepetition: true,
+    useNGrams: false,
     useAI: false,
     aiConfig: {
       model: 'melody_rnn',
@@ -45,6 +46,9 @@ export const useMusicStore = defineStore('music', {
     setUseMotifRepetition(use: boolean) {
       this.useMotifRepetition = use
     },
+    setUseNGrams(use: boolean) {
+      this.useNGrams = use
+    },
     setUseAI(useAI: boolean) {
       this.useAI = useAI
     },
@@ -72,7 +76,7 @@ export const useMusicStore = defineStore('music', {
           console.log('AI generation is not yet implemented.')
         } else {
           const { generateMelody } = await import('@/services/MelodyService')
-          this.melody = generateMelody(scale, this.rhythm, this.bars, this.useMotifRepetition)
+          this.melody = generateMelody(scale, this.rhythm, this.bars, this.useMotifRepetition, this.useNGrams)
         }
       } catch (error) {
         console.error('Error during melody generation:', error)

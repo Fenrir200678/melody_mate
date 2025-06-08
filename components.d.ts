@@ -11,11 +11,13 @@ declare module 'vue' {
     BpmSelector: typeof import('./src/components/BpmSelector.vue')['default']
     Controls: typeof import('./src/components/Controls.vue')['default']
     Divider: typeof import('primevue/divider')['default']
+    EuclideanRhythmGenerator: typeof import('./src/components/EuclideanRhythmGenerator.vue')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     KeySelector: typeof import('./src/components/KeySelector.vue')['default']
     LengthSelector: typeof import('./src/components/LengthSelector.vue')['default']
     MelodyGenerator: typeof import('./src/components/MelodyGenerator.vue')['default']
     MelodyVisualizer: typeof import('./src/components/MelodyVisualizer.vue')['default']
+    RhythmControl: typeof import('./src/components/RhythmControl.vue')['default']
     RhythmEditor: typeof import('./src/components/RhythmEditor.vue')['default']
     ScaleSelector: typeof import('./src/components/ScaleSelector.vue')['default']
   }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ScaleSelector from './components/ScaleSelector.vue'
 import KeySelector from './components/KeySelector.vue'
-import RhythmEditor from './components/RhythmEditor.vue'
+import RhythmControl from './components/RhythmControl.vue'
 import LengthSelector from './components/LengthSelector.vue'
 import BpmSelector from './components/BpmSelector.vue'
 import MelodyGenerator from './components/MelodyGenerator.vue'
@@ -32,7 +32,7 @@ const store = useMusicStore()
             </div>
           </template>
           <template #content>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-8 gap-y-4 p-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4 p-4">
               <div class="flex flex-col items-center gap-2">
                 <label class="font-bold text-sm">Key</label>
                 <KeySelector />
@@ -41,9 +41,8 @@ const store = useMusicStore()
                 <label class="font-bold text-sm">Scale</label>
                 <ScaleSelector />
               </div>
-              <div class="flex flex-col items-center gap-2">
-                <label class="font-bold text-sm">Rhythm</label>
-                <RhythmEditor />
+              <div class="flex flex-col items-center gap-2 sm:col-span-2 lg:col-span-1">
+                <RhythmControl />
               </div>
               <div class="flex flex-col items-center gap-2">
                 <label class="font-bold text-sm">Bars</label>
@@ -53,13 +52,21 @@ const store = useMusicStore()
                 <label class="font-bold text-sm">BPM</label>
                 <BpmSelector />
               </div>
-              <div class="flex flex-col items-center justify-center gap-2">
+              <div class="flex items-center justify-center gap-4">
                 <label for="motif-repetition" class="font-bold text-sm">Motif Repetition</label>
                 <Checkbox
                   v-model="store.useMotifRepetition"
                   :binary="true"
                   inputId="motif-repetition"
                   @update:modelValue="store.setUseMotifRepetition"
+                  :disabled="store.useNGrams"
+                />
+                <label for="n-grams" class="font-bold text-sm">Use N-Grams</label>
+                <Checkbox
+                  v-model="store.useNGrams"
+                  :binary="true"
+                  inputId="n-grams"
+                  @update:modelValue="store.setUseNGrams"
                 />
               </div>
             </div>
