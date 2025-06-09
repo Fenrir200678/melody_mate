@@ -1,7 +1,8 @@
 import type { Melody, Note, RhythmPattern, Scale } from '@/models'
-import { buildMarkovTable, getTransitions } from '@/utils/markov'
-import { choose, chooseWeighted } from '@/utils/random-chooser'
-import { applyMusicalWeighting } from '@/utils/music-theory'
+import { buildMarkovTable } from '@/utils/markov'
+import { choose } from '@/utils/random-chooser'
+import { getNextPitch } from '@/utils/pitch'
+import { calculateVelocity } from '@/utils/velocity'
 
 /**
  * Creates training data for the Markov chain.
@@ -54,73 +55,54 @@ function createTrainingData(notes: string[]): string[][] {
   return sequences
 }
 
+export type MelodyGenerationOptions = {
+  scale: Scale
+  rhythm: RhythmPattern
+  bars: number
+  octave: number
+  useMotifRepetition: boolean
+  useNGrams: boolean
+  useFixedVelocity: boolean
+  fixedVelocity: number
+  startWithRootNote?: boolean
+}
+
 /**
  * Generates a melody based on the given scale, rhythm, and parameters.
- * @param scale - The scale to use for the melody.
- * @param rhythm - The rhythm pattern to use for the melody.
- * @param bars - The number of bars in the melody.
- * @param useMotifRepetition - Whether to use motif repetition.
- * @param useNGrams - Whether to use N-grams.
- * @param octave - The octave to use for the melody.
- * @param useFixedVelocity - Whether to use a fixed velocity.
- * @param fixedVelocity - The fixed velocity to use.
- * @param startWithRootNote - Whether to start with the root note.
+ * @param options - The melody generation options.
  * @returns The generated melody.
  */
-export function generateMelody(
-  scale: Scale,
-  rhythm: RhythmPattern,
-  bars: number,
-  useMotifRepetition: boolean,
-  useNGrams: boolean,
-  octave: number,
-  useFixedVelocity: boolean,
-  fixedVelocity: number,
-  startWithRootNote: boolean = false
-): Melody {
-  const notes: Note[] = []
+export function generateMelody(options: MelodyGenerationOptions): Melody {
+  const { scale, rhythm, useNGrams } = options
+
   if (!scale.notes.length || !rhythm.steps.length) {
-    return { notes }
+    return { notes: [] }
   }
 
   if (useNGrams) {
-    return generateNGramMelody(scale, rhythm, bars, octave, useFixedVelocity, fixedVelocity, startWithRootNote)
+    return _generateNGramMelody(options)
   } else {
-    return generateSimpleMelody(
-      scale,
-      rhythm,
-      bars,
-      useMotifRepetition,
-      octave,
-      useFixedVelocity,
-      fixedVelocity,
-      startWithRootNote
-    )
+    return _generateSimpleMelody(options)
   }
 }
 
 /**
  * Generates a simple melody based on the given scale, rhythm, and parameters.
- * @param scale - The scale to use for the melody.
- * @param rhythm - The rhythm pattern to use for the melody.
- * @param bars - The number of bars in the melody.
- * @param useMotifRepetition - Whether to use motif repetition.
- * @param octave - The octave to use for the melody.
- * @param useFixedVelocity - Whether to use a fixed velocity.
- * @param fixedVelocity - The fixed velocity to use.
- * @param startWithRootNote - Whether to start with the root note.
+ * @param options - The melody generation options.
  * @returns The generated melody.
  */
-function generateSimpleMelody(
-  scale: Scale,
-  rhythm: RhythmPattern,
-  bars: number,
-  useMotifRepetition: boolean,
-  octave: number,
-  useFixedVelocity: boolean,
-  fixedVelocity: number,
-  startWithRootNote: boolean = false
-): Melody {
+function _generateSimpleMelody(options: MelodyGenerationOptions): Melody {
+  const {
+    scale,
+    rhythm,
+    bars,
+    useMotifRepetition,
+    octave,
+    useFixedVelocity,
+    fixedVelocity,
+    startWithRootNote = false
+  } = options
+
   const notes: Note[] = []
   const trainingData = createTrainingData(scale.notes)
   const markovTable = buildMarkovTable(trainingData, 1)
@@ -134,7 +116,10 @@ function generateSimpleMelody(
   for (let i = 0; i < bars; i++) {
     if (useMotifRepetition && i === 2 && motif.length > 0) {
       notes.push(...motif)
-      currentPitch = motif[motif.length - 1].pitch
+      if (motif.length > 0) {
+        // BUG FIX: Strip octave from the full pitch string to get the scale note
+        currentPitch = motif[motif.length - 1].pitch.replace(/[0-9]+$/, '')
+      }
       continue
     }
 
@@ -150,27 +135,14 @@ function generateSimpleMelody(
           hasPattern && rhythm.noteDurations
             ? rhythm.noteDurations[noteIndex % rhythm.noteDurations.length]
             : rhythm.steps[j] || rhythm.subdivision || '16n'
-        // For the very first note, use the initial currentPitch (which might be root note)
-        // For all subsequent notes, generate the next pitch using Markov chain
-        if (!(i === 0 && j === 0)) {
-          const transitions = getTransitions(markovTable, [currentPitch])
-          let nextPitch: string
 
-          if (!transitions) {
-            nextPitch = choose(scale.notes)
-          } else {
-            const { notes: possibleNotes, weights: newWeights } = applyMusicalWeighting(
-              transitions,
-              currentPitch,
-              scale.notes
-            )
-            nextPitch = chooseWeighted(possibleNotes, newWeights)
-          }
-          currentPitch = nextPitch
+        // For all notes after the first, generate the next pitch using Markov chain
+        if (notes.length > 0 || currentBarNotes.length > 0) {
+          currentPitch = getNextPitch([currentPitch], markovTable, scale, currentPitch)
         }
 
         const notePitch = getPitchWithOctave(currentPitch, octave)
-        const velocity = useFixedVelocity ? fixedVelocity / 127 : 0.8 + Math.random() * 0.2
+        const velocity = calculateVelocity({ useFixed: useFixedVelocity, fixedValue: fixedVelocity })
         const newNote: Note = {
           pitch: notePitch,
           duration,
@@ -192,24 +164,12 @@ function generateSimpleMelody(
 
 /**
  * Generates an N-gram melody based on the given scale, rhythm, and parameters.
- * @param scale - The scale to use for the melody.
- * @param rhythm - The rhythm pattern to use for the melody.
- * @param bars - The number of bars in the melody.
- * @param octave - The octave to use for the melody.
- * @param useFixedVelocity - Whether to use a fixed velocity.
- * @param fixedVelocity - The fixed velocity to use.
- * @param startWithRootNote - Whether to start with the root note.
+ * @param options - The melody generation options.
  * @returns The generated melody.
  */
-function generateNGramMelody(
-  scale: Scale,
-  rhythm: RhythmPattern,
-  bars: number,
-  octave: number,
-  useFixedVelocity: boolean,
-  fixedVelocity: number,
-  startWithRootNote: boolean = false
-): Melody {
+function _generateNGramMelody(options: MelodyGenerationOptions): Melody {
+  const { scale, rhythm, bars, octave, useFixedVelocity, fixedVelocity, startWithRootNote = false } = options
+
   const notes: Note[] = []
   const trainingData = createTrainingData(scale.notes)
   const markovTable = buildMarkovTable(trainingData, 2)
@@ -220,30 +180,29 @@ function generateNGramMelody(
   const stepsPerBar = hasPattern ? rhythm.pattern!.length : rhythm.steps.length
 
   const pitchHistory: string[] = [startWithRootNote ? scale.notes[0] : choose(scale.notes)]
-
-  // Only add first note if it should be played according to pattern
-  const firstStepShouldPlay = hasPattern ? rhythm.pattern![0] === 1 : true
   let noteIndex = 0 // Track which note we're generating for duration lookup
 
+  // Handle the very first note separately to simplify the main loop
+  const firstStepShouldPlay = hasPattern ? rhythm.pattern![0] === 1 : true
   if (firstStepShouldPlay) {
     const duration =
       hasPattern && rhythm.noteDurations
         ? rhythm.noteDurations[noteIndex % rhythm.noteDurations.length]
         : rhythm.steps[0] || rhythm.subdivision || '4n'
 
+    const velocity = calculateVelocity({ useFixed: useFixedVelocity, fixedValue: fixedVelocity })
+
     notes.push({
       pitch: getPitchWithOctave(pitchHistory[0], octave),
       duration,
-      velocity: useFixedVelocity ? fixedVelocity / 127 : 0.8 + Math.random() * 0.2
+      velocity
     })
     noteIndex++
   }
 
-  // This loop needs to account for the total steps considering the pattern
+  // Generate the rest of the notes starting from the second step
   const totalStepsToGenerate = bars * stepsPerBar
-  let currentStepIndex = 1 // Start from 1 since we handled step 0 above
-
-  while (currentStepIndex < totalStepsToGenerate) {
+  for (let currentStepIndex = 1; currentStepIndex < totalStepsToGenerate; currentStepIndex++) {
     const stepInBar = currentStepIndex % stepsPerBar
     const shouldPlayNote = hasPattern ? rhythm.pattern![stepInBar] === 1 : true
 
@@ -251,39 +210,28 @@ function generateNGramMelody(
       const state = pitchHistory.length >= 2 ? pitchHistory.slice(-2) : pitchHistory.slice(-1)
       const tableToUse = pitchHistory.length >= 2 ? markovTable : simpleMarkovTable
       const currentPitchForWeighting = pitchHistory[pitchHistory.length - 1]
-      const duration =
-        hasPattern && rhythm.noteDurations
-          ? rhythm.noteDurations[noteIndex % rhythm.noteDurations.length]
-          : rhythm.steps[stepInBar] || rhythm.subdivision || '16n'
 
-      const transitions = getTransitions(tableToUse, state)
-      let nextPitch: string
-
-      if (!transitions) {
-        nextPitch = choose(scale.notes)
-      } else {
-        const { notes: possibleNotes, weights: newWeights } = applyMusicalWeighting(
-          transitions,
-          currentPitchForWeighting,
-          scale.notes
-        )
-        nextPitch = chooseWeighted(possibleNotes, newWeights)
-      }
+      const nextPitch = getNextPitch(state, tableToUse, scale, currentPitchForWeighting)
 
       pitchHistory.push(nextPitch)
       if (pitchHistory.length > 2) {
         pitchHistory.shift()
       }
 
+      const duration =
+        hasPattern && rhythm.noteDurations
+          ? rhythm.noteDurations[noteIndex % rhythm.noteDurations.length]
+          : rhythm.steps[stepInBar] || rhythm.subdivision || '16n'
+
+      const velocity = calculateVelocity({ useFixed: useFixedVelocity, fixedValue: fixedVelocity })
+
       notes.push({
         pitch: getPitchWithOctave(nextPitch, octave),
         duration,
-        velocity: useFixedVelocity ? fixedVelocity / 127 : 0.8 + Math.random() * 0.2
+        velocity
       })
       noteIndex++ // Increment for next note duration
     }
-
-    currentStepIndex++
   }
 
   return { notes }

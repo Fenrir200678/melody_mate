@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import type { RhythmPattern, Melody, AIConfig } from '@/models'
 import { generateScale } from '@/services/ScaleService'
 import type { InstrumentKey } from '@/services/AudioService'
+import type { MelodyGenerationOptions } from '@/services/MelodyService'
 
 export const useMusicStore = defineStore('music', {
   state: () => ({
@@ -91,17 +92,18 @@ export const useMusicStore = defineStore('music', {
           console.log('AI generation is not yet implemented.')
         } else {
           const { generateMelody } = await import('@/services/MelodyService')
-          this.melody = generateMelody(
+          const melodyOptions: MelodyGenerationOptions = {
             scale,
-            this.rhythm,
-            this.bars,
-            this.useMotifRepetition,
-            this.useNGrams,
-            this.octave,
-            this.useFixedVelocity,
-            this.fixedVelocity,
-            this.startWithRootNote
-          )
+            rhythm: this.rhythm,
+            bars: this.bars,
+            octave: this.octave,
+            useMotifRepetition: this.useMotifRepetition,
+            useNGrams: this.useNGrams,
+            useFixedVelocity: this.useFixedVelocity,
+            fixedVelocity: this.fixedVelocity,
+            startWithRootNote: this.startWithRootNote
+          }
+          this.melody = generateMelody(melodyOptions)
         }
       } catch (error) {
         console.error('Error during melody generation:', error)
