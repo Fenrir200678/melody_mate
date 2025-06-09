@@ -3,6 +3,7 @@ import type { RhythmPattern, Melody, AIConfig } from '@/models'
 import { generateScale } from '@/services/ScaleService'
 import type { InstrumentKey } from '@/services/AudioService'
 import type { MelodyGenerationOptions } from '@/services/MelodyService'
+import { setMelodyOctave } from '@/utils/transpose'
 
 export const useMusicStore = defineStore('music', {
   state: () => ({
@@ -69,6 +70,12 @@ export const useMusicStore = defineStore('music', {
     },
 
     setOctave(octave: number) {
+      if (this.melody && this.melody.notes.length) {
+        this.melody = {
+          ...this.melody,
+          notes: setMelodyOctave(this.melody.notes, octave)
+        }
+      }
       this.octave = octave
     },
     setUseFixedVelocity(use: boolean) {
