@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import type { RhythmPattern, Melody, AIConfig } from '@/ts/models'
 import { generateScale } from '@/services/ScaleService'
-import type { InstrumentKey } from '@/services/AudioService'
-import type { MelodyGenerationOptions } from '@/services/MelodyService'
+import type { InstrumentKey } from '@/ts/types/audio.types'
+import type { MelodyGenerationOptions } from '@/ts/types/melody.types'
 import { setMelodyOctave } from '@/utils/transpose'
 
 export const useMusicStore = defineStore('music', {
@@ -183,6 +183,9 @@ export const useMusicStore = defineStore('music', {
       console.log(fileName)
       saveAsMidi(this.melody, this.bpm, fileName)
     }
+  },
+  getters: {
+    isEuclideanRhythm: (state) => state.rhythm?.pulses !== undefined
   }
 })
 

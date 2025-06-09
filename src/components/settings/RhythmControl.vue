@@ -125,11 +125,14 @@ onMounted(() => {
 })
 
 watch(activeTab, (newIndex) => {
+  // If the active tab is the Euclidean rhythm tab, generate and set the Euclidean rhythm
   if (newIndex === 1) {
+    store.setUseNGrams(true)
+    store.setUseMotifRepetition(false)
     generateAndSetEuclideanRhythm()
   } else if (newIndex === 0) {
-    // If the rhythm in the store is Euclidean, switch back to a default preset
-    if (store.rhythm?.pulses !== undefined) {
+    // If the rhythm in the store is Euclidean, switch back to a default preset (first rhythm in the category)
+    if (store.isEuclideanRhythm) {
       const firstRhythm = filteredRhythms.value[0]
       if (firstRhythm) {
         onRhythmChange(firstRhythm)
@@ -259,8 +262,9 @@ const subdivisionOptions = computed(() => {
             bar.
           </p>
           <p class="mt-1">
-            Also the <span class="font-bold">"Length (bars)"</span> selection below has no effect on the length of the
-            generated melody and is disabled.
+            Also <span class="font-bold">Motif Repetition</span> can't be used with Euclidean rhythms and
+            <span class="font-bold">Length (bars)</span> below has no effect on the length of the generated melody and
+            is disabled.
           </p>
         </div>
       </TabPanel>

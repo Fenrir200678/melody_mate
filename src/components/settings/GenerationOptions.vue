@@ -1,13 +1,15 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import Checkbox from 'primevue/checkbox'
 import useMusicStore from '@/stores/music.store'
 
 const store = useMusicStore()
+const disabledClass = computed(() => (store.useNGrams || store.isEuclideanRhythm ? 'text-zinc-500' : ''))
 </script>
 <template>
   <div class="space-y-4">
     <div class="flex items-center justify-between gap-4">
-      <div class="flex flex-col flex-1 min-w-0">
+      <div class="flex flex-col flex-1 min-w-0" :class="disabledClass">
         <label for="motif-repetition" class="font-medium"> Motif Repetition </label>
         <span class="text-xs break-words"> Tries to repeat melodic motifs if applicable</span>
       </div>
@@ -16,7 +18,7 @@ const store = useMusicStore()
         :binary="true"
         inputId="motif-repetition"
         @update:modelValue="store.setUseMotifRepetition"
-        :disabled="store.useNGrams"
+        :disabled="store.useNGrams || store.isEuclideanRhythm"
       />
     </div>
 

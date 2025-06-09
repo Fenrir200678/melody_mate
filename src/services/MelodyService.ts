@@ -1,6 +1,6 @@
 import type { Melody, Note, RhythmPattern, Scale } from '@/ts/models'
 import type { MelodyGenerationOptions } from '@/ts/types/melody.types'
-import { STEPS_PER_16N, DURATION_MAP } from '@/ts/const/melody.const'
+import { STEPS_PER_4N, STEPS_PER_8N, STEPS_PER_16N, STEPS_PER_32N, DURATION_MAP } from '@/ts/const/melody.const'
 import { buildMarkovTable, type MarkovTable } from '@/utils/markov'
 import { choose } from '@/utils/random-chooser'
 import { getNextPitch } from '@/utils/pitch'
@@ -88,16 +88,28 @@ function normalizeRhythm(rhythm: RhythmPattern): RhythmPattern {
     return { ...rhythm, subdivision: rhythm.subdivision || '16n' }
   }
 
-  const subdivision = '16n'
+  // Determine the subdivision for the pattern. Fallback to '16n' if not specified.
+  const subdivision = rhythm.subdivision || '16n'
   const noteDurations = rhythm.steps
+
+  const STEPS_MAPS = {
+    '4n': STEPS_PER_4N,
+    '8n': STEPS_PER_8N,
+    '16n': STEPS_PER_16N,
+    '32n': STEPS_PER_32N
+  }
+  const stepsMap = STEPS_MAPS[subdivision as keyof typeof STEPS_MAPS] || STEPS_PER_16N
+
   const pattern: (0 | 1)[] = []
   let totalSteps = 0
 
   for (const duration of noteDurations) {
-    const stepsForNote = STEPS_PER_16N[duration as keyof typeof STEPS_PER_16N] || 0
+    const stepsForNote = stepsMap[duration as keyof typeof stepsMap] || 0
     if (stepsForNote > 0) {
       pattern.push(1)
-      pattern.push(...new Array(stepsForNote - 1).fill(0))
+      if (stepsForNote > 1) {
+        pattern.push(...new Array(stepsForNote - 1).fill(0))
+      }
       totalSteps += stepsForNote
     }
   }
