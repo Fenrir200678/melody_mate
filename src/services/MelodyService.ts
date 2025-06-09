@@ -249,6 +249,5 @@ function generateNGramMelody(
 }
 
 function getPitchWithOctave(pitch: string, octave: number): string {
-  // Entfernt alle Ziffern am Ende (Oktave) und hängt die gewünschte Oktave an
   return pitch.replace(/[0-9]+$/, '') + octave
 }

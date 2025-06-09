@@ -4,7 +4,7 @@ import useMusicStore from '@/stores/music.store'
 import { generateEuclideanPattern } from '@/services/RhythmService'
 import { PREDEFINED_RHYTHMS, RHYTHM_CATEGORIES, type CategorizedRhythm, type RhythmCategory } from '@/data/rhythms'
 
-import EuclideanVisualizer from './EuclideanVisualizer.vue'
+import EuclideanVisualizer from '@/components/EuclideanVisualizer.vue'
 
 import Slider from 'primevue/slider'
 import Tabs from 'primevue/tabs'
