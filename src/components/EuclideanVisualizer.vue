@@ -7,6 +7,7 @@ import { useMusicStore } from '@/stores/music.store'
 const props = defineProps<{
   pulses?: number
   steps?: number
+  isAnimated?: boolean
 }>()
 
 // Default values
@@ -15,8 +16,8 @@ const steps = computed(() => props.steps ?? 16)
 
 // Get current step from store for animation
 const musicStore = useMusicStore()
-const currentStep = computed(() => musicStore.currentStep)
-const activeNoteStep = computed(() => musicStore.activeNoteStep)
+const currentStep = computed(() => (props.isAnimated ? musicStore.currentStep : -1))
+const activeNoteStep = computed(() => (props.isAnimated ? musicStore.activeNoteStep : -1))
 
 // Canvas reference
 const canvasRef = ref<HTMLCanvasElement | null>(null)

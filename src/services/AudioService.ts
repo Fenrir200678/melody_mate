@@ -235,13 +235,16 @@ export function stopPlayback(time?: number): void {
   const transport = Tone.getTransport()
   if (transport.state === 'started') {
     if (typeof time === 'number') {
-      const safeTime = Math.max(0, time)
+      const epsilon = 1e-6
+      const safeTime = time < epsilon ? 0 : time
       transport.stop(safeTime)
+      part?.stop(safeTime)
     } else {
       transport.stop()
+      part?.stop()
     }
     transport.cancel()
-    part?.stop()
+    part = null
   }
 
   // Reset visualizer animation

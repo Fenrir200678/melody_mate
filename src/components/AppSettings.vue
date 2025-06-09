@@ -41,7 +41,7 @@ import GenerationOptions from '@/components/settings/GenerationOptions.vue'
     </div>
 
     <!-- Composition -->
-    <div class="mt-8">
+    <div class="mt-4">
       <h3 class="text-lg font-semibold mb-2 flex items-center gap-2">
         <i class="pi pi-file-edit text-sm"></i>
         Composition

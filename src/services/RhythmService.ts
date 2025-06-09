@@ -69,10 +69,10 @@ function convertMultiplesToDurations(multiples: number[], subdivision: string): 
  */
 export function generateEuclideanPattern(pulses: number, steps: number, subdivision: string = '16n'): RhythmPattern {
   if (pulses > steps || pulses < 0 || steps <= 0) {
-    return { steps: [], pattern: [], subdivision }
+    return { steps: [], pattern: [], subdivision, pulses: 0, name: 'Empty' }
   }
   if (pulses === 0) {
-    return { steps: [], pattern: new Array(steps).fill(0), subdivision }
+    return { steps: [], pattern: new Array(steps).fill(0), subdivision, pulses: 0, name: 'Empty' }
   }
 
   const binaryPattern = generateEuclideanBinaryPattern(pulses, steps)
@@ -86,7 +86,7 @@ export function generateEuclideanPattern(pulses: number, steps: number, subdivis
   }, [] as number[])
 
   if (hitIndices.length === 0) {
-    return { steps: [], pattern: [], subdivision }
+    return { steps: [], pattern: [], subdivision, pulses: 0, name: 'Empty' }
   }
 
   // Calculate intervals between hits for durations
@@ -107,10 +107,12 @@ export function generateEuclideanPattern(pulses: number, steps: number, subdivis
   const stepDurations: string[] = new Array(steps).fill(subdivision)
 
   return {
+    name: `Euclidean ${pulses}/${steps}`,
     steps: stepDurations,
     pattern: binaryPattern,
     subdivision,
-    noteDurations
+    noteDurations,
+    pulses
   }
 }
 

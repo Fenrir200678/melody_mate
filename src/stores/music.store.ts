@@ -167,7 +167,7 @@ export const useMusicStore = defineStore('music', {
       const key = this.key.replace(/\s+/g, '_').toLowerCase()
       const scale = this.scaleName.replace(/\s+/g, '_').toLowerCase().replace('scale', '')
       const bars = this.bars
-      const barString = bars > 1 ? `-${bars}bars` : ''
+      const barString = bars > 1 ? `-${bars}_bars` : ''
       const fileName = `${key}-${scale}${barString}.mid`
       console.log(fileName)
       saveAsMidi(this.melody, this.bpm, fileName)

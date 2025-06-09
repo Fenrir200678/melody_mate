@@ -9,7 +9,7 @@ const store = useMusicStore()
     <div class="flex items-center justify-between gap-4">
       <div class="flex flex-col flex-1 min-w-0">
         <label for="motif-repetition" class="font-medium"> Motif Repetition </label>
-        <span class="text-xs break-words"> Tries to repeat melodic motifs for more structure </span>
+        <span class="text-xs break-words"> Tries to repeat melodic motifs if applicable</span>
       </div>
       <Checkbox
         v-model="store.useMotifRepetition"
@@ -35,7 +35,7 @@ const store = useMusicStore()
     <div class="flex items-start justify-between gap-4">
       <div class="flex flex-col flex-1 min-w-0">
         <label for="n-grams" class="font-medium"> Start with root note </label>
-        <span class="text-xs break-words"> Start the melody with the root note of the chord </span>
+        <span class="text-xs break-words"> Start the melody with the root note of the scale</span>
       </div>
       <div class="flex-shrink-0 mt-1">
         <Checkbox

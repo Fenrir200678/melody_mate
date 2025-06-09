@@ -13,6 +13,7 @@ import Tab from 'primevue/tab'
 import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
 import SelectButton from 'primevue/selectbutton'
+import type { RhythmPattern } from '@/models'
 
 // Common store instance
 const store = useMusicStore()
@@ -34,15 +35,16 @@ const generateAndSetEuclideanRhythm = () => {
   store.setRhythm(newRhythm)
 }
 
+// Update the store only when user interacts with sliders
 watch([pulses, steps], () => {
-  if (activeTab.value === 0) {
+  if (activeTab.value === 1) {
     generateAndSetEuclideanRhythm()
   }
 })
 
 // --- Preset Selector Logic ---
 const availableRhythms = ref<CategorizedRhythm[]>(PREDEFINED_RHYTHMS)
-const selectedRhythm = ref<CategorizedRhythm | null>(null)
+const selectedRhythm = ref<CategorizedRhythm | RhythmPattern | null>(null) // Can be either
 const selectedCategory = ref<RhythmCategory>('bass')
 
 // Group rhythms by category
@@ -80,32 +82,38 @@ function onRhythmChange(value: CategorizedRhythm) {
   }
 }
 
-// Set a default rhythm on initial component mount
+// Set component state from store on mount
 onMounted(() => {
-  generateAndSetEuclideanRhythm()
-  // Set initial preset for display
-  if (availableRhythms.value.length > 0) {
-    selectedRhythm.value = availableRhythms.value[0]
-  }
-})
-
-watch(activeTab, (newIndex) => {
-  if (newIndex === 1) {
-    // When switching to presets, apply the currently selected one
-    if (selectedRhythm.value) {
-      store.setRhythm(selectedRhythm.value.pattern)
+  const currentRhythm = store.rhythm
+  if (currentRhythm) {
+    // Check if it's a Euclidean rhythm
+    if (currentRhythm.pulses !== undefined && currentRhythm.pattern) {
+      pulses.value = currentRhythm.pulses
+      steps.value = currentRhythm.pattern.length
+      selectedRhythm.value = currentRhythm
+      activeTab.value = 1
+    } else {
+      // It's a preset. Find it in our list.
+      const preset = PREDEFINED_RHYTHMS.find((p) => p.name === currentRhythm.name)
+      if (preset) {
+        selectedRhythm.value = preset
+        selectedCategory.value = preset.category
+      }
+      activeTab.value = 0
     }
-  } else if (newIndex === 0) {
-    // When switching back to generator, re-apply the euclidean rhythm
-    generateAndSetEuclideanRhythm()
+  } else {
+    // If no rhythm is in store, set a default one
+    onRhythmChange(PREDEFINED_RHYTHMS[0])
   }
 })
 
 // Watch category change to auto-select first rhythm
-watch(selectedCategory, () => {
-  const firstRhythm = filteredRhythms.value[0]
-  if (firstRhythm) {
-    onRhythmChange(firstRhythm)
+watch(selectedCategory, (newCategory, oldCategory) => {
+  if (newCategory !== oldCategory) {
+    const firstRhythm = filteredRhythms.value[0]
+    if (firstRhythm) {
+      onRhythmChange(firstRhythm)
+    }
   }
 })
 </script>
@@ -113,50 +121,12 @@ watch(selectedCategory, () => {
 <template>
   <Tabs v-model:value="activeTab">
     <TabList>
-      <Tab :value="0">Euclidean Rhythm</Tab>
-      <Tab :value="1">Rhythm Presets</Tab>
+      <Tab :value="0">Rhythm Presets</Tab>
+      <Tab :value="1">Euclidean Rhythm</Tab>
     </TabList>
 
     <TabPanels>
       <TabPanel :value="0">
-        <div class="flex items-startjustify-between gap-2 w-full">
-          <div class="pt-2 flex flex-col gap-4 w-[50%]">
-            <div class="mb-2">
-              <label :for="'pulses-slider'" class="text-sm pb-2 flex items-center gap-2">
-                <span>Pulses</span>
-                <span class="text-zinc-400">{{ pulses }}</span>
-              </label>
-              <Slider v-model="pulses" :min="1" :max="steps" :id="'pulses-slider'" />
-            </div>
-            <div class="mb-2">
-              <label :for="'steps-slider'" class="text-sm pb-2 flex items-center gap-2">
-                <span>Steps</span>
-                <span class="text-zinc-400">{{ steps }}</span>
-              </label>
-              <Slider v-model="steps" :min="2" :max="32" :id="'steps-slider'" />
-            </div>
-
-            <!-- Explanation Text -->
-            <div class="text-xs text-zinc-500 leading-relaxed">
-              <p>
-                Your rhythm will spread <strong>{{ pulses }} notes </strong> evenly over
-                <strong>{{ steps }} steps</strong>.
-              </p>
-              <p class="mt-1">
-                <span class="text-zinc-400">Pulses:</span> Number of played notes in time raster<br />
-                <span class="text-zinc-400">Steps:</span> Time raster ({{ stepDescription }})
-              </p>
-              <p class="mt-1">
-                With euclidean rhythms, the "Length (bars)" selection will just repeat the generated rhythm x times.
-              </p>
-            </div>
-          </div>
-          <div class="w-[50%]">
-            <EuclideanVisualizer :pulses="pulses" :steps="steps" />
-          </div>
-        </div>
-      </TabPanel>
-      <TabPanel :value="1">
         <div class="pt-2 flex flex-col gap-4">
           <!-- Category Selector -->
           <div class="mb-2 flex flex-col gap-1">
@@ -192,6 +162,54 @@ watch(selectedCategory, () => {
               </div>
             </div>
           </div>
+        </div>
+      </TabPanel>
+
+      <TabPanel :value="1">
+        <div class="flex items-startjustify-between gap-2 w-full">
+          <div class="pt-2 flex flex-col gap-4 w-[50%]">
+            <div class="mb-2">
+              <label :for="'pulses-slider'" class="text-sm pb-2 flex items-center gap-2">
+                <span>Pulses</span>
+                <span class="text-zinc-400">{{ pulses }}</span>
+              </label>
+              <Slider v-model="pulses" :min="1" :max="steps" :id="'pulses-slider'" />
+            </div>
+            <div class="mb-2">
+              <label :for="'steps-slider'" class="text-sm pb-2 flex items-center gap-2">
+                <span>Steps</span>
+                <span class="text-zinc-400">{{ steps }}</span>
+              </label>
+              <Slider v-model="steps" :min="2" :max="32" :id="'steps-slider'" />
+            </div>
+
+            <!-- Explanation Text -->
+            <div class="text-xs text-zinc-500 leading-relaxed">
+              <p>
+                Your rhythm will spread <strong>{{ pulses }} notes </strong> evenly over
+                <strong>{{ steps }} steps</strong>.
+              </p>
+              <p class="mt-1">
+                <span class="text-zinc-400">Pulses:</span> Number of played notes in time raster<br />
+                <span class="text-zinc-400">Steps:</span> Time raster ({{ stepDescription }})
+              </p>
+            </div>
+          </div>
+          <div class="w-[50%]">
+            <EuclideanVisualizer :pulses="pulses" :steps="steps" :isAnimated="activeTab === 1 && store.isPlaying" />
+          </div>
+        </div>
+        <div class="text-xs text-zinc-500 leading-relaxed mt-2">
+          <p class="mt-1">
+            <strong>Note:</strong> With few pulses (e.g. 6 of 16), the last note may not reach the end of the bar. This
+            is a typical and mathematically correct property of Euclidean rhythms. Larger gaps at the end can occur when
+            pulses are distributed unevenly, which means that the exported MIDI file won't end exactly on the end of the
+            bar.
+          </p>
+          <p class="mt-1">
+            Also the <span class="font-bold">"Length (bars)"</span> selection below has no effect on the length of the
+            generated melody, it will just repeat the generated rhythm x times.
+          </p>
         </div>
       </TabPanel>
     </TabPanels>
