@@ -1,9 +1,42 @@
 import type { RhythmPattern } from '@/models'
 import { choose } from '@/utils/random'
 
+/**
+ * Generates a binary Euclidean pattern using Bjorklund's algorithm
+ * @param pulses - Number of pulses (hits)
+ * @param steps - Total number of steps
+ * @returns Binary array where 1 = pulse, 0 = rest
+ */
+export function generateEuclideanBinaryPattern(pulses: number, steps: number): (0 | 1)[] {
+  if (pulses > steps || pulses < 0 || steps <= 0) {
+    return new Array(steps).fill(0)
+  }
+  if (pulses === 0) {
+    return new Array(steps).fill(0)
+  }
+
+  // Build the binary pattern using Bjorklund's algorithm
+  const k = pulses
+  const n = steps
+  const p: (number | number[])[][] = []
+  for (let i = 0; i < k; i++) p.push([1])
+  const q: (number | number[])[][] = []
+  for (let i = 0; i < n - k; i++) q.push([0])
+
+  while (q.length > 0) {
+    const p_len = p.length
+    for (let i = 0; i < Math.min(p_len, q.length); i++) {
+      p[i] = p[i].concat(q[i])
+    }
+    q.splice(0, p_len)
+  }
+
+  return [...p.flat()] as (0 | 1)[]
+}
+
 const DURATION_MAP: Readonly<Record<string, Readonly<Record<number, string>>>> = {
   '32n': { 1: '32n', 2: '16n', 3: '16n.', 4: '8n', 6: '8n.', 8: '4n', 12: '4n.', 16: '2n', 24: '2n.', 32: '1n' },
-  '16n': { 1: '16n', 2: '8n', 3: '8n.', 4: '4n', 6: '4n.', 8: '2n', 12: '2n.', 16: '1n' },
+  '16n': { 1: '16n', 2: '8n', 3: '4n.', 4: '4n', 6: '4n.', 8: '2n', 12: '2n.', 16: '1n' },
   '8n': { 1: '8n', 2: '4n', 3: '4n.', 4: '2n', 6: '2n.', 8: '1n' },
   '4n': { 1: '4n', 2: '2n', 3: '2n.', 4: '1n' }
 } as const
@@ -30,30 +63,15 @@ function convertMultiplesToDurations(multiples: number[], subdivision: string): 
  */
 export function generateEuclideanPattern(pulses: number, steps: number, subdivision: string = '16n'): RhythmPattern {
   if (pulses > steps || pulses < 0 || steps <= 0) {
-    return { steps: [] }
+    return { steps: [], pattern: [], subdivision }
   }
   if (pulses === 0) {
-    return { steps: [] }
+    return { steps: [], pattern: new Array(steps).fill(0), subdivision }
   }
 
-  // Build the binary pattern using a correct implementation of Bjorklund's algorithm
-  const k = pulses
-  const n = steps
-  const p: (number | number[])[][] = []
-  for (let i = 0; i < k; i++) p.push([1])
-  const q: (number | number[])[][] = []
-  for (let i = 0; i < n - k; i++) q.push([0])
+  const binaryPattern = generateEuclideanBinaryPattern(pulses, steps)
 
-  while (q.length > 0) {
-    const p_len = p.length
-    for (let i = 0; i < Math.min(p_len, q.length); i++) {
-      p[i] = p[i].concat(q[i])
-    }
-    q.splice(0, p_len)
-  }
-
-  const binaryPattern = [].concat.apply([], p as any) as (0 | 1)[]
-
+  // Calculate durations based on intervals between pulses (like the original system)
   const hitIndices = binaryPattern.reduce((acc, val, i) => {
     if (val === 1) {
       acc.push(i)
@@ -62,20 +80,32 @@ export function generateEuclideanPattern(pulses: number, steps: number, subdivis
   }, [] as number[])
 
   if (hitIndices.length === 0) {
-    return { steps: [] }
+    return { steps: [], pattern: [], subdivision }
   }
 
+  // Calculate intervals between hits for durations
   const multiples: number[] = []
   for (let i = 0; i < hitIndices.length - 1; i++) {
     multiples.push(hitIndices[i + 1] - hitIndices[i])
   }
 
+  // Handle the last note duration (wraps around to first note)
   const lastNoteDuration = steps - hitIndices[hitIndices.length - 1] + (hitIndices[0] ?? 0)
   multiples.push(lastNoteDuration)
 
-  const generatedSteps = convertMultiplesToDurations(multiples, subdivision)
+  // Convert to actual durations
+  const noteDurations = convertMultiplesToDurations(multiples, subdivision)
 
-  return { steps: generatedSteps }
+  // Create a steps array where each position gets the base subdivision,
+  // but we'll store the actual note durations separately for the melody service to use
+  const stepDurations: string[] = new Array(steps).fill(subdivision)
+
+  return {
+    steps: stepDurations,
+    pattern: binaryPattern,
+    subdivision,
+    noteDurations
+  }
 }
 
 /**

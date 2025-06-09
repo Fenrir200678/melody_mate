@@ -3,6 +3,9 @@ import { ref, watch, onMounted, computed } from 'vue'
 import useMusicStore from '@/stores/music.store'
 import { generateEuclideanPattern } from '@/services/RhythmService'
 import { PREDEFINED_RHYTHMS, RHYTHM_CATEGORIES, type CategorizedRhythm, type RhythmCategory } from '@/data/rhythms'
+
+import EuclideanVisualizer from './EuclideanVisualizer.vue'
+
 import Slider from 'primevue/slider'
 import Tabs from 'primevue/tabs'
 import TabList from 'primevue/tablist'
@@ -112,20 +115,35 @@ watch(selectedCategory, () => {
 
     <TabPanels>
       <TabPanel :value="0">
-        <div class="pt-2 flex flex-col gap-4">
-          <div class="mb-2">
-            <label :for="'pulses-slider'" class="text-sm pb-2 flex items-center gap-2">
-              <span>Pulses</span>
-              <span class="text-zinc-400">{{ pulses }}</span>
-            </label>
-            <Slider v-model="pulses" :min="1" :max="steps" :id="'pulses-slider'" />
+        <div class="flex items-startjustify-between gap-2 w-full">
+          <div class="pt-2 flex flex-col gap-4 w-[50%]">
+            <div class="mb-2">
+              <label :for="'pulses-slider'" class="text-sm pb-2 flex items-center gap-2">
+                <span>Pulses</span>
+                <span class="text-zinc-400">{{ pulses }}</span>
+              </label>
+              <Slider v-model="pulses" :min="1" :max="steps" :id="'pulses-slider'" />
+            </div>
+            <div class="mb-2">
+              <label :for="'steps-slider'" class="text-sm pb-2 flex items-center gap-2">
+                <span>Steps</span>
+                <span class="text-zinc-400">{{ steps }}</span>
+              </label>
+              <Slider v-model="steps" :min="2" :max="32" :id="'steps-slider'" />
+            </div>
+
+            <!-- Explanation Text -->
+            <div class="text-xs text-zinc-500 leading-relaxed">
+              <p><strong>Euclidean Rhythms</strong> spread {{ pulses }} pulses evenly over {{ steps }} steps.</p>
+              <p class="mt-1">
+                <span class="text-zinc-400">Pulses:</span> Number of played notes<br />
+                <span class="text-zinc-400">Steps:</span> Time raster ({{ steps }} × 16th =
+                {{ Math.round((steps / 4) * 100) / 100 }} bars)
+              </p>
+            </div>
           </div>
-          <div class="mb-2">
-            <label :for="'steps-slider'" class="text-sm pb-2 flex items-center gap-2">
-              <span>Steps</span>
-              <span class="text-zinc-400">{{ steps }}</span>
-            </label>
-            <Slider v-model="steps" :min="2" :max="32" :id="'steps-slider'" />
+          <div class="w-[50%]">
+            <EuclideanVisualizer :pulses="pulses" :steps="steps" />
           </div>
         </div>
       </TabPanel>

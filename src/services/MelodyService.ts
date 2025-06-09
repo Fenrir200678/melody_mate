@@ -97,6 +97,10 @@ function generateSimpleMelody(
   let currentPitch = startWithRootNote ? scale.notes[0] : choose(scale.notes)
   const motif: Note[] = []
 
+  // Check if rhythm has binary pattern (new format) or just steps (old format)
+  const hasPattern = rhythm.pattern && rhythm.pattern.length > 0
+  const stepsPerBar = hasPattern ? rhythm.pattern!.length : rhythm.steps.length
+
   for (let i = 0; i < bars; i++) {
     if (useMotifRepetition && i === 2 && motif.length > 0) {
       notes.push(...motif)
@@ -105,36 +109,47 @@ function generateSimpleMelody(
     }
 
     const currentBarNotes: Note[] = []
-    for (let j = 0; j < rhythm.steps.length; j++) {
-      const duration = rhythm.steps[j]
+    let noteIndex = 0 // Track which note we're generating for duration lookup
 
-      // For the very first note, use the initial currentPitch (which might be root note)
-      // For all subsequent notes, generate the next pitch using Markov chain
-      if (!(i === 0 && j === 0)) {
-        const transitions = getTransitions(markovTable, [currentPitch])
-        let nextPitch: string
+    for (let j = 0; j < stepsPerBar; j++) {
+      const shouldPlayNote = hasPattern ? rhythm.pattern![j] === 1 : true
 
-        if (!transitions) {
-          nextPitch = choose(scale.notes)
-        } else {
-          const { notes: possibleNotes, weights: newWeights } = applyMusicalWeighting(
-            transitions,
-            currentPitch,
-            scale.notes
-          )
-          nextPitch = chooseWeighted(possibleNotes, newWeights)
+      if (shouldPlayNote) {
+        // Use the calculated note duration for this specific note (cycle through pattern for multiple bars)
+        const duration =
+          hasPattern && rhythm.noteDurations
+            ? rhythm.noteDurations[noteIndex % rhythm.noteDurations.length]
+            : rhythm.steps[j] || rhythm.subdivision || '16n'
+        // For the very first note, use the initial currentPitch (which might be root note)
+        // For all subsequent notes, generate the next pitch using Markov chain
+        if (!(i === 0 && j === 0)) {
+          const transitions = getTransitions(markovTable, [currentPitch])
+          let nextPitch: string
+
+          if (!transitions) {
+            nextPitch = choose(scale.notes)
+          } else {
+            const { notes: possibleNotes, weights: newWeights } = applyMusicalWeighting(
+              transitions,
+              currentPitch,
+              scale.notes
+            )
+            nextPitch = chooseWeighted(possibleNotes, newWeights)
+          }
+          currentPitch = nextPitch
         }
-        currentPitch = nextPitch
-      }
 
-      const notePitch = getPitchWithOctave(currentPitch, octave)
-      const velocity = useFixedVelocity ? fixedVelocity / 127 : 0.8 + Math.random() * 0.2
-      const newNote: Note = {
-        pitch: notePitch,
-        duration,
-        velocity
+        const notePitch = getPitchWithOctave(currentPitch, octave)
+        const velocity = useFixedVelocity ? fixedVelocity / 127 : 0.8 + Math.random() * 0.2
+        const newNote: Note = {
+          pitch: notePitch,
+          duration,
+          velocity
+        }
+        currentBarNotes.push(newNote)
+        noteIndex++ // Increment for next note duration
       }
-      currentBarNotes.push(newNote)
+      // If shouldPlayNote is false, we skip this step (rest)
     }
 
     if (useMotifRepetition && i === 0) {
@@ -159,50 +174,75 @@ function generateNGramMelody(
   const markovTable = buildMarkovTable(trainingData, 2)
   const simpleMarkovTable = buildMarkovTable(trainingData, 1)
 
+  // Check if rhythm has binary pattern (new format) or just steps (old format)
+  const hasPattern = rhythm.pattern && rhythm.pattern.length > 0
+  const stepsPerBar = hasPattern ? rhythm.pattern!.length : rhythm.steps.length
+
   const pitchHistory: string[] = [startWithRootNote ? scale.notes[0] : choose(scale.notes)]
-  notes.push({
-    pitch: getPitchWithOctave(pitchHistory[0], octave),
-    duration: rhythm.steps[0] || '4n',
-    velocity: useFixedVelocity ? fixedVelocity / 127 : 0.8 + Math.random() * 0.2
-  })
 
-  // This loop needs to account for the first note already being added.
-  const totalNotesToGenerate = bars * rhythm.steps.length
-  let generatedNotesCount = 1
+  // Only add first note if it should be played according to pattern
+  const firstStepShouldPlay = hasPattern ? rhythm.pattern![0] === 1 : true
+  let noteIndex = 0 // Track which note we're generating for duration lookup
 
-  while (generatedNotesCount < totalNotesToGenerate) {
-    const currentStepIndex = (generatedNotesCount - 1) % rhythm.steps.length
-
-    const state = pitchHistory.length >= 2 ? pitchHistory.slice(-2) : pitchHistory.slice(-1)
-    const tableToUse = pitchHistory.length >= 2 ? markovTable : simpleMarkovTable
-    const currentPitchForWeighting = pitchHistory[pitchHistory.length - 1]
-    const duration = rhythm.steps[currentStepIndex]
-
-    const transitions = getTransitions(tableToUse, state)
-    let nextPitch: string
-
-    if (!transitions) {
-      nextPitch = choose(scale.notes)
-    } else {
-      const { notes: possibleNotes, weights: newWeights } = applyMusicalWeighting(
-        transitions,
-        currentPitchForWeighting,
-        scale.notes
-      )
-      nextPitch = chooseWeighted(possibleNotes, newWeights)
-    }
-
-    pitchHistory.push(nextPitch)
-    if (pitchHistory.length > 2) {
-      pitchHistory.shift()
-    }
+  if (firstStepShouldPlay) {
+    const duration =
+      hasPattern && rhythm.noteDurations
+        ? rhythm.noteDurations[noteIndex % rhythm.noteDurations.length]
+        : rhythm.steps[0] || rhythm.subdivision || '4n'
 
     notes.push({
-      pitch: getPitchWithOctave(nextPitch, octave),
+      pitch: getPitchWithOctave(pitchHistory[0], octave),
       duration,
       velocity: useFixedVelocity ? fixedVelocity / 127 : 0.8 + Math.random() * 0.2
     })
-    generatedNotesCount++
+    noteIndex++
+  }
+
+  // This loop needs to account for the total steps considering the pattern
+  const totalStepsToGenerate = bars * stepsPerBar
+  let currentStepIndex = 1 // Start from 1 since we handled step 0 above
+
+  while (currentStepIndex < totalStepsToGenerate) {
+    const stepInBar = currentStepIndex % stepsPerBar
+    const shouldPlayNote = hasPattern ? rhythm.pattern![stepInBar] === 1 : true
+
+    if (shouldPlayNote) {
+      const state = pitchHistory.length >= 2 ? pitchHistory.slice(-2) : pitchHistory.slice(-1)
+      const tableToUse = pitchHistory.length >= 2 ? markovTable : simpleMarkovTable
+      const currentPitchForWeighting = pitchHistory[pitchHistory.length - 1]
+      const duration =
+        hasPattern && rhythm.noteDurations
+          ? rhythm.noteDurations[noteIndex % rhythm.noteDurations.length]
+          : rhythm.steps[stepInBar] || rhythm.subdivision || '16n'
+
+      const transitions = getTransitions(tableToUse, state)
+      let nextPitch: string
+
+      if (!transitions) {
+        nextPitch = choose(scale.notes)
+      } else {
+        const { notes: possibleNotes, weights: newWeights } = applyMusicalWeighting(
+          transitions,
+          currentPitchForWeighting,
+          scale.notes
+        )
+        nextPitch = chooseWeighted(possibleNotes, newWeights)
+      }
+
+      pitchHistory.push(nextPitch)
+      if (pitchHistory.length > 2) {
+        pitchHistory.shift()
+      }
+
+      notes.push({
+        pitch: getPitchWithOctave(nextPitch, octave),
+        duration,
+        velocity: useFixedVelocity ? fixedVelocity / 127 : 0.8 + Math.random() * 0.2
+      })
+      noteIndex++ // Increment for next note duration
+    }
+
+    currentStepIndex++
   }
 
   return { notes }
