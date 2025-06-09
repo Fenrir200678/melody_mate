@@ -9,7 +9,7 @@ import TabList from 'primevue/tablist'
 import Tab from 'primevue/tab'
 import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
-import Select from 'primevue/select'
+import SelectButton from 'primevue/selectbutton'
 
 // Common store instance
 const store = useMusicStore()
@@ -104,69 +104,69 @@ watch(selectedCategory, () => {
 </script>
 
 <template>
-  <div class="">
-    <Tabs v-model:value="activeTab">
-      <TabList>
-        <Tab :value="0">Euclidean Rhythm</Tab>
-        <Tab :value="1">Presets</Tab>
-      </TabList>
+  <Tabs v-model:value="activeTab">
+    <TabList>
+      <Tab :value="0">Euclidean Rhythm</Tab>
+      <Tab :value="1">Rhythm Presets</Tab>
+    </TabList>
 
-      <TabPanels>
-        <TabPanel :value="0">
-          <div class="pt-2 flex flex-col gap-4">
-            <div class="mb-2">
-              <label :for="'pulses-slider'" class="text-sm pb-2 flex items-center gap-2">
-                <span>Pulses</span>
-                <span class="text-zinc-400">{{ pulses }}</span>
-              </label>
-              <Slider v-model="pulses" :min="1" :max="steps" :id="'pulses-slider'" />
-            </div>
-            <div class="mb-2">
-              <label :for="'steps-slider'" class="text-sm pb-2 flex items-center gap-2">
-                <span>Steps</span>
-                <span class="text-zinc-400">{{ steps }}</span>
-              </label>
-              <Slider v-model="steps" :min="2" :max="32" :id="'steps-slider'" />
-            </div>
+    <TabPanels>
+      <TabPanel :value="0">
+        <div class="pt-2 flex flex-col gap-4">
+          <div class="mb-2">
+            <label :for="'pulses-slider'" class="text-sm pb-2 flex items-center gap-2">
+              <span>Pulses</span>
+              <span class="text-zinc-400">{{ pulses }}</span>
+            </label>
+            <Slider v-model="pulses" :min="1" :max="steps" :id="'pulses-slider'" />
           </div>
-        </TabPanel>
-        <TabPanel :value="1">
-          <div class="pt-2 flex flex-col gap-4">
-            <!-- Category Selector -->
-            <div class="mb-2">
-              <label class="text-sm pb-2 block">Category</label>
-              <Select
+          <div class="mb-2">
+            <label :for="'steps-slider'" class="text-sm pb-2 flex items-center gap-2">
+              <span>Steps</span>
+              <span class="text-zinc-400">{{ steps }}</span>
+            </label>
+            <Slider v-model="steps" :min="2" :max="32" :id="'steps-slider'" />
+          </div>
+        </div>
+      </TabPanel>
+      <TabPanel :value="1">
+        <div class="pt-2 flex flex-col gap-4">
+          <!-- Category Selector -->
+          <div class="mb-2 flex flex-col gap-1">
+            <label class="text-sm block">Rhythm Category</label>
+            <div class="flex items-center justify-center w-full">
+              <SelectButton
                 v-model="selectedCategory"
                 :options="categoryOptions"
+                size="small"
                 option-label="label"
                 option-value="value"
                 placeholder="Select a category"
-                class="w-full"
               />
             </div>
+          </div>
 
-            <!-- Rhythm List -->
-            <div class="flex flex-col gap-1">
-              <div
-                v-for="rhythm in filteredRhythms"
-                :key="rhythm.name"
-                @click="onRhythmChange(rhythm)"
-                :class="[
-                  'cursor-pointer rounded transition-colors p-3 border border-zinc-600',
-                  selectedRhythm?.name === rhythm.name ? 'bg-zinc-700 text-zinc-200' : 'bg-zinc-900 hover:bg-zinc-800'
-                ]"
-              >
-                <div class="flex flex-col">
-                  <span class="font-medium text-sm">{{ rhythm.name }}</span>
-                  <span v-if="rhythm.description" class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                    {{ rhythm.description }}
-                  </span>
-                </div>
+          <!-- Rhythm List -->
+          <div class="flex flex-col gap-1">
+            <div
+              v-for="rhythm in filteredRhythms"
+              :key="rhythm.name"
+              @click="onRhythmChange(rhythm)"
+              :class="[
+                'cursor-pointer rounded transition-colors p-3 border border-zinc-600',
+                selectedRhythm?.name === rhythm.name ? 'bg-zinc-700 text-zinc-200' : 'bg-zinc-900 hover:bg-zinc-800'
+              ]"
+            >
+              <div class="flex flex-col">
+                <span class="font-medium text-sm">{{ rhythm.name }}</span>
+                <span v-if="rhythm.description" class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                  {{ rhythm.description }}
+                </span>
               </div>
             </div>
           </div>
-        </TabPanel>
-      </TabPanels>
-    </Tabs>
-  </div>
+        </div>
+      </TabPanel>
+    </TabPanels>
+  </Tabs>
 </template>

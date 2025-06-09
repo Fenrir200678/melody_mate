@@ -24,7 +24,8 @@ export const useMusicStore = defineStore('music', {
     selectedInstrument: 'default' as InstrumentKey,
     octave: 4,
     useFixedVelocity: true,
-    fixedVelocity: 127
+    fixedVelocity: 127,
+    startWithRootNote: false
   }),
 
   actions: {
@@ -69,7 +70,9 @@ export const useMusicStore = defineStore('music', {
     setFixedVelocity(velocity: number) {
       this.fixedVelocity = velocity
     },
-
+    setStartWithRootNote(startWithRootNote: boolean) {
+      this.startWithRootNote = startWithRootNote
+    },
     async generate() {
       const scale = generateScale(this.scaleName, this.key)
       if (!scale || !this.rhythm) {

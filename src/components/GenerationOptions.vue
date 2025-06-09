@@ -9,7 +9,7 @@ const store = useMusicStore()
     <div class="flex items-center justify-between gap-4">
       <div class="flex flex-col flex-1 min-w-0">
         <label for="motif-repetition" class="font-medium"> Motif Repetition </label>
-        <span class="text-xs break-words"> Repeats melodic motifs for more structure </span>
+        <span class="text-xs break-words"> Tries to repeat melodic motifs for more structure </span>
       </div>
       <Checkbox
         v-model="store.useMotifRepetition"
@@ -23,10 +23,27 @@ const store = useMusicStore()
     <div class="flex items-start justify-between gap-4">
       <div class="flex flex-col flex-1 min-w-0">
         <label for="n-grams" class="font-medium"> Use N-Grams </label>
-        <span class="text-xs break-words"> Advanced algorithm for complex melodies </span>
+        <span class="text-xs break-words">
+          Alternative algorithm for structured melodies (can't be used with Motif Repetition)</span
+        >
       </div>
       <div class="flex-shrink-0 mt-1">
         <Checkbox v-model="store.useNGrams" :binary="true" inputId="n-grams" @update:modelValue="store.setUseNGrams" />
+      </div>
+    </div>
+
+    <div class="flex items-start justify-between gap-4">
+      <div class="flex flex-col flex-1 min-w-0">
+        <label for="n-grams" class="font-medium"> Start with root note </label>
+        <span class="text-xs break-words"> Start the melody with the root note of the chord </span>
+      </div>
+      <div class="flex-shrink-0 mt-1">
+        <Checkbox
+          v-model="store.startWithRootNote"
+          :binary="true"
+          inputId="start-with-root-note"
+          @update:modelValue="store.setStartWithRootNote"
+        />
       </div>
     </div>
   </div>
