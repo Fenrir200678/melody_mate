@@ -1,19 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import useMusicStore from '@/stores/music.store'
 import { getAvailableKeys } from '@/services/ScaleService'
 import SelectButton from 'primevue/selectbutton'
 
 const store = useMusicStore()
 const availableKeys = ref<{ name: string; value: string }[]>(getAvailableKeys())
-const selectedKey = ref<string | null>(null)
-
-onMounted(() => {
-  // Set a default key on mount from the store
-  const defaultKey = store.key
-  selectedKey.value = defaultKey
-  store.setKey(defaultKey)
-})
+const selectedKey = ref<string | null>(store.key)
 
 function onKeyChange(value: string) {
   if (value) {

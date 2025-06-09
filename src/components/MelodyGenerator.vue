@@ -15,15 +15,14 @@ function handleGenerate() {
 </script>
 
 <template>
-  <div class="flex justify-center">
-    <Button
-      label="Generate Melody"
-      size="large"
-      icon="pi pi-sparkles"
-      :loading="store.isGenerating"
-      :disabled="isGenerationDisabled"
-      @click="handleGenerate"
-      class="w-full md:w-auto"
-    />
-  </div>
+  <Button
+    label="Generate Melody"
+    severity="success"
+    size="large"
+    icon="pi pi-sparkles"
+    :loading="store.isGenerating"
+    :disabled="isGenerationDisabled"
+    @click="handleGenerate"
+    class="w-full"
+  />
 </template>
