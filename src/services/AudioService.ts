@@ -12,6 +12,38 @@ export type InstrumentKey = keyof typeof instrumentOptions
 let synth: Tone.PolySynth | null = null
 let part: Tone.Part | null = null
 let currentInstrumentKey: InstrumentKey | null = null
+let stepUpdateCallback: ((stepIndex: number) => void) | null = null
+let notePlayCallback: ((stepIndex: number) => void) | null = null
+
+/**
+ * Sets a callback function that will be called for each rhythm step during playback
+ * @param callback - Function to call with the current step index
+ */
+export function setStepUpdateCallback(callback: ((stepIndex: number) => void) | null): void {
+  stepUpdateCallback = callback
+}
+
+/**
+ * Sets a callback function that will be called when a note is actually played
+ * @param callback - Function to call with the step index of the played note
+ */
+export function setNotePlayCallback(callback: ((stepIndex: number) => void) | null): void {
+  notePlayCallback = callback
+}
+
+/**
+ * Clears the step update callback
+ */
+export function clearStepUpdateCallback(): void {
+  stepUpdateCallback = null
+}
+
+/**
+ * Clears the note play callback
+ */
+export function clearNotePlayCallback(): void {
+  notePlayCallback = null
+}
 
 /**
  * Creates and returns a Tone.js synthesizer instance based on the selected instrument.
@@ -74,12 +106,15 @@ function getSynth(instrument: InstrumentKey = 'default'): Tone.PolySynth {
  * @param melody - The melody to play.
  * @param bpm - The tempo in beats per minute.
  * @param instrument - The instrument to use for playback.
+ * @param rhythmPattern - The rhythm pattern used to generate the melody for animation sync.
+ * @param bars - Number of bars in the melody for correct step mapping.
  * @param onEnded - Callback function to execute when playback has finished.
  */
 export async function playMelody(
   melody: Melody,
   bpm: number,
   instrument: InstrumentKey = 'default',
+  rhythmPattern?: (0 | 1)[],
   onEnded?: () => void
 ): Promise<void> {
   if (!melody.notes.length) {
@@ -106,12 +141,13 @@ export async function playMelody(
 
   // Create a sequence of events for the Part
   let currentTime = 0
-  const events = melody.notes.map((note) => {
+  const events = melody.notes.map((note, index) => {
     const event = {
       time: currentTime,
       pitch: note.pitch,
       duration: note.duration,
-      velocity: note.velocity
+      velocity: note.velocity,
+      noteIndex: index // Add note index for animation sync
     }
     currentTime += Tone.Time(note.duration).toSeconds()
     return event
@@ -124,8 +160,34 @@ export async function playMelody(
   // Create and start the Part
   part = new Tone.Part((time, value) => {
     synthesizer.triggerAttackRelease(value.pitch, value.duration, time, value.velocity)
+
+    // Trigger note play callback when note actually plays
+    if (notePlayCallback && rhythmPattern) {
+      // Find the corresponding step in the rhythm pattern for this note
+      const stepIndex = findStepIndexForNote(value.noteIndex, rhythmPattern)
+      notePlayCallback(stepIndex)
+    }
   }, events).start(0)
   part.loop = false
+
+  // Schedule continuous step updates for base animation
+  if (stepUpdateCallback && rhythmPattern) {
+    const stepDuration = 60 / bpm / 4 // Duration of one 16th note at current BPM
+
+    const scheduleStepUpdate = (time: number, step: number) => {
+      transport.scheduleOnce(() => {
+        // Send absolute step index (can be > patternLength for multiple bars)
+        stepUpdateCallback?.(step)
+      }, time)
+    }
+
+    // Schedule step updates for the entire playback duration
+    const totalDuration = currentTime
+    const totalSteps = Math.ceil(totalDuration / stepDuration)
+    for (let step = 0; step < totalSteps; step++) {
+      scheduleStepUpdate(step * stepDuration, step)
+    }
+  }
 
   transport.start()
 
@@ -134,6 +196,35 @@ export async function playMelody(
     stopPlayback(time)
     onEnded?.()
   }, currentTime)
+}
+
+/**
+ * Maps a note index to the corresponding step index in the rhythm pattern
+ * @param noteIndex - The index of the note in the melody
+ * @param rhythmPattern - The binary rhythm pattern
+ * @param bars - Number of bars in the melody
+ * @returns The step index in the rhythm pattern (accounting for multiple bars)
+ */
+function findStepIndexForNote(noteIndex: number, rhythmPattern: (0 | 1)[]): number {
+  const patternLength = rhythmPattern.length
+  const notesPerBar = rhythmPattern.filter((step) => step === 1).length
+
+  // Calculate which bar this note belongs to
+  const barIndex = Math.floor(noteIndex / notesPerBar)
+  const noteIndexInBar = noteIndex % notesPerBar
+
+  // Find the step index within the bar
+  let noteCount = 0
+  for (let stepIndex = 0; stepIndex < patternLength; stepIndex++) {
+    if (rhythmPattern[stepIndex] === 1) {
+      if (noteCount === noteIndexInBar) {
+        // Return the absolute step index across all bars
+        return barIndex * patternLength + stepIndex
+      }
+      noteCount++
+    }
+  }
+  return -1 // Fallback
 }
 
 /**
@@ -152,4 +243,8 @@ export function stopPlayback(time?: number): void {
     transport.cancel()
     part?.stop()
   }
+
+  // Reset visualizer animation
+  stepUpdateCallback?.(-1) // -1 indicates playback stopped
+  notePlayCallback?.(-1) // Reset note highlights
 }

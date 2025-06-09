@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 import { generateEuclideanBinaryPattern } from '@/services/RhythmService'
+import { useMusicStore } from '@/stores/music.store'
 
 // Props to receive data from parent component
 const props = defineProps<{
@@ -11,6 +12,11 @@ const props = defineProps<{
 // Default values
 const pulses = computed(() => props.pulses ?? 5)
 const steps = computed(() => props.steps ?? 16)
+
+// Get current step from store for animation
+const musicStore = useMusicStore()
+const currentStep = computed(() => musicStore.currentStep)
+const activeNoteStep = computed(() => musicStore.activeNoteStep)
 
 // Canvas reference
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -41,6 +47,12 @@ const drawPattern = () => {
 
   const pattern = euclideanPattern.value
   const totalSteps = pattern.length
+  const currentStepIndex = currentStep.value
+  const activeNoteStepIndex = activeNoteStep.value
+
+  // Map absolute step indices to pattern indices (for multiple bars)
+  const currentPatternStep = currentStepIndex >= 0 ? currentStepIndex % totalSteps : -1
+  const activeNotePatternStep = activeNoteStepIndex >= 0 ? activeNoteStepIndex % totalSteps : -1
 
   // Draw each step
   for (let i = 0; i < totalSteps; i++) {
@@ -49,6 +61,8 @@ const drawPattern = () => {
     const y = centerY + Math.sin(angle) * radius
 
     const isPulse = pattern[i] === 1
+    const isCurrentStep = currentPatternStep === i && currentPatternStep >= 0
+    const isActiveNote = activeNotePatternStep === i && activeNotePatternStep >= 0
 
     // Draw step circle
     ctx.beginPath()
@@ -56,15 +70,56 @@ const drawPattern = () => {
 
     if (isPulse) {
       // Filled circle for pulses
-      ctx.fillStyle = '#4ade80' // Blue
-      ctx.fill()
-      ctx.strokeStyle = '#16a34a'
-      ctx.lineWidth = 2
-      ctx.stroke()
+      if (isActiveNote) {
+        // Active note: Bright red/orange highlight with strong glow
+        ctx.fillStyle = '#ef4444' // Bright red for active note
+        ctx.fill()
+        ctx.strokeStyle = '#dc2626'
+        ctx.lineWidth = 4
+        ctx.stroke()
+
+        // Strong glow effect for active note
+        ctx.beginPath()
+        ctx.arc(x, y, 16, 0, 2 * Math.PI)
+        ctx.strokeStyle = '#ef4444'
+        ctx.lineWidth = 3
+        ctx.globalAlpha = 0.5
+        ctx.stroke()
+        ctx.globalAlpha = 1
+      } else if (isCurrentStep) {
+        // Current step: Yellow highlight for continuous animation
+        ctx.fillStyle = '#fbbf24' // Yellow for current step
+        ctx.fill()
+        ctx.strokeStyle = '#f59e0b'
+        ctx.lineWidth = 3
+        ctx.stroke()
+
+        // Subtle glow for current step
+        ctx.beginPath()
+        ctx.arc(x, y, 12, 0, 2 * Math.PI)
+        ctx.strokeStyle = '#fbbf24'
+        ctx.lineWidth = 2
+        ctx.globalAlpha = 0.3
+        ctx.stroke()
+        ctx.globalAlpha = 1
+      } else {
+        // Normal pulse
+        ctx.fillStyle = '#4ade80' // Green for normal pulse
+        ctx.fill()
+        ctx.strokeStyle = '#16a34a'
+        ctx.lineWidth = 2
+        ctx.stroke()
+      }
     } else {
       // Empty circle for rests
-      ctx.strokeStyle = '#6b7280' // Gray
-      ctx.lineWidth = 1.5
+      if (isCurrentStep) {
+        // Highlight current rest step
+        ctx.strokeStyle = '#fbbf24' // Yellow for current rest
+        ctx.lineWidth = 2
+      } else {
+        ctx.strokeStyle = '#6b7280' // Gray for normal rest
+        ctx.lineWidth = 1.5
+      }
       ctx.stroke()
     }
   }
@@ -87,7 +142,7 @@ const drawPattern = () => {
 }
 
 // Watch for changes and redraw
-watch([pulses, steps], drawPattern)
+watch([pulses, steps, currentStep, activeNoteStep], drawPattern)
 
 onMounted(() => {
   drawPattern()

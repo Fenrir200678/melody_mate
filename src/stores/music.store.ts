@@ -8,7 +8,7 @@ export const useMusicStore = defineStore('music', {
     scaleName: 'Minor Scale' as string,
     key: 'C' as string,
     rhythm: null as RhythmPattern | null,
-    bars: 2,
+    bars: 1,
     bpm: 120,
     useMotifRepetition: true,
     useNGrams: false,
@@ -22,6 +22,8 @@ export const useMusicStore = defineStore('music', {
     isGenerating: false,
     isPlaying: false,
     selectedInstrument: 'default' as InstrumentKey,
+    currentStep: -1,
+    activeNoteStep: -1,
     octave: 4,
     useFixedVelocity: true,
     fixedVelocity: 127,
@@ -108,21 +110,53 @@ export const useMusicStore = defineStore('music', {
       }
     },
 
+    setCurrentStep(step: number) {
+      this.currentStep = step
+    },
+
+    setActiveNoteStep(step: number) {
+      this.activeNoteStep = step
+    },
+
     async playMelody() {
       if (!this.melody || this.isPlaying) return
 
       this.isPlaying = true
-      const { playMelody } = await import('@/services/AudioService')
-      await playMelody(this.melody, this.bpm, this.selectedInstrument, () => {
+      const { playMelody, setStepUpdateCallback, setNotePlayCallback } = await import('@/services/AudioService')
+
+      // Set up continuous step update callback for base animation
+      setStepUpdateCallback((step: number) => {
+        this.setCurrentStep(step)
+      })
+
+      // Set up note play callback for pulse highlights
+      setNotePlayCallback((step: number) => {
+        this.setActiveNoteStep(step)
+        // Reset the note highlight after a short duration
+        setTimeout(() => {
+          this.setActiveNoteStep(-1)
+        }, 150) // 150ms highlight duration
+      })
+
+      // Get the rhythm pattern for animation sync
+      const rhythmPattern = this.rhythm?.pattern
+
+      await playMelody(this.melody, this.bpm, this.selectedInstrument, rhythmPattern, () => {
         this.isPlaying = false
+        this.setCurrentStep(-1) // Reset animation
+        this.setActiveNoteStep(-1) // Reset note highlights
       })
     },
 
     async stopMelody() {
       if (!this.isPlaying) return
-      const { stopPlayback } = await import('@/services/AudioService')
+      const { stopPlayback, clearStepUpdateCallback, clearNotePlayCallback } = await import('@/services/AudioService')
+      clearStepUpdateCallback()
+      clearNotePlayCallback()
       stopPlayback()
       this.isPlaying = false
+      this.setCurrentStep(-1)
+      this.setActiveNoteStep(-1)
     },
 
     async exportMidi() {
