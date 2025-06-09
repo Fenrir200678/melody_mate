@@ -57,7 +57,8 @@ export function generateMelody(
   useNGrams: boolean,
   octave: number,
   useFixedVelocity: boolean,
-  fixedVelocity: number
+  fixedVelocity: number,
+  startWithRootNote: boolean = false
 ): Melody {
   const notes: Note[] = []
   if (!scale.notes.length || !rhythm.steps.length) {
@@ -65,9 +66,18 @@ export function generateMelody(
   }
 
   if (useNGrams) {
-    return generateNGramMelody(scale, rhythm, bars, octave, useFixedVelocity, fixedVelocity)
+    return generateNGramMelody(scale, rhythm, bars, octave, useFixedVelocity, fixedVelocity, startWithRootNote)
   } else {
-    return generateSimpleMelody(scale, rhythm, bars, useMotifRepetition, octave, useFixedVelocity, fixedVelocity)
+    return generateSimpleMelody(
+      scale,
+      rhythm,
+      bars,
+      useMotifRepetition,
+      octave,
+      useFixedVelocity,
+      fixedVelocity,
+      startWithRootNote
+    )
   }
 }
 
@@ -78,12 +88,13 @@ function generateSimpleMelody(
   useMotifRepetition: boolean,
   octave: number,
   useFixedVelocity: boolean,
-  fixedVelocity: number
+  fixedVelocity: number,
+  startWithRootNote: boolean = false
 ): Melody {
   const notes: Note[] = []
   const trainingData = createTrainingData(scale.notes)
   const markovTable = buildMarkovTable(trainingData, 1)
-  let currentPitch = choose(scale.notes)
+  let currentPitch = startWithRootNote ? scale.notes[0] : choose(scale.notes)
   const motif: Note[] = []
 
   for (let i = 0; i < bars; i++) {
@@ -94,21 +105,28 @@ function generateSimpleMelody(
     }
 
     const currentBarNotes: Note[] = []
-    for (const duration of rhythm.steps) {
-      const transitions = getTransitions(markovTable, [currentPitch])
-      let nextPitch: string
+    for (let j = 0; j < rhythm.steps.length; j++) {
+      const duration = rhythm.steps[j]
 
-      if (!transitions) {
-        nextPitch = choose(scale.notes)
-      } else {
-        const { notes: possibleNotes, weights: newWeights } = applyMusicalWeighting(
-          transitions,
-          currentPitch,
-          scale.notes
-        )
-        nextPitch = chooseWeighted(possibleNotes, newWeights)
+      // For the very first note, use the initial currentPitch (which might be root note)
+      // For all subsequent notes, generate the next pitch using Markov chain
+      if (!(i === 0 && j === 0)) {
+        const transitions = getTransitions(markovTable, [currentPitch])
+        let nextPitch: string
+
+        if (!transitions) {
+          nextPitch = choose(scale.notes)
+        } else {
+          const { notes: possibleNotes, weights: newWeights } = applyMusicalWeighting(
+            transitions,
+            currentPitch,
+            scale.notes
+          )
+          nextPitch = chooseWeighted(possibleNotes, newWeights)
+        }
+        currentPitch = nextPitch
       }
-      currentPitch = nextPitch
+
       const notePitch = getPitchWithOctave(currentPitch, octave)
       const velocity = useFixedVelocity ? fixedVelocity / 127 : 0.8 + Math.random() * 0.2
       const newNote: Note = {
@@ -133,14 +151,15 @@ function generateNGramMelody(
   bars: number,
   octave: number,
   useFixedVelocity: boolean,
-  fixedVelocity: number
+  fixedVelocity: number,
+  startWithRootNote: boolean = false
 ): Melody {
   const notes: Note[] = []
   const trainingData = createTrainingData(scale.notes)
   const markovTable = buildMarkovTable(trainingData, 2)
   const simpleMarkovTable = buildMarkovTable(trainingData, 1)
 
-  let pitchHistory: string[] = [choose(scale.notes)]
+  const pitchHistory: string[] = [startWithRootNote ? scale.notes[0] : choose(scale.notes)]
   notes.push({
     pitch: getPitchWithOctave(pitchHistory[0], octave),
     duration: rhythm.steps[0] || '4n',
@@ -148,7 +167,7 @@ function generateNGramMelody(
   })
 
   // This loop needs to account for the first note already being added.
-  let totalNotesToGenerate = bars * rhythm.steps.length
+  const totalNotesToGenerate = bars * rhythm.steps.length
   let generatedNotesCount = 1
 
   while (generatedNotesCount < totalNotesToGenerate) {

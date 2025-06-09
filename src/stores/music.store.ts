@@ -97,7 +97,8 @@ export const useMusicStore = defineStore('music', {
             this.useNGrams,
             this.octave,
             this.useFixedVelocity,
-            this.fixedVelocity
+            this.fixedVelocity,
+            this.startWithRootNote
           )
         }
       } catch (error) {
