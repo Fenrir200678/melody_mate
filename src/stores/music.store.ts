@@ -10,7 +10,7 @@ export const useMusicStore = defineStore('music', {
     scaleName: 'Minor Scale' as string,
     key: 'C' as string,
     rhythm: null as RhythmPattern | null,
-    bars: 1,
+    bars: 4,
     bpm: 120,
     useMotifRepetition: true,
     useNGrams: false,
