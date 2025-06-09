@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import useMusicStore from '@/stores/music.store'
 import { generateEuclideanPattern } from '@/services/RhythmService'
-import { PREDEFINED_RHYTHMS } from '@/data/rhythms'
-import type { RhythmPattern } from '@/models'
+import { PREDEFINED_RHYTHMS, RHYTHM_CATEGORIES, type CategorizedRhythm, type RhythmCategory } from '@/data/rhythms'
 import Slider from 'primevue/slider'
 import Tabs from 'primevue/tabs'
 import TabList from 'primevue/tablist'
 import Tab from 'primevue/tab'
 import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
+import Select from 'primevue/select'
 
 // Common store instance
 const store = useMusicStore()
@@ -34,15 +34,39 @@ watch([pulses, steps], () => {
 })
 
 // --- Preset Selector Logic ---
-type PredefinedRhythm = {
-  name: string
-  pattern: RhythmPattern
-}
+const availableRhythms = ref<CategorizedRhythm[]>(PREDEFINED_RHYTHMS)
+const selectedRhythm = ref<CategorizedRhythm | null>(null)
+const selectedCategory = ref<RhythmCategory>('bass')
 
-const availableRhythms = ref<PredefinedRhythm[]>(PREDEFINED_RHYTHMS)
-const selectedRhythm = ref<PredefinedRhythm | null>(null)
+// Group rhythms by category
+const rhythmsByCategory = computed(() => {
+  const grouped: Record<RhythmCategory, CategorizedRhythm[]> = {
+    bass: [],
+    melody: [],
+    world: []
+  }
 
-function onRhythmChange(value: PredefinedRhythm) {
+  availableRhythms.value.forEach((rhythm) => {
+    grouped[rhythm.category].push(rhythm)
+  })
+
+  return grouped
+})
+
+// Get category options for select
+const categoryOptions = computed(() => {
+  return Object.entries(RHYTHM_CATEGORIES).map(([key, label]) => ({
+    value: key as RhythmCategory,
+    label
+  }))
+})
+
+// Get filtered rhythms for current category
+const filteredRhythms = computed(() => {
+  return rhythmsByCategory.value[selectedCategory.value] || []
+})
+
+function onRhythmChange(value: CategorizedRhythm) {
   if (value) {
     selectedRhythm.value = value
     store.setRhythm(value.pattern)
@@ -67,6 +91,14 @@ watch(activeTab, (newIndex) => {
   } else if (newIndex === 0) {
     // When switching back to generator, re-apply the euclidean rhythm
     generateAndSetEuclideanRhythm()
+  }
+})
+
+// Watch category change to auto-select first rhythm
+watch(selectedCategory, () => {
+  const firstRhythm = filteredRhythms.value[0]
+  if (firstRhythm) {
+    onRhythmChange(firstRhythm)
   }
 })
 </script>
@@ -99,22 +131,39 @@ watch(activeTab, (newIndex) => {
           </div>
         </TabPanel>
         <TabPanel :value="1">
-          <div class="p-1">
-            <ul class="flex flex-col gap-1">
-              <li
-                v-for="rhythm in availableRhythms"
+          <div class="pt-2 flex flex-col gap-4">
+            <!-- Category Selector -->
+            <div class="mb-2">
+              <label class="text-sm pb-2 block">Category</label>
+              <Select
+                v-model="selectedCategory"
+                :options="categoryOptions"
+                option-label="label"
+                option-value="value"
+                placeholder="Select a category"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Rhythm List -->
+            <div class="flex flex-col gap-1">
+              <div
+                v-for="rhythm in filteredRhythms"
                 :key="rhythm.name"
                 @click="onRhythmChange(rhythm)"
                 :class="[
-                  'cursor-pointer rounded transition-colors flex items-center justify-between text-sm hover:text-zinc-400',
-                  selectedRhythm?.name === rhythm.name
-                    ? 'bg-primary-100 dark:bg-primary-700 text-primary-900 dark:text-primary-50 font-bold'
-                    : 'bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600'
+                  'cursor-pointer rounded transition-colors p-3 border border-zinc-600',
+                  selectedRhythm?.name === rhythm.name ? 'bg-zinc-700 text-zinc-200' : 'bg-zinc-900 hover:bg-zinc-800'
                 ]"
               >
-                <span class="mr-4">{{ rhythm.name }}</span>
-              </li>
-            </ul>
+                <div class="flex flex-col">
+                  <span class="font-medium text-sm">{{ rhythm.name }}</span>
+                  <span v-if="rhythm.description" class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                    {{ rhythm.description }}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </TabPanel>
       </TabPanels>
