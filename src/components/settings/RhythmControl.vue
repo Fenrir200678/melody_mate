@@ -143,7 +143,7 @@ watch(selectedCategory, () => {
                 <strong>{{ steps }} steps</strong>.
               </p>
               <p class="mt-1">
-                <span class="text-zinc-400">Pulses:</span> Number of played notes<br />
+                <span class="text-zinc-400">Pulses:</span> Number of played notes in time raster<br />
                 <span class="text-zinc-400">Steps:</span> Time raster ({{ stepDescription }})
               </p>
               <p class="mt-1">

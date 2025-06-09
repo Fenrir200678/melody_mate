@@ -12,10 +12,10 @@ import AppSettings from '@/components/AppSettings.vue'
   <PageHeader />
   <main class="w-full px-4">
     <div class="flex gap-4">
-      <div class="w-[60%] bg-zinc-900 rounded-lg p-4">
+      <div class="w-[60%] bg-zinc-900 rounded-lg px-4 py-8">
         <AppSettings />
       </div>
-      <div class="w-[40%] bg-zinc-900 rounded-lg p-4 flex flex-col gap-8">
+      <div class="w-[40%] bg-zinc-900 rounded-lg px-4 py-8 flex flex-col gap-8">
         <MelodyGenerator />
         <MelodyVisualizer />
         <MelodyPlayer />
