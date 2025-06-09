@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { RhythmPattern, Melody, AIConfig } from '@/models'
+import type { RhythmPattern, Melody, AIConfig } from '@/ts/models'
 import { generateScale } from '@/services/ScaleService'
 import type { InstrumentKey } from '@/services/AudioService'
 import type { MelodyGenerationOptions } from '@/services/MelodyService'

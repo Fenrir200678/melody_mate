@@ -1,4 +1,4 @@
-import type { Note } from '@/models'
+import type { Note } from '@/ts/models'
 
 export function setMelodyOctave(notes: Note[], newOctave: number): Note[] {
   return notes.map((note) => ({

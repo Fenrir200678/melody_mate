@@ -1,19 +1,10 @@
-import type { Melody, Note, RhythmPattern, Scale } from '@/models'
+import type { Melody, Note, RhythmPattern, Scale } from '@/ts/models'
+import type { MelodyGenerationOptions } from '@/ts/types/melody.types'
+import { STEPS_PER_16N, DURATION_MAP } from '@/ts/const/melody.const'
 import { buildMarkovTable, type MarkovTable } from '@/utils/markov'
 import { choose } from '@/utils/random-chooser'
 import { getNextPitch } from '@/utils/pitch'
 import { calculateVelocity } from '@/utils/velocity'
-
-const STEPS_PER_16N: Readonly<Record<string, number>> = {
-  '1n': 16,
-  '2n.': 12,
-  '2n': 8,
-  '4n.': 6,
-  '4n': 4,
-  '8n.': 3,
-  '8n': 2,
-  '16n': 1
-}
 
 /**
  * Creates training data for the Markov chain.
@@ -66,36 +57,29 @@ function createTrainingData(notes: string[]): string[][] {
   return sequences
 }
 
-export type MelodyGenerationOptions = {
-  scale: Scale
-  rhythm: RhythmPattern
-  bars: number
-  octave: number
-  useMotifRepetition: boolean
-  useNGrams: boolean
-  useFixedVelocity: boolean
-  fixedVelocity: number
-  startWithRootNote?: boolean
-}
-
-const DURATION_MAP: Readonly<Record<string, Readonly<Record<number, string>>>> = {
-  '16n': { 1: '16n', 2: '8n', 3: '8n.', 4: '4n', 6: '4n.', 8: '2n', 12: '2n.', 16: '1n' }
-}
-
 function convertStepsToDuration(steps: number, subdivision: string): string {
-  if (subdivision !== '16n') {
-    console.warn(`Duration conversion for subdivisions other than '16n' is not yet fully supported.`)
-    return `T${steps * 32}`
+  const mapForSubdivision = DURATION_MAP[subdivision as keyof typeof DURATION_MAP]
+
+  if (!mapForSubdivision) {
+    console.error(`Unsupported subdivision for duration conversion: ${subdivision}`)
+    // Fallback to a raw tick value that is proportional to the subdivision
+    const subdivisionToBase16n: Record<string, number> = { '64n': 0.25, '32n': 0.5, '16n': 1, '8n': 2, '4n': 4 }
+    const multiplier = subdivisionToBase16n[subdivision] || 1
+    const ticks = steps * multiplier * 32 // 32 ticks per 16n note
+    return `T${ticks}`
   }
 
-  const mapForSubdivision = DURATION_MAP[subdivision]
-  const notation = mapForSubdivision[steps]
+  const notation = mapForSubdivision[steps as keyof typeof mapForSubdivision]
 
   if (notation) {
     return notation
   }
 
-  const ticks = steps * 32
+  // If a direct notation doesn't exist, fall back to a tick-based value
+  console.warn(`No direct notation for ${steps} steps with ${subdivision} subdivision. Using tick-based duration.`)
+  const subdivisionToBase16n: Record<string, number> = { '64n': 0.25, '32n': 0.5, '16n': 1, '8n': 2, '4n': 4 }
+  const multiplier = subdivisionToBase16n[subdivision] || 1
+  const ticks = steps * multiplier * 32 // 32 ticks per 16n note
   return `T${ticks}`
 }
 
@@ -172,7 +156,15 @@ function _generateSimpleMelody(options: MelodyGenerationOptions): Melody {
   const rhythmPattern = rhythm.pattern!
   const stepsInRhythmPattern = rhythmPattern.length
   const subdivision = rhythm.subdivision!
-  const STEPS_PER_BAR = 16
+
+  // Calculate steps per bar based on subdivision
+  const subdivisionToStepsPerBar: Record<string, number> = {
+    '32n': 32,
+    '16n': 16,
+    '8n': 8,
+    '4n': 4
+  }
+  const STEPS_PER_BAR = subdivisionToStepsPerBar[subdivision] || 16
   const totalSteps = bars * STEPS_PER_BAR
 
   const noteSteps: number[] = []
@@ -250,7 +242,15 @@ function _generateNGramMelody(options: MelodyGenerationOptions): Melody {
   const rhythmPattern = rhythm.pattern!
   const stepsInRhythmPattern = rhythmPattern.length
   const subdivision = rhythm.subdivision!
-  const STEPS_PER_BAR = 16
+
+  // Calculate steps per bar based on subdivision
+  const subdivisionToStepsPerBar: Record<string, number> = {
+    '32n': 32,
+    '16n': 16,
+    '8n': 8,
+    '4n': 4
+  }
+  const STEPS_PER_BAR = subdivisionToStepsPerBar[subdivision] || 16
   const totalSteps = bars * STEPS_PER_BAR
 
   const noteSteps: number[] = []

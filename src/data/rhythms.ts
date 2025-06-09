@@ -1,4 +1,4 @@
-import type { RhythmPattern } from '@/models/Rhythm'
+import type { RhythmPattern } from '@/ts/models/Rhythm'
 
 export type RhythmCategory = 'bass' | 'melody' | 'world'
 

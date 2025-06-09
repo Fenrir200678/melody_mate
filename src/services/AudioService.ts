@@ -1,13 +1,6 @@
-import type { Melody } from '@/models'
+import type { Melody } from '@/ts/models'
+import type { InstrumentKey, LoopEvent } from '@/ts/types/audio.types'
 import * as Tone from 'tone'
-
-export const instrumentOptions = {
-  default: 'Klassischer Synth',
-  fm: 'FM Synth',
-  am: 'AM Synth'
-} as const
-
-export type InstrumentKey = keyof typeof instrumentOptions
 
 let synth: Tone.PolySynth | null = null
 let part: Tone.Part | null = null
@@ -168,15 +161,6 @@ export async function playMelody(
     (time, note) => time + Tone.Time(convertDurationToToneJsTime(note.duration, bpm)).toSeconds(),
     0
   )
-
-  type LoopEvent = {
-    time: number
-    pitch: string
-    duration: number | string
-    velocity: number
-    noteIndex: number
-    loop: number
-  }
 
   const allEvents: LoopEvent[] = []
   for (let i = 0; i < loops; i++) {

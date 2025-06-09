@@ -1,4 +1,4 @@
-import type { Melody } from '@/models'
+import type { Melody } from '@/ts/models'
 import MidiWriter from 'midi-writer-js'
 
 /**

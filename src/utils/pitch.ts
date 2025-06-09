@@ -1,4 +1,4 @@
-import type { Scale } from '@/models'
+import type { Scale } from '@/ts/models'
 import type { MarkovTable } from './markov'
 import { getTransitions } from './markov'
 import { choose, chooseWeighted } from './random-chooser'

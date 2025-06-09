@@ -1,4 +1,5 @@
-import type { RhythmPattern } from '@/models'
+import type { RhythmPattern } from '@/ts/models'
+import { DURATION_MAP } from '@/ts/const/melody.const'
 import { choose } from '@/utils/random-chooser'
 
 /**
@@ -30,13 +31,6 @@ export function generateEuclideanBinaryPattern(pulses: number, steps: number): (
   return pattern
 }
 
-const DURATION_MAP: Readonly<Record<string, Readonly<Record<number, string>>>> = {
-  '32n': { 1: '32n', 2: '16n', 3: '16n.', 4: '8n', 6: '8n.', 8: '4n', 12: '4n.', 16: '2n', 24: '2n.', 32: '1n' },
-  '16n': { 1: '16n', 2: '8n', 3: '8n.', 4: '4n', 6: '4n.', 8: '2n', 12: '2n.', 16: '1n' },
-  '8n': { 1: '8n', 2: '4n', 3: '4n.', 4: '2n', 6: '2n.', 8: '1n' },
-  '4n': { 1: '4n', 2: '2n', 3: '2n.', 4: '1n' }
-} as const
-
 /**
  * Converts a list of multiples to actual note durations based on the subdivision.
  * @param multiples - List of multiples (e.g., [1, 2, 3])
@@ -44,14 +38,14 @@ const DURATION_MAP: Readonly<Record<string, Readonly<Record<number, string>>>> =
  * @returns List of note durations (e.g., ['16n', '8n', '4n.'])
  */
 function convertMultiplesToDurations(multiples: number[], subdivision: string): string[] {
-  const mapForSubdivision = DURATION_MAP[subdivision]
+  const mapForSubdivision = DURATION_MAP[subdivision as keyof typeof DURATION_MAP]
   if (!mapForSubdivision) {
     console.error(`Unsupported subdivision for duration conversion: ${subdivision}`)
     return multiples.map((m) => `${m}*${subdivision}`)
   }
 
   return multiples.map((m) => {
-    return mapForSubdivision[m] ?? `${m}*${subdivision}`
+    return mapForSubdivision[m as keyof typeof mapForSubdivision] ?? `${m}*${subdivision}`
   })
 }
 
