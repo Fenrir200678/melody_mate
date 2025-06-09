@@ -16,6 +16,29 @@ let stepUpdateCallback: ((stepIndex: number) => void) | null = null
 let notePlayCallback: ((stepIndex: number) => void) | null = null
 
 /**
+ * Converts a duration from a custom tick format (e.g., 'T160') to a format Tone.js understands.
+ * For 'T<ticks>', it calculates the duration in seconds based on the BPM.
+ * Standard notations like '4n' are passed through.
+ * @param duration The duration string from the melody object.
+ * @param bpm The current tempo.
+ * @returns The duration as seconds (number) or a standard time notation (string).
+ */
+function convertDurationToToneJsTime(duration: string, bpm: number): number | string {
+  if (duration.startsWith('T')) {
+    const ticks = parseInt(duration.substring(1), 10)
+    if (isNaN(ticks)) {
+      return '8n' // Fallback for invalid format
+    }
+    // Standard is 128 ticks per quarter note (TPQN).
+    const secondsPerQuarter = 60 / bpm
+    const secondsPerTick = secondsPerQuarter / 128
+    return ticks * secondsPerTick
+  }
+  // Return standard notation like '4n', '8n.' for Tone.js to handle
+  return duration
+}
+
+/**
  * Sets a callback function that will be called for each rhythm step during playback
  * @param callback - Function to call with the current step index
  */
@@ -107,7 +130,7 @@ function getSynth(instrument: InstrumentKey = 'default'): Tone.PolySynth {
  * @param bpm - The tempo in beats per minute.
  * @param instrument - The instrument to use for playback.
  * @param rhythmPattern - The rhythm pattern used to generate the melody for animation sync.
- * @param bars - Number of bars in the melody for correct step mapping.
+ * @param loops - Number of loops to play the melody.
  * @param onEnded - Callback function to execute when playback has finished.
  */
 export async function playMelody(
@@ -115,6 +138,7 @@ export async function playMelody(
   bpm: number,
   instrument: InstrumentKey = 'default',
   rhythmPattern?: (0 | 1)[],
+  loops = 1,
   onEnded?: () => void
 ): Promise<void> {
   if (!melody.notes.length) {
@@ -139,35 +163,64 @@ export async function playMelody(
   const synthesizer = getSynth(instrument)
   transport.bpm.value = bpm
 
-  // Create a sequence of events for the Part
-  let currentTime = 0
-  const events = melody.notes.map((note, index) => {
-    const event = {
-      time: currentTime,
-      pitch: note.pitch,
-      duration: note.duration,
-      velocity: note.velocity,
-      noteIndex: index // Add note index for animation sync
-    }
-    currentTime += Tone.Time(note.duration).toSeconds()
-    return event
-  })
+  // --- Manually create looped events for robust playback ---
+  const singleLoopDuration = melody.notes.reduce(
+    (time, note) => time + Tone.Time(convertDurationToToneJsTime(note.duration, bpm)).toSeconds(),
+    0
+  )
+
+  type LoopEvent = {
+    time: number
+    pitch: string
+    duration: number | string
+    velocity: number
+    noteIndex: number
+    loop: number
+  }
+
+  const allEvents: LoopEvent[] = []
+  for (let i = 0; i < loops; i++) {
+    const loopStartTime = i * singleLoopDuration
+    // To calculate the start time within the current loop, we need a separate reduce.
+    let timeInLoop = 0
+    melody.notes.forEach((note, index) => {
+      const toneDuration = convertDurationToToneJsTime(note.duration, bpm)
+      const event: LoopEvent = {
+        time: loopStartTime + timeInLoop,
+        pitch: note.pitch,
+        duration: toneDuration,
+        velocity: note.velocity,
+        noteIndex: index, // Index within a single loop
+        loop: i // Store which loop this event belongs to
+      }
+      allEvents.push(event)
+      timeInLoop += Tone.Time(toneDuration).toSeconds()
+    })
+  }
+  const totalDuration = singleLoopDuration * loops
 
   if (import.meta.env.DEBUG_MODE) {
-    console.log('Events:', events)
+    console.log('Total Events:', allEvents)
+    console.log('Total Duration:', totalDuration)
   }
 
   // Create and start the Part
   part = new Tone.Part((time, value) => {
+    // Note: value.duration is now a format Tone.js understands (seconds or notation)
     synthesizer.triggerAttackRelease(value.pitch, value.duration, time, value.velocity)
 
     // Trigger note play callback when note actually plays
     if (notePlayCallback && rhythmPattern) {
       // Find the corresponding step in the rhythm pattern for this note
       const stepIndex = findStepIndexForNote(value.noteIndex, rhythmPattern)
-      notePlayCallback(stepIndex)
+      if (stepIndex !== -1) {
+        // Calculate the absolute step for the animation across loops
+        const absoluteStep = value.loop * rhythmPattern.length + stepIndex
+        notePlayCallback(absoluteStep)
+      }
     }
-  }, events).start(0)
+  }, allEvents).start(0)
+
   part.loop = false
 
   // Schedule continuous step updates for base animation
@@ -182,7 +235,6 @@ export async function playMelody(
     }
 
     // Schedule step updates for the entire playback duration
-    const totalDuration = currentTime
     const totalSteps = Math.ceil(totalDuration / stepDuration)
     for (let step = 0; step < totalSteps; step++) {
       scheduleStepUpdate(step * stepDuration, step)
@@ -195,7 +247,7 @@ export async function playMelody(
   transport.scheduleOnce((time) => {
     stopPlayback(time)
     onEnded?.()
-  }, currentTime)
+  }, totalDuration)
 }
 
 /**

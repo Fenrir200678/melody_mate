@@ -48,10 +48,7 @@ import GenerationOptions from '@/components/settings/GenerationOptions.vue'
       </h3>
       <div class="space-y-4">
         <!-- Length (bars) -->
-        <div class="flex items-center justify-between gap-4">
-          <label class="font-medium">Length (bars)</label>
-          <LengthSelector />
-        </div>
+        <LengthSelector />
 
         <!-- BPM and Octave -->
         <div class="flex items-center justify-between gap-4">

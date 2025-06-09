@@ -2,41 +2,37 @@ import type { RhythmPattern } from '@/models'
 import { choose } from '@/utils/random-chooser'
 
 /**
- * Generates a binary Euclidean pattern using Bjorklund's algorithm
+ * Generates a binary Euclidean pattern using Bresenham's line algorithm
  * @param pulses - Number of pulses (hits)
  * @param steps - Total number of steps
  * @returns Binary array where 1 = pulse, 0 = rest
  */
 export function generateEuclideanBinaryPattern(pulses: number, steps: number): (0 | 1)[] {
-  if (pulses > steps || pulses < 0 || steps <= 0) {
-    return new Array(steps).fill(0)
+  if (pulses < 0 || steps <= 0 || pulses > steps) {
+    return []
   }
+
+  const pattern: (0 | 1)[] = new Array(steps).fill(0)
   if (pulses === 0) {
-    return new Array(steps).fill(0)
+    return pattern
   }
 
-  // Build the binary pattern using Bjorklund's algorithm
-  const k = pulses
-  const n = steps
-  const p: (number | number[])[][] = []
-  for (let i = 0; i < k; i++) p.push([1])
-  const q: (number | number[])[][] = []
-  for (let i = 0; i < n - k; i++) q.push([0])
-
-  while (q.length > 0) {
-    const p_len = p.length
-    for (let i = 0; i < Math.min(p_len, q.length); i++) {
-      p[i] = p[i].concat(q[i])
+  // This is a Bresenham-line-based algorithm that creates "rear-loaded" patterns,
+  // which often feel more rhythmically conventional and resolving.
+  let bucket = 0
+  for (let i = 0; i < steps; i++) {
+    bucket += pulses
+    if (bucket >= steps) {
+      bucket -= steps
+      pattern[i] = 1
     }
-    q.splice(0, p_len)
   }
-
-  return [...p.flat()] as (0 | 1)[]
+  return pattern
 }
 
 const DURATION_MAP: Readonly<Record<string, Readonly<Record<number, string>>>> = {
   '32n': { 1: '32n', 2: '16n', 3: '16n.', 4: '8n', 6: '8n.', 8: '4n', 12: '4n.', 16: '2n', 24: '2n.', 32: '1n' },
-  '16n': { 1: '16n', 2: '8n', 3: '4n.', 4: '4n', 6: '4n.', 8: '2n', 12: '2n.', 16: '1n' },
+  '16n': { 1: '16n', 2: '8n', 3: '8n.', 4: '4n', 6: '4n.', 8: '2n', 12: '2n.', 16: '1n' },
   '8n': { 1: '8n', 2: '4n', 3: '4n.', 4: '2n', 6: '2n.', 8: '1n' },
   '4n': { 1: '4n', 2: '2n', 3: '2n.', 4: '1n' }
 } as const

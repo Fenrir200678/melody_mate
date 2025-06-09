@@ -10,54 +10,12 @@ export type CategorizedRhythm = {
 }
 
 export const RHYTHM_CATEGORIES = {
-  bass: 'Bass Patterns',
   melody: 'Melody Patterns',
-  world: 'World Music'
+  world: 'World Music',
+  bass: 'Bass Patterns'
 } as const
 
 export const PREDEFINED_RHYTHMS: CategorizedRhythm[] = [
-  // === BASS PATTERNS ===
-  {
-    name: 'Four on the Floor',
-    category: 'bass',
-    description: 'Classic steady bass pulse',
-    pattern: {
-      steps: ['4n', '4n', '4n', '4n']
-    }
-  },
-  {
-    name: 'Bossa Nova Bass',
-    category: 'bass',
-    description: 'Smooth Brazilian bass line',
-    pattern: {
-      steps: ['4n.', '8n', '4n.', '8n']
-    }
-  },
-  {
-    name: 'Reggae Bass',
-    category: 'bass',
-    description: 'Offbeat reggae groove',
-    pattern: {
-      steps: ['8n', '8n.', '16n', '8n', '8n.', '16n']
-    }
-  },
-  {
-    name: 'Walking Bass',
-    category: 'bass',
-    description: 'Jazz walking pattern',
-    pattern: {
-      steps: ['4n', '4n', '4n', '4n']
-    }
-  },
-  {
-    name: 'Dubstep Drop',
-    category: 'bass',
-    description: 'Heavy syncopated dubstep',
-    pattern: {
-      steps: ['8n', '16n', '16n', '8n.', '16n', '8n', '8n']
-    }
-  },
-
   // === MELODY PATTERNS ===
   {
     name: 'Eighth Note Groove',
@@ -187,6 +145,47 @@ export const PREDEFINED_RHYTHMS: CategorizedRhythm[] = [
     description: 'Middle Eastern rhythm',
     pattern: {
       steps: ['8n', '4n', '8n', '8n', '4n']
+    }
+  },
+  // === BASS PATTERNS ===
+  {
+    name: 'Four on the Floor',
+    category: 'bass',
+    description: 'Classic steady bass pulse',
+    pattern: {
+      steps: ['4n', '4n', '4n', '4n']
+    }
+  },
+  {
+    name: 'Bossa Nova Bass',
+    category: 'bass',
+    description: 'Smooth Brazilian bass line',
+    pattern: {
+      steps: ['4n.', '8n', '4n.', '8n']
+    }
+  },
+  {
+    name: 'Reggae Bass',
+    category: 'bass',
+    description: 'Offbeat reggae groove',
+    pattern: {
+      steps: ['8n', '8n.', '16n', '8n', '8n.', '16n']
+    }
+  },
+  {
+    name: 'Walking Bass',
+    category: 'bass',
+    description: 'Jazz walking pattern',
+    pattern: {
+      steps: ['4n', '4n', '4n', '4n']
+    }
+  },
+  {
+    name: 'Dubstep Drop',
+    category: 'bass',
+    description: 'Heavy syncopated dubstep',
+    pattern: {
+      steps: ['8n', '16n', '16n', '8n.', '16n', '8n', '8n']
     }
   }
 ]

@@ -33,6 +33,9 @@ const generateAndSetEuclideanRhythm = () => {
   }
   const newRhythm = generateEuclideanPattern(pulses.value, steps.value, '16n')
   store.setRhythm(newRhythm)
+  // Automatically set bars based on steps for Euclidean rhythms
+  const newBars = Math.ceil(steps.value / 16)
+  store.setBars(newBars)
 }
 
 // Update the store only when user interacts with sliders
@@ -45,7 +48,7 @@ watch([pulses, steps], () => {
 // --- Preset Selector Logic ---
 const availableRhythms = ref<CategorizedRhythm[]>(PREDEFINED_RHYTHMS)
 const selectedRhythm = ref<CategorizedRhythm | RhythmPattern | null>(null) // Can be either
-const selectedCategory = ref<RhythmCategory>('bass')
+const selectedCategory = ref<RhythmCategory>('melody')
 
 // Group rhythms by category
 const rhythmsByCategory = computed(() => {
@@ -92,6 +95,9 @@ onMounted(() => {
       steps.value = currentRhythm.pattern.length
       selectedRhythm.value = currentRhythm
       activeTab.value = 1
+      // Also set the correct bar count on mount
+      const newBars = Math.ceil(steps.value / 16)
+      store.setBars(newBars)
     } else {
       // It's a preset. Find it in our list.
       const preset = PREDEFINED_RHYTHMS.find((p) => p.name === currentRhythm.name)
@@ -104,6 +110,20 @@ onMounted(() => {
   } else {
     // If no rhythm is in store, set a default one
     onRhythmChange(PREDEFINED_RHYTHMS[0])
+  }
+})
+
+watch(activeTab, (newIndex) => {
+  if (newIndex === 1) {
+    generateAndSetEuclideanRhythm()
+  } else if (newIndex === 0) {
+    // If the rhythm in the store is Euclidean, switch back to a default preset
+    if (store.rhythm?.pulses !== undefined) {
+      const firstRhythm = filteredRhythms.value[0]
+      if (firstRhythm) {
+        onRhythmChange(firstRhythm)
+      }
+    }
   }
 })
 
@@ -122,7 +142,7 @@ watch(selectedCategory, (newCategory, oldCategory) => {
   <Tabs v-model:value="activeTab">
     <TabList>
       <Tab :value="0">Rhythm Presets</Tab>
-      <Tab :value="1">Euclidean Rhythm</Tab>
+      <Tab :value="1">Euclidean Rhythm <span class="text-xs text-zinc-600 pl-1">beta</span></Tab>
     </TabList>
 
     <TabPanels>
@@ -208,7 +228,7 @@ watch(selectedCategory, (newCategory, oldCategory) => {
           </p>
           <p class="mt-1">
             Also the <span class="font-bold">"Length (bars)"</span> selection below has no effect on the length of the
-            generated melody, it will just repeat the generated rhythm x times.
+            generated melody and is disabled.
           </p>
         </div>
       </TabPanel>

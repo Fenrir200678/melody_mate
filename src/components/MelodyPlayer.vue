@@ -1,13 +1,19 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import Button from 'primevue/button'
 import Divider from 'primevue/divider'
+import SelectButton from 'primevue/selectbutton'
 
 import useMusicStore from '@/stores/music.store'
 
 const store = useMusicStore()
 
 const canPlay = computed(() => store.melody?.notes && store.melody.notes.length > 0)
+const loopOptions = ref(['1x', '2x', '4x'])
+const selectedLoop = computed({
+  get: () => `${store.loopPlayback}x`,
+  set: (val) => store.setLoopPlayback(parseInt(val.replace('x', ''), 10))
+})
 
 const playMelody = () => {
   store.playMelody()
@@ -41,6 +47,10 @@ const downloadMidi = () => {
         :disabled="!store.isPlaying"
         @click="stopMelody"
       />
+    </div>
+    <div class="flex items-center justify-center gap-2">
+      <label class="text-xs text-zinc-400">Loop:</label>
+      <SelectButton v-model="selectedLoop" :options="loopOptions" size="small" />
     </div>
     <Divider />
     <div class="flex items-center justify-center gap-2">

@@ -28,10 +28,14 @@ export const useMusicStore = defineStore('music', {
     octave: 4,
     useFixedVelocity: true,
     fixedVelocity: 127,
-    startWithRootNote: false
+    startWithRootNote: false,
+    loopPlayback: 1
   }),
 
   actions: {
+    setLoopPlayback(count: number) {
+      this.loopPlayback = count
+    },
     setScaleName(name: string) {
       this.scaleName = name
     },
@@ -143,7 +147,7 @@ export const useMusicStore = defineStore('music', {
       // Get the rhythm pattern for animation sync
       const rhythmPattern = this.rhythm?.pattern
 
-      await playMelody(this.melody, this.bpm, this.selectedInstrument, rhythmPattern, () => {
+      await playMelody(this.melody, this.bpm, this.selectedInstrument, rhythmPattern, this.loopPlayback, () => {
         this.isPlaying = false
         this.setCurrentStep(-1) // Reset animation
         this.setActiveNoteStep(-1) // Reset note highlights

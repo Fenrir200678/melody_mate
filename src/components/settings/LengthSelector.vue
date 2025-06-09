@@ -1,13 +1,22 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import SelectButton from 'primevue/selectbutton'
 import useMusicStore from '@/stores/music.store'
 
 const store = useMusicStore()
-const barsOptions = ref(['1', '2', '3', '4', '5', '6', '7', '8'])
-const selectedBars = ref<string>(store.bars.toString())
+const barsOptions = ref(['1', '2', '4', '8', '16'])
+
+const selectedBars = computed({
+  get: () => store.bars.toString(),
+  set: (val) => store.setBars(Number(val))
+})
+
+const isEuclideanMode = computed(() => store.rhythm?.pulses !== undefined)
 </script>
 
 <template>
-  <SelectButton v-model="selectedBars" :options="barsOptions" @update:modelValue="store.setBars(Number($event))" />
+  <div class="flex items-center justify-between gap-4 mt-4">
+    <label class="font-medium">Length (bars)</label>
+    <SelectButton v-model="selectedBars" :options="barsOptions" :disabled="isEuclideanMode" />
+  </div>
 </template>
