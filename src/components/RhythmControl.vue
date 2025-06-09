@@ -75,7 +75,7 @@ watch(activeTab, (newIndex) => {
   <div class="">
     <Tabs v-model:value="activeTab">
       <TabList>
-        <Tab :value="0">Euclidean Generator</Tab>
+        <Tab :value="0">Euclidean Rhythm</Tab>
         <Tab :value="1">Presets</Tab>
       </TabList>
 
