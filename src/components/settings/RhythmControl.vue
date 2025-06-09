@@ -22,6 +22,10 @@ const pulses = ref(5)
 const steps = ref(16)
 const activeTab = ref(0)
 
+const stepDescription = computed(() => {
+  return `${steps.value} × 16th = ${Math.round((steps.value / 16) * 100) / 100} bar(s)`
+})
+
 const generateAndSetEuclideanRhythm = () => {
   if (steps.value < pulses.value) {
     pulses.value = steps.value
@@ -134,11 +138,16 @@ watch(selectedCategory, () => {
 
             <!-- Explanation Text -->
             <div class="text-xs text-zinc-500 leading-relaxed">
-              <p><strong>Euclidean Rhythms</strong> spread {{ pulses }} pulses evenly over {{ steps }} steps.</p>
+              <p>
+                Your rhythm will spread <strong>{{ pulses }} notes </strong> evenly over
+                <strong>{{ steps }} steps</strong>.
+              </p>
               <p class="mt-1">
                 <span class="text-zinc-400">Pulses:</span> Number of played notes<br />
-                <span class="text-zinc-400">Steps:</span> Time raster ({{ steps }} × 16th =
-                {{ Math.round((steps / 4) * 100) / 100 }} bars)
+                <span class="text-zinc-400">Steps:</span> Time raster ({{ stepDescription }})
+              </p>
+              <p class="mt-1">
+                With euclidean rhythms, the "Length (bars)" selection will just repeat the generated rhythm x times.
               </p>
             </div>
           </div>
