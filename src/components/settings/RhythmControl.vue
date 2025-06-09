@@ -81,7 +81,8 @@ const categoryOptions = computed(() => {
 
 // Get filtered rhythms for current category
 const filteredRhythms = computed(() => {
-  return rhythmsByCategory.value[selectedCategory.value] || []
+  const rhythms = rhythmsByCategory.value[selectedCategory.value] || []
+  return rhythms.sort((a, b) => a.name.localeCompare(b.name))
 })
 
 function onRhythmChange(value: CategorizedRhythm) {
@@ -195,19 +196,19 @@ const subdivisionOptions = computed(() => {
           </div>
 
           <!-- Rhythm List -->
-          <div class="flex flex-col gap-1">
+          <div class="flex flex-col overflow-y-auto h-[400px]">
             <div
               v-for="rhythm in filteredRhythms"
               :key="rhythm.name"
               @click="onRhythmChange(rhythm)"
               :class="[
-                'cursor-pointer rounded transition-colors p-3 border border-zinc-600',
+                'cursor-pointer rounded transition-colors py-2 px-4',
                 selectedRhythm?.name === rhythm.name ? 'bg-zinc-700 text-zinc-200' : 'bg-zinc-900 hover:bg-zinc-800'
               ]"
             >
               <div class="flex flex-col">
                 <span class="font-medium text-sm">{{ rhythm.name }}</span>
-                <span v-if="rhythm.description" class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                <span v-if="rhythm.description" class="text-xs text-zinc-400 mt-1">
                   {{ rhythm.description }}
                 </span>
               </div>

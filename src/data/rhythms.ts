@@ -16,7 +16,127 @@ export const RHYTHM_CATEGORIES = {
 } as const
 
 export const PREDEFINED_RHYTHMS: CategorizedRhythm[] = [
-  // === MELODY PATTERNS ===
+  // === SAD, SYNTH & RETRO ===
+  {
+    name: 'Wistful Sigh',
+    category: 'melody',
+    description: 'A slow, melancholic pattern with space for reflection',
+    pattern: {
+      steps: ['2n', '8n', '8n', '4n']
+    }
+  },
+  {
+    name: 'EBM Bassline',
+    category: 'bass',
+    description: 'A driving, energetic pattern typical for EBM and futurepop',
+    pattern: {
+      steps: ['8n', '16n', '16n', '8n', '16n', '16n', '4n']
+    }
+  },
+  {
+    name: 'Retro Funk Bass',
+    category: 'bass',
+    description: 'A groovy, syncopated bassline straight from the 80s',
+    pattern: {
+      steps: ['8n', '16n', '16n', '4n', '8n', '4n']
+    }
+  },
+  {
+    name: 'Melancholic Synth Lead',
+    category: 'melody',
+    description: 'A classic syncopated lead for emotional synth-pop anthems',
+    pattern: {
+      steps: ['8n.', '16n', '4n', '8n', '4n.']
+    }
+  },
+  {
+    name: 'Fading Echo',
+    category: 'melody',
+    description: 'A sparse, decaying rhythm creating a sense of loss and emptiness',
+    pattern: {
+      steps: ['4n', '2n.'] // Note: Creates a very long space
+    }
+  },
+  {
+    name: '90s House Chords',
+    category: 'melody',
+    description: 'The iconic syncopated chord rhythm of 90s house music',
+    pattern: {
+      steps: ['16n', '16n', '8n', '16n', '16n', '4n', '4n']
+    }
+  },
+  {
+    name: 'Solemn Drone',
+    category: 'bass',
+    description: 'A slow, minimalist pulse for deep and somber basslines',
+    pattern: {
+      steps: ['2n', '2n']
+    }
+  },
+  {
+    name: 'G-Funk Whine',
+    category: 'melody',
+    description: 'A laid-back, whiny synth lead with a classic West Coast vibe',
+    pattern: {
+      steps: ['4n', '2n', '8n.', '16n']
+    }
+  },
+  {
+    name: 'Gothic March',
+    category: 'bass',
+    description: 'A slow, somber, and heavy procession',
+    pattern: {
+      steps: ['4n.', '8n', '4n', '4n']
+    }
+  },
+  {
+    name: 'Anxious Heartbeat',
+    category: 'melody',
+    description: 'An uneven, tense, and emotional pulse',
+    pattern: {
+      steps: ['8n.', '16n', '4n', '8n.', '16n', '4n']
+    }
+  },
+  {
+    name: 'Metal Gallop',
+    category: 'bass',
+    description: 'Iconic fast-paced heavy metal rhythm',
+    pattern: {
+      steps: ['8n', '16n', '16n', '8n', '16n', '16n', '4n']
+    }
+  },
+  {
+    name: 'Dark Lament',
+    category: 'melody',
+    description: 'A slow, mournful, and spacious emotional expression',
+    pattern: {
+      steps: ['2n', '4n.', '8n']
+    }
+  },
+  {
+    name: 'Industrial Stomp',
+    category: 'bass',
+    description: 'A heavy, repetitive, and aggressive machine-like beat',
+    pattern: {
+      steps: ['8n', '8n', '16n', '16n', '8n', '4n.', '16n']
+    }
+  },
+  {
+    name: 'Neurofunk Break',
+    category: 'melody',
+    description: 'A complex, syncopated, and high-energy electronic rhythm',
+    pattern: {
+      steps: ['16n', '16n', '8n', '16n', '16n', '16n', '16n', '4n', '8n']
+    }
+  },
+  {
+    name: 'Post-Rock Swell',
+    category: 'melody',
+    description: 'A building, emotional rhythm that grows in intensity',
+    pattern: {
+      steps: ['8n', '8n', '4n', '4n', '2n']
+    }
+  },
   {
     name: 'Eighth Note Groove',
     category: 'melody',
