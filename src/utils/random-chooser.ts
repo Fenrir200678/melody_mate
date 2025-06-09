@@ -1,3 +1,8 @@
+/**
+ * Chooses a random item from an array.
+ * @param items - Array of items to choose from.
+ * @returns The chosen item.
+ */
 export function choose<T>(items: T[]): T {
   if (items.length === 0) {
     throw new Error('Cannot choose from an empty array.')
@@ -6,6 +11,12 @@ export function choose<T>(items: T[]): T {
   return items[index]
 }
 
+/**
+ * Chooses an item from an array with weighted probabilities.
+ * @param items - Array of items to choose from.
+ * @param weights - Array of weights for each item.
+ * @returns The chosen item.
+ */
 export function chooseWeighted<T>(items: T[], weights: number[]): T {
   if (items.length === 0) {
     throw new Error('Cannot choose from an empty array.')

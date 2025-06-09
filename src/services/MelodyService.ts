@@ -1,8 +1,13 @@
 import type { Melody, Note, RhythmPattern, Scale } from '@/models'
 import { buildMarkovTable, getTransitions } from '@/utils/markov'
-import { choose, chooseWeighted } from '@/utils/random'
+import { choose, chooseWeighted } from '@/utils/random-chooser'
 import { applyMusicalWeighting } from '@/utils/music-theory'
 
+/**
+ * Creates training data for the Markov chain.
+ * @param notes - Array of notes to create training data from.
+ * @returns Array of sequences for training.
+ */
 function createTrainingData(notes: string[]): string[][] {
   if (notes.length < 5) {
     // Need at least 5 notes for some patterns
@@ -49,6 +54,19 @@ function createTrainingData(notes: string[]): string[][] {
   return sequences
 }
 
+/**
+ * Generates a melody based on the given scale, rhythm, and parameters.
+ * @param scale - The scale to use for the melody.
+ * @param rhythm - The rhythm pattern to use for the melody.
+ * @param bars - The number of bars in the melody.
+ * @param useMotifRepetition - Whether to use motif repetition.
+ * @param useNGrams - Whether to use N-grams.
+ * @param octave - The octave to use for the melody.
+ * @param useFixedVelocity - Whether to use a fixed velocity.
+ * @param fixedVelocity - The fixed velocity to use.
+ * @param startWithRootNote - Whether to start with the root note.
+ * @returns The generated melody.
+ */
 export function generateMelody(
   scale: Scale,
   rhythm: RhythmPattern,
@@ -81,6 +99,18 @@ export function generateMelody(
   }
 }
 
+/**
+ * Generates a simple melody based on the given scale, rhythm, and parameters.
+ * @param scale - The scale to use for the melody.
+ * @param rhythm - The rhythm pattern to use for the melody.
+ * @param bars - The number of bars in the melody.
+ * @param useMotifRepetition - Whether to use motif repetition.
+ * @param octave - The octave to use for the melody.
+ * @param useFixedVelocity - Whether to use a fixed velocity.
+ * @param fixedVelocity - The fixed velocity to use.
+ * @param startWithRootNote - Whether to start with the root note.
+ * @returns The generated melody.
+ */
 function generateSimpleMelody(
   scale: Scale,
   rhythm: RhythmPattern,
@@ -160,6 +190,17 @@ function generateSimpleMelody(
   return { notes }
 }
 
+/**
+ * Generates an N-gram melody based on the given scale, rhythm, and parameters.
+ * @param scale - The scale to use for the melody.
+ * @param rhythm - The rhythm pattern to use for the melody.
+ * @param bars - The number of bars in the melody.
+ * @param octave - The octave to use for the melody.
+ * @param useFixedVelocity - Whether to use a fixed velocity.
+ * @param fixedVelocity - The fixed velocity to use.
+ * @param startWithRootNote - Whether to start with the root note.
+ * @returns The generated melody.
+ */
 function generateNGramMelody(
   scale: Scale,
   rhythm: RhythmPattern,
@@ -248,6 +289,12 @@ function generateNGramMelody(
   return { notes }
 }
 
+/**
+ * Gets the pitch with the octave from the pitch string.
+ * @param pitch - The pitch string to get the octave from.
+ * @param octave - The octave to add to the pitch.
+ * @returns The pitch with the octave.
+ */
 function getPitchWithOctave(pitch: string, octave: number): string {
   return pitch.replace(/[0-9]+$/, '') + octave
 }

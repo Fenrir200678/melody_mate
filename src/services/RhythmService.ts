@@ -1,5 +1,5 @@
 import type { RhythmPattern } from '@/models'
-import { choose } from '@/utils/random'
+import { choose } from '@/utils/random-chooser'
 
 /**
  * Generates a binary Euclidean pattern using Bjorklund's algorithm
@@ -41,6 +41,12 @@ const DURATION_MAP: Readonly<Record<string, Readonly<Record<number, string>>>> =
   '4n': { 1: '4n', 2: '2n', 3: '2n.', 4: '1n' }
 } as const
 
+/**
+ * Converts a list of multiples to actual note durations based on the subdivision.
+ * @param multiples - List of multiples (e.g., [1, 2, 3])
+ * @param subdivision - The note value for a single step (e.g., '16n')
+ * @returns List of note durations (e.g., ['16n', '8n', '4n.'])
+ */
 function convertMultiplesToDurations(multiples: number[], subdivision: string): string[] {
   const mapForSubdivision = DURATION_MAP[subdivision]
   if (!mapForSubdivision) {
@@ -124,18 +130,5 @@ export function generatePattern(length: number): RhythmPattern {
     // Fallback for simple cases
     return { steps: new Array(length).fill('8n') }
   }
-
-  const pattern = generateEuclideanPattern(pulses, steps, '16n')
-
-  // The raw euclidean pattern might be too sparse, let's try to convert it
-  // into a more playable sequence of durations. This is a complex problem.
-  // For now, we return the direct pattern, but a future improvement would be
-  // to implement a function that groups rests into the previous note's duration.
-  // e.g., [1, 0, 0, 1, ...] -> ['4n.', ...]
-
-  return pattern
+  return generateEuclideanPattern(pulses, steps, '16n')
 }
-
-/**
- * A collection of predefined rhythm patterns for users to select.
- */
