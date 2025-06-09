@@ -14,6 +14,7 @@ import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
 import SelectButton from 'primevue/selectbutton'
 import type { RhythmPattern } from '@/ts/models'
+import Button from 'primevue/button'
 
 // Common store instance
 const store = useMusicStore()
@@ -35,7 +36,7 @@ const generateAndSetEuclideanRhythm = () => {
   if (steps.value < pulses.value) {
     pulses.value = steps.value
   }
-  const newRhythm = generateEuclideanPattern(pulses.value, steps.value, subdivision.value)
+  const newRhythm = generateEuclideanPattern(pulses.value, steps.value, subdivision.value, store.euclideanRotation)
   store.setRhythm(newRhythm)
   // Automatically set bars based on steps for Euclidean rhythms
   const newBars = Math.ceil(steps.value / subdivisionInt.value)
@@ -45,6 +46,7 @@ const generateAndSetEuclideanRhythm = () => {
 // Update the store only when user interacts with sliders
 watch([pulses, steps, subdivision], () => {
   if (activeTab.value === 1) {
+    store.setEuclideanRotation(0)
     generateAndSetEuclideanRhythm()
   }
 })
@@ -87,6 +89,14 @@ function onRhythmChange(value: CategorizedRhythm) {
     selectedRhythm.value = value
     store.setRhythm(value.pattern)
   }
+}
+
+function rotate(amount: number) {
+  // amount=1  -> left rotation
+  // amount=-1 -> right rotation
+  const newRotation = store.euclideanRotation + amount
+  store.setEuclideanRotation(newRotation)
+  generateAndSetEuclideanRhythm()
 }
 
 // Set component state from store on mount
@@ -238,8 +248,27 @@ const subdivisionOptions = computed(() => {
               />
             </div>
           </div>
-          <div class="w-[50%]">
-            <EuclideanVisualizer :pulses="pulses" :steps="steps" :isAnimated="activeTab === 1 && store.isPlaying" />
+          <div class="w-[50%] flex flex-col items-center justify-center">
+            <EuclideanVisualizer :isAnimated="activeTab === 1 && store.isPlaying" />
+            <div class="flex items-center justify-center gap-2 w-full">
+              <!-- TODO: make instant changes to generated melody when rotating -->
+              <Button
+                icon="pi pi-arrow-left"
+                rounded
+                text
+                severity="secondary"
+                aria-label="Rotate Left"
+                @click="rotate(1)"
+              />
+              <Button
+                icon="pi pi-arrow-right"
+                rounded
+                text
+                severity="secondary"
+                aria-label="Rotate Right"
+                @click="rotate(-1)"
+              />
+            </div>
           </div>
         </div>
         <!-- Explanation Text -->

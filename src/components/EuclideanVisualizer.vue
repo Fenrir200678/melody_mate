@@ -1,31 +1,25 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
-import { generateEuclideanBinaryPattern } from '@/services/RhythmService'
 import { useMusicStore } from '@/stores/music.store'
 
 // Props to receive data from parent component
 const props = defineProps<{
-  pulses?: number
-  steps?: number
   isAnimated?: boolean
 }>()
 
-// Default values
-const pulses = computed(() => props.pulses ?? 5)
-const steps = computed(() => props.steps ?? 16)
+// Get rhythm data from the store
+const store = useMusicStore()
+const rhythm = computed(() => store.rhythm)
+const pulses = computed(() => (rhythm.value?.pulses !== undefined ? rhythm.value.pulses : 0))
+const steps = computed(() => rhythm.value?.pattern?.length ?? 0)
+const euclideanPattern = computed(() => (rhythm.value?.pattern as (0 | 1)[]) ?? [])
 
 // Get current step from store for animation
-const musicStore = useMusicStore()
-const currentStep = computed(() => (props.isAnimated ? musicStore.currentStep : -1))
-const activeNoteStep = computed(() => (props.isAnimated ? musicStore.activeNoteStep : -1))
+const currentStep = computed(() => (props.isAnimated ? store.currentStep : -1))
+const activeNoteStep = computed(() => (props.isAnimated ? store.activeNoteStep : -1))
 
 // Canvas reference
 const canvasRef = ref<HTMLCanvasElement | null>(null)
-
-// Generate the binary pattern for visualization
-const euclideanPattern = computed(() => {
-  return generateEuclideanBinaryPattern(pulses.value, steps.value)
-})
 
 const drawPattern = () => {
   const canvas = canvasRef.value
@@ -44,7 +38,7 @@ const drawPattern = () => {
 
   const centerX = size / 2
   const centerY = size / 2
-  const radius = size * 0.35
+  const radius = size * 0.4
 
   const pattern = euclideanPattern.value
   const totalSteps = pattern.length
@@ -134,16 +128,17 @@ const drawPattern = () => {
 
   // Draw center info
   ctx.fillStyle = '#d1d5db'
-  ctx.font = '12px sans-serif'
+  ctx.font = '14px sans-serif'
   ctx.textAlign = 'center'
-  ctx.fillText(`${pulses.value}/${steps.value}`, centerX, centerY - 5)
-  ctx.font = '10px sans-serif'
+  ctx.fillText(`${pulses.value}/${steps.value}`, centerX, centerY - 20)
+  ctx.font = '11px sans-serif'
   ctx.fillStyle = '#9ca3af'
-  ctx.fillText('pulses / steps', centerX, centerY + 10)
+  ctx.fillText('pulses / steps', centerX, centerY + 5)
+  ctx.fillText('rotation: ' + store.euclideanRotation, centerX, centerY + 30)
 }
 
 // Watch for changes and redraw
-watch([pulses, steps, currentStep, activeNoteStep], drawPattern)
+watch([() => rhythm.value?.pattern, currentStep, activeNoteStep], drawPattern, { deep: true })
 
 onMounted(() => {
   drawPattern()

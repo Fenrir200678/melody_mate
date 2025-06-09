@@ -30,7 +30,8 @@ export const useMusicStore = defineStore('music', {
     useFixedVelocity: true,
     fixedVelocity: 127,
     startWithRootNote: false,
-    loopPlayback: 1
+    loopPlayback: 1,
+    euclideanRotation: 0
   }),
 
   actions: {
@@ -86,6 +87,9 @@ export const useMusicStore = defineStore('music', {
     },
     setStartWithRootNote(startWithRootNote: boolean) {
       this.startWithRootNote = startWithRootNote
+    },
+    setEuclideanRotation(rotation: number) {
+      this.euclideanRotation = rotation
     },
     async generate() {
       const scale = generateScale(this.scaleName, this.key)

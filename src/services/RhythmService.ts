@@ -3,6 +3,25 @@ import { DURATION_MAP } from '@/ts/const/melody.const'
 import { choose } from '@/utils/random-chooser'
 
 /**
+ * Rotates an array. Positive amount rotates left, negative rotates right.
+ * @param arr The array to rotate
+ * @param amount The amount to rotate by
+ * @returns The rotated array
+ */
+function rotateArray<T>(arr: T[], amount: number): T[] {
+  const len = arr.length
+  if (len === 0 || amount === 0) {
+    return arr
+  }
+  // This calculates a left rotation.
+  // A positive amount will shift elements to the left.
+  // e.g., rotate([1,2,3,4], 1) => [2,3,4,1]
+  const offset = ((amount % len) + len) % len
+  if (offset === 0) return arr
+  return [...arr.slice(offset), ...arr.slice(0, offset)]
+}
+
+/**
  * Generates a binary Euclidean pattern using Bresenham's line algorithm
  * @param pulses - Number of pulses (hits)
  * @param steps - Total number of steps
@@ -57,7 +76,12 @@ function convertMultiplesToDurations(multiples: number[], subdivision: string): 
  * @param subdivision - The note value for a single step (e.g., '16n').
  * @returns A RhythmPattern object.
  */
-export function generateEuclideanPattern(pulses: number, steps: number, subdivision: string = '16n'): RhythmPattern {
+export function generateEuclideanPattern(
+  pulses: number,
+  steps: number,
+  subdivision: string = '16n',
+  rotation: number = 0
+): RhythmPattern {
   if (pulses > steps || pulses < 0 || steps <= 0) {
     return { steps: [], pattern: [], subdivision, pulses: 0, name: 'Empty' }
   }
@@ -65,7 +89,8 @@ export function generateEuclideanPattern(pulses: number, steps: number, subdivis
     return { steps: [], pattern: new Array(steps).fill(0), subdivision, pulses: 0, name: 'Empty' }
   }
 
-  const binaryPattern = generateEuclideanBinaryPattern(pulses, steps)
+  const unrotatedBinaryPattern = generateEuclideanBinaryPattern(pulses, steps)
+  const binaryPattern = rotateArray(unrotatedBinaryPattern, rotation)
 
   // Calculate durations based on intervals between pulses (like the original system)
   const hitIndices = binaryPattern.reduce((acc, val, i) => {
