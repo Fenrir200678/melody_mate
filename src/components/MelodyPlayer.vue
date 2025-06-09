@@ -29,7 +29,10 @@ const downloadMidi = () => {
 </script>
 
 <template>
-  <!-- TODO: add a button to shuffle the melody and find a way to add silence to the melody -->
+  <!-- TODO: add a button to shuffle the melody -->
+  <!-- TODO: find a way to add silence to the melody -->
+  <!-- TODO: find a way to generate melodies that span multiple octaves -->
+
   <div class="flex flex-col gap-4 mt-4">
     <div class="flex items-center justify-center gap-4">
       <Button
