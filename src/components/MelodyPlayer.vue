@@ -29,7 +29,6 @@ const downloadMidi = () => {
 </script>
 
 <template>
-  <!-- TODO: find a way to add silence to the melody -->
   <!-- TODO: find a way to generate melodies that span multiple octaves -->
 
   <div class="flex flex-col gap-4 mt-4">

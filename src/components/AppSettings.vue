@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import Divider from 'primevue/divider'
+
 import KeySelector from '@/components/settings/KeySelector.vue'
 import ScaleSelector from '@/components/settings/ScaleSelector.vue'
 import RhythmControl from '@/components/settings/RhythmControl.vue'
@@ -6,9 +8,11 @@ import LengthSelector from '@/components/settings/LengthSelector.vue'
 import BpmSelector from '@/components/settings/BpmSelector.vue'
 import OctaveSelector from '@/components/settings/OctaveSelector.vue'
 import VelocitySelector from '@/components/settings/VelocitySelector.vue'
-import GenerationOptions from '@/components/settings/GenerationOptions.vue'
 import RestProbabilitySelector from '@/components/settings/RestProbabilitySelector.vue'
-import Divider from 'primevue/divider'
+import NGramSelector from '@/components/settings/NGramSelector.vue'
+import MotifRepetition from '@/components/settings/MotifRepetition.vue'
+import StartWithRootNote from '@/components/settings/StartWithRootNote.vue'
+import PredefinedMotif from '@/components/settings/PredefinedMotif.vue'
 </script>
 <template>
   <div class="flex items-center gap-3 mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-4">
@@ -69,7 +73,13 @@ import Divider from 'primevue/divider'
         <i class="pi pi-cog text-sm"></i>
         Generation Options
       </h3>
-      <GenerationOptions />
+      <div class="space-y-4">
+        <MotifRepetition />
+        <NGramSelector />
+        <Divider />
+        <StartWithRootNote />
+        <PredefinedMotif />
+      </div>
     </div>
 
     <!-- Playback Options -->
