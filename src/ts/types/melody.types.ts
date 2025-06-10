@@ -12,5 +12,4 @@ export type MelodyGenerationOptions = {
   restProbability?: number
   n?: number
   useMotifTrainingData?: boolean
-  seedWithMotif?: boolean
 }

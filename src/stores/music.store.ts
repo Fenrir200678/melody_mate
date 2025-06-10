@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { RhythmPattern, Melody, AIConfig } from '@/ts/models'
+import type { RhythmPattern, Melody } from '@/ts/models'
 import { generateScale } from '@/services/ScaleService'
 import type { InstrumentKey } from '@/ts/types/audio.types'
 import type { MelodyGenerationOptions } from '@/ts/types/melody.types'
@@ -15,11 +15,6 @@ export const useMusicStore = defineStore('music', {
     useMotifRepetition: true,
     useNGrams: false,
     useAI: false,
-    aiConfig: {
-      model: 'melody_rnn',
-      steps: 32,
-      temperature: 1.0
-    } as AIConfig,
     melody: null as Melody | null,
     isGenerating: false,
     isPlaying: false,
@@ -34,7 +29,6 @@ export const useMusicStore = defineStore('music', {
     euclideanRotation: 0,
     restProbability: 0.1,
     useMotifTrainingData: false,
-    seedWithMotif: false,
     nGramLength: 2
   }),
 
@@ -65,9 +59,6 @@ export const useMusicStore = defineStore('music', {
     },
     setUseAI(useAI: boolean) {
       this.useAI = useAI
-    },
-    setAiConfig(config: Partial<AIConfig>) {
-      this.aiConfig = { ...this.aiConfig, ...config }
     },
 
     setInstrument(instrument: InstrumentKey) {
@@ -101,9 +92,6 @@ export const useMusicStore = defineStore('music', {
     setUseMotifTrainingData(use: boolean) {
       this.useMotifTrainingData = use
     },
-    setSeedWithMotif(use: boolean) {
-      this.seedWithMotif = use
-    },
     setNGramLength(n: number) {
       this.nGramLength = n
     },
@@ -118,28 +106,22 @@ export const useMusicStore = defineStore('music', {
       this.melody = null
 
       try {
-        if (this.useAI) {
-          // AI generation logic will be added later.
-          console.log('AI generation is not yet implemented.')
-        } else {
-          const { generateMelody } = await import('@/services/MelodyService')
-          const melodyOptions: MelodyGenerationOptions = {
-            scale,
-            rhythm: this.rhythm,
-            bars: this.bars,
-            octave: this.octave,
-            useMotifRepetition: this.useMotifRepetition,
-            useNGrams: this.useNGrams,
-            useFixedVelocity: this.useFixedVelocity,
-            fixedVelocity: this.fixedVelocity,
-            startWithRootNote: this.startWithRootNote,
-            restProbability: this.restProbability,
-            useMotifTrainingData: this.useMotifTrainingData,
-            seedWithMotif: this.seedWithMotif,
-            n: this.useNGrams ? this.nGramLength : 1
-          }
-          this.melody = generateMelody(melodyOptions)
+        const { generateMelody } = await import('@/services/MelodyService')
+        const melodyOptions: MelodyGenerationOptions = {
+          scale,
+          rhythm: this.rhythm,
+          bars: this.bars,
+          octave: this.octave,
+          useMotifRepetition: this.useMotifRepetition,
+          useNGrams: this.useNGrams,
+          useFixedVelocity: this.useFixedVelocity,
+          fixedVelocity: this.fixedVelocity,
+          startWithRootNote: this.startWithRootNote,
+          restProbability: this.restProbability,
+          useMotifTrainingData: this.useMotifTrainingData,
+          n: this.useNGrams ? this.nGramLength : 1
         }
+        this.melody = generateMelody(melodyOptions)
       } catch (error) {
         console.error('Error during melody generation:', error)
       } finally {

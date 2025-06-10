@@ -182,8 +182,7 @@ function _generateSimpleMelody(options: MelodyGenerationOptions): Melody {
     fixedVelocity,
     startWithRootNote = false,
     restProbability,
-    useMotifTrainingData,
-    seedWithMotif
+    useMotifTrainingData
   } = options
 
   const trainingData = createTrainingData(scale.notes, useMotifTrainingData)
@@ -211,46 +210,6 @@ function _generateSimpleMelody(options: MelodyGenerationOptions): Melody {
   }
 
   if (noteSteps.length === 0) return { notes: [] }
-
-  // New: Seed melody with a motif
-  if (seedWithMotif && motifs.length > 0) {
-    const motif = motifs[Math.floor(Math.random() * motifs.length)]
-    const motifNotesCount = motif.notes.length
-
-    if (noteSteps.length > motifNotesCount) {
-      const seededNotes: Note[] = []
-      const motifSteps = noteSteps.slice(0, motifNotesCount)
-      const lastMotifPitch = motif.notes[motifNotesCount - 1].replace(/[0-9#b]+$/, '')
-
-      for (let i = 0; i < motifNotesCount; i++) {
-        const currentStep = motifSteps[i]
-        const durationInSteps =
-          i < motifNotesCount - 1 ? motifSteps[i + 1] - currentStep : noteSteps[motifNotesCount] - currentStep
-        const duration = convertStepsToDuration(durationInSteps, subdivision)
-        const velocity = calculateVelocity({ useFixed: useFixedVelocity, fixedValue: fixedVelocity })
-
-        seededNotes.push({
-          pitch: motif.notes[i],
-          duration,
-          velocity
-        })
-      }
-
-      const remainingSteps = noteSteps.slice(motifNotesCount)
-      const remainingNotesResult = _generateNotesForSteps(
-        remainingSteps,
-        totalSteps,
-        scale,
-        markovTable,
-        octave,
-        subdivision,
-        { useFixedVelocity, fixedVelocity, restProbability },
-        lastMotifPitch
-      )
-
-      return { notes: [...seededNotes, ...remainingNotesResult.notes] }
-    }
-  }
 
   if (useMotifRepetition && bars >= 4) {
     // Generate the first two bars as the motif

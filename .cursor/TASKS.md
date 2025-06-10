@@ -44,14 +44,7 @@ Eine Übersicht aller notwendigen Tasks zum Bau der MIDI-Generator-Apps. Reihenf
 
 ### 3.4 AiMelodyService (KI-basiert)
 
-- Integration von Magenta.js.
-- Funktion `generateWithAI(scale: Scale, config: AIConfig): Promise<Melody>`.
-- Ablauf:
-
-  1. Modell laden (`new mm.MusicRNN(checkpointUrl)`).
-  2. Seed-Sequence aus erster Skala-Note.
-  3. `continueSequence(seed, config.steps, config.temperature)`.
-  4. Konvertierung in unser `Melody`-Format.
+- entfällt
 
 ### 3.5 MidiService
 
@@ -66,10 +59,10 @@ Eine Übersicht aller notwendigen Tasks zum Bau der MIDI-Generator-Apps. Reihenf
 
 ## 4. Store (Pinia) anpassen
 
-- State: `scale`, `rhythm`, `bars`, `bpm`, `useAI`, `aiConfig`, `melody`, `isGenerating`.
+- State: `scale`, `rhythm`, `bars`, `bpm`, `melody`, `isGenerating`.
 - Actions:
 
-  - `setScale`, `setRhythm`, `setBars`, `setBpm`, `setUseAI`, `setAiConfig`.
+  - `setScale`, `setRhythm`, `setBars`, `setBpm`.
   - `generate()`:
 
     - Prüfen, ob Skala + Rhythmus gesetzt.
@@ -102,8 +95,7 @@ Eine Übersicht aller notwendigen Tasks zum Bau der MIDI-Generator-Apps. Reihenf
 
 ### 5.5 AiSettings.vue
 
-- Checkbox „use AI“. Dropdown für Modell, Inputs für `steps` + `temperature`.
-- Ruft `store.setUseAI()`, `store.setAiConfig()` auf.
+- entfällt
 
 ### 5.6 MelodyGenerator.vue
 

@@ -132,11 +132,6 @@ export const useMusicStore = defineStore('music', {
     bars: 1,
     bpm: 120,
     useAI: false,
-    aiConfig: {
-      model: 'melody_rnn',
-      steps: 32,
-      temperature: 1.0
-    },
     melody: null as Melody | null,
     isGenerating: false
   }),
@@ -145,24 +140,12 @@ export const useMusicStore = defineStore('music', {
     setRhythm(r: RhythmPattern) { this.rhythm = r },
     setBars(n: number) { this.bars = n },
     setBpm(b: number) { this.bpm = b },
-    setUseAI(flag: boolean) { this.useAI = flag },
-    setAiConfig(cfg: Partial<typeof this.aiConfig>) {
-      this.aiConfig = { ...this.aiConfig, ...cfg }
-    },
     async generate() {
       if (!this.scale || !this.rhythm) return
       this.isGenerating = true
 
-      if (this.useAI) {
-        const beatsPerBar = 4
-        const subdivisions = this.rhythm.steps.length / beatsPerBar
-        this.aiConfig.steps = this.bars * beatsPerBar * subdivisions
-        this.melody = await import('@/services/AiMelodyService')
-          .then(svc => svc.generateWithAI(this.scale!, this.aiConfig))
-      } else {
-        this.melody = await import('@/services/MelodyService')
-          .then(svc => svc.generateMelody(this.scale!, this.rhythm!, this.bars))
-      }
+      this.melody = await import('@/services/MelodyService')
+        .then(svc => svc.generateMelody(this.scale!, this.rhythm!, this.bars))
 
       this.isGenerating = false
     },
@@ -188,8 +171,7 @@ flowchart LR
     B[RhythmEditor] -->|setRhythm| Store
     C[LengthSelector] -->|setBars| Store
     D[BpmSelector] -->|setBpm| Store
-    E[AiSettings] -->|setUseAI/setAiConfig| Store
-    F[Controls: Generate] -->|generate()| Store
+    E[Controls: Generate] -->|generate()| Store
   end
   Store -->|useAI? yes| G[AiMelodyService]
   Store -->|useAI? no| H[MelodyService]
