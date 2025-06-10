@@ -32,7 +32,7 @@ export const useMusicStore = defineStore('music', {
     startWithRootNote: false,
     loopPlayback: 1,
     euclideanRotation: 0,
-    restProbability: 0.0,
+    restProbability: 0.1,
     useMotifTrainingData: false,
     seedWithMotif: false,
     nGramLength: 2

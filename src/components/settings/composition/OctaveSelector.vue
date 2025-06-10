@@ -4,17 +4,19 @@ import InputNumber from 'primevue/inputnumber'
 import useMusicStore from '@/stores/music.store'
 
 const store = useMusicStore()
-const bpm = ref<number>(store.bpm)
+const octave = ref<number>(store.octave)
 </script>
 
 <template>
+  <label class="font-medium">Octave</label>
   <InputNumber
-    :model-value="bpm"
-    :min="40"
-    :max="240"
+    :model-value="octave"
+    :min="1"
+    :max="8"
+    :step="1"
     fluid
     showButtons
     buttonLayout="stacked"
-    @update:modelValue="store.setBpm"
+    @update:modelValue="store.setOctave"
   />
 </template>

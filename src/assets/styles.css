@@ -22,11 +22,3 @@ body {
   place-items: center;
   min-height: 100vh;
 }
-
-h1 {
-  @apply text-3xl font-bold;
-}
-
-p {
-  @apply mb-2;
-}

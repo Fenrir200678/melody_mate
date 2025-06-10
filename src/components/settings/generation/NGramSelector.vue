@@ -30,9 +30,8 @@ function handleUseNGramsChange(val: boolean) {
           target="_blank"
           >Advanced algorithm
         </a>
-        for structured melodies.
+        for structured melodies (can't be used with Motif Repetition).
       </p>
-      <p class="text-xs">This algorithm can't be used with Motif Repetition.</p>
     </div>
     <Checkbox
       :model-value="store.useNGrams"

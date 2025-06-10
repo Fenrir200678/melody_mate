@@ -10,7 +10,7 @@ import AppSettings from '@/components/AppSettings.vue'
 
 <template>
   <PageHeader />
-  <main class="w-[90%] max-w-[1920px] mx-auto px-4">
+  <main class="w-[90%] max-w-[1200px] mx-auto px-4">
     <div class="flex gap-4">
       <div class="w-[60%] bg-zinc-900 rounded-lg px-4 py-8">
         <AppSettings />
