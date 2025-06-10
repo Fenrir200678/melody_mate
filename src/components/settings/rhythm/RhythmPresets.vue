@@ -48,14 +48,15 @@ function onRhythmChange(value: CategorizedRhythm) {
 
 onMounted(() => {
   const currentRhythm = store.rhythm
-  if (currentRhythm && currentRhythm.pulses === undefined) {
+
+  if (currentRhythm && !store.isEuclideanRhythm) {
     const preset = PREDEFINED_RHYTHMS.find((p) => p.name === currentRhythm.name)
     if (preset) {
       selectedRhythm.value = preset
       selectedCategory.value = preset.category
     }
   } else {
-    onRhythmChange(PREDEFINED_RHYTHMS[5])
+    onRhythmChange(filteredRhythms.value[0])
   }
 })
 

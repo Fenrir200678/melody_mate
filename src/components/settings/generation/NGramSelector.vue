@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import useMusicStore from '@/stores/music.store'
 import SelectButton from 'primevue/selectbutton'
 import Checkbox from 'primevue/checkbox'
+import Divider from 'primevue/divider'
 
 const nGramLengthOptions = ref(['1', '2', '3', '4'])
 
@@ -59,5 +60,6 @@ function handleUseNGramsChange(val: boolean) {
       Higher values make the melody more idiomatic and less random. However, too large n values can also lead to the
       melody becoming too rigid. Usually, 2 is a good compromise.
     </p>
+    <Divider />
   </div>
 </template>
