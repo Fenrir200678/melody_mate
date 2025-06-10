@@ -17,7 +17,7 @@ const selectedBars = computed(() => store.bars.toString())
 </script>
 
 <template>
-  <div class="flex items-center justify-between gap-4 mt-4">
+  <div class="flex items-center justify-between gap-4">
     <label class="font-medium">Length (bars)</label>
     <SelectButton
       :model-value="selectedBars"

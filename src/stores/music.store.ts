@@ -32,7 +32,10 @@ export const useMusicStore = defineStore('music', {
     startWithRootNote: false,
     loopPlayback: 1,
     euclideanRotation: 0,
-    restProbability: 0.0
+    restProbability: 0.0,
+    useMotifTrainingData: false,
+    seedWithMotif: false,
+    nGramLength: 2
   }),
 
   actions: {
@@ -95,6 +98,15 @@ export const useMusicStore = defineStore('music', {
     setRestProbability(prob: number) {
       this.restProbability = prob
     },
+    setUseMotifTrainingData(use: boolean) {
+      this.useMotifTrainingData = use
+    },
+    setSeedWithMotif(use: boolean) {
+      this.seedWithMotif = use
+    },
+    setNGramLength(n: number) {
+      this.nGramLength = n
+    },
     async generate() {
       const scale = generateScale(this.scaleName, this.key)
       if (!scale || !this.rhythm) {
@@ -121,7 +133,10 @@ export const useMusicStore = defineStore('music', {
             useFixedVelocity: this.useFixedVelocity,
             fixedVelocity: this.fixedVelocity,
             startWithRootNote: this.startWithRootNote,
-            restProbability: this.restProbability
+            restProbability: this.restProbability,
+            useMotifTrainingData: this.useMotifTrainingData,
+            seedWithMotif: this.seedWithMotif,
+            n: this.useNGrams ? this.nGramLength : 1
           }
           this.melody = generateMelody(melodyOptions)
         }

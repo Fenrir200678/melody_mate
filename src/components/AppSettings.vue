@@ -8,6 +8,7 @@ import OctaveSelector from '@/components/settings/OctaveSelector.vue'
 import VelocitySelector from '@/components/settings/VelocitySelector.vue'
 import GenerationOptions from '@/components/settings/GenerationOptions.vue'
 import RestProbabilitySelector from '@/components/settings/RestProbabilitySelector.vue'
+import Divider from 'primevue/divider'
 </script>
 <template>
   <div class="flex items-center gap-3 mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-4">
@@ -48,9 +49,7 @@ import RestProbabilitySelector from '@/components/settings/RestProbabilitySelect
         Composition
       </h3>
       <div class="space-y-4">
-        <!-- Length (bars) -->
         <LengthSelector />
-        <!-- Rest Probability -->
         <RestProbabilitySelector />
         <!-- BPM and Octave -->
         <div class="flex items-center justify-between gap-4">
@@ -61,6 +60,8 @@ import RestProbabilitySelector from '@/components/settings/RestProbabilitySelect
         </div>
       </div>
     </div>
+
+    <Divider />
 
     <!-- Generation Options -->
     <div class="mt-8">

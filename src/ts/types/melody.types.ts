@@ -11,4 +11,6 @@ export type MelodyGenerationOptions = {
   startWithRootNote?: boolean
   restProbability?: number
   n?: number
+  useMotifTrainingData?: boolean
+  seedWithMotif?: boolean
 }

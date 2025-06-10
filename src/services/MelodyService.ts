@@ -4,54 +4,76 @@ import { STEPS_PER_4N, STEPS_PER_8N, STEPS_PER_16N, STEPS_PER_32N, DURATION_MAP 
 import { buildMarkovTable, type MarkovTable } from '@/utils/markov'
 import { getNextPitch } from '@/utils/pitch'
 import { calculateVelocity } from '@/utils/velocity'
+import { motifs, snippets } from '@/data/motifs'
 
 /**
  * Creates training data for the Markov chain.
  * @param notes - Array of notes to create training data from.
+ * @param useMotifs - Flag to indicate whether to use motifs for training.
  * @returns Array of sequences for training.
  */
-function createTrainingData(notes: string[]): string[][] {
-  if (notes.length < 5) {
-    // Need at least 5 notes for some patterns
-    return [notes, [...notes].reverse()]
-  }
-
+function createTrainingData(notes: string[], useMotifs = false): string[][] {
   const sequences: string[][] = []
-  const tonic = notes[0]
-  const dominant = notes[4]
-  const leadingTone = notes[notes.length - 1]
 
-  // 1. Ascending and Descending Scale (resolving to tonic)
-  sequences.push([...notes, tonic])
-  sequences.push([...[...notes].reverse(), tonic])
+  // 1. Generate sequences from the provided scale notes
+  if (notes.length >= 5) {
+    const tonic = notes[0]
+    const dominant = notes[4]
+    const leadingTone = notes[notes.length - 1]
 
-  // 2. Arpeggios (1-3-5) up and down
-  const triad = [notes[0], notes[2], notes[4], tonic]
-  sequences.push(triad)
-  sequences.push([...triad].reverse())
+    // 1. Ascending and Descending Scale (resolving to tonic)
+    sequences.push([...notes, tonic])
+    sequences.push([...[...notes].reverse(), tonic])
 
-  // 3. Turn patterns (e.g., upper turn on the second degree)
-  const upperTurnOnSecond = [notes[1], notes[2], notes[1], notes[0], notes[1]]
-  sequences.push(upperTurnOnSecond)
+    // 2. Arpeggios (1-3-5) up and down
+    const triad = [notes[0], notes[2], notes[4], tonic]
+    sequences.push(triad)
+    sequences.push([...triad].reverse())
 
-  // 4. V-I Cadence based patterns (e.g., 2-5-1 and 7-1)
-  sequences.push([notes[1], dominant, tonic])
-  sequences.push([leadingTone, tonic])
+    // 3. Turn patterns (e.g., upper turn on the second degree)
+    const upperTurnOnSecond = [notes[1], notes[2], notes[1], notes[0], notes[1]]
+    sequences.push(upperTurnOnSecond)
 
-  // 5. Short stepwise fragments
-  for (let i = 0; i < notes.length - 2; i++) {
-    sequences.push([notes[i], notes[i + 1], notes[i + 2]]) // 3-note ascending
-    sequences.push([notes[i + 2], notes[i + 1], notes[i]]) // 3-note descending
+    // 4. V-I Cadence based patterns (e.g., 2-5-1 and 7-1)
+    sequences.push([notes[1], dominant, tonic])
+    sequences.push([leadingTone, tonic])
+
+    // 5. Short stepwise fragments
+    for (let i = 0; i < notes.length - 2; i++) {
+      sequences.push([notes[i], notes[i + 1], notes[i + 2]]) // 3-note ascending
+      sequences.push([notes[i + 2], notes[i + 1], notes[i]]) // 3-note descending
+    }
+
+    // 6. Add the original simple arpeggio for more variety
+    const arpeggio: string[] = []
+    for (let i = 0; i < notes.length; i += 2) {
+      arpeggio.push(notes[i])
+    }
+    arpeggio.push(notes[1]) // Add second degree to lead back
+    arpeggio.push(tonic) // Resolve to tonic
+    sequences.push(arpeggio)
   }
 
-  // 6. Add the original simple arpeggio for more variety
-  const arpeggio: string[] = []
-  for (let i = 0; i < notes.length; i += 2) {
-    arpeggio.push(notes[i])
+  // 2. Add sequences from predefined motifs and snippets if requested
+  if (useMotifs) {
+    const stripOctave = (pitch: string): string => pitch.replace(/[0-9#b]+$/, '')
+
+    motifs.forEach((motif) => {
+      sequences.push(motif.notes.map(stripOctave))
+    })
+
+    snippets.forEach((snippet) => {
+      if (Array.isArray(snippet.notes[0])) {
+        // It's string[][]
+        ;(snippet.notes as string[][]).forEach((phrase) => {
+          sequences.push(phrase.map(stripOctave))
+        })
+      } else {
+        // It's string[]
+        sequences.push((snippet.notes as string[]).map(stripOctave))
+      }
+    })
   }
-  arpeggio.push(notes[1]) // Add second degree to lead back
-  arpeggio.push(tonic) // Resolve to tonic
-  sequences.push(arpeggio)
 
   return sequences
 }
@@ -159,10 +181,12 @@ function _generateSimpleMelody(options: MelodyGenerationOptions): Melody {
     useFixedVelocity,
     fixedVelocity,
     startWithRootNote = false,
-    restProbability
+    restProbability,
+    useMotifTrainingData,
+    seedWithMotif
   } = options
 
-  const trainingData = createTrainingData(scale.notes)
+  const trainingData = createTrainingData(scale.notes, useMotifTrainingData)
   const markovTable = buildMarkovTable(trainingData, 1)
 
   const rhythmPattern = rhythm.pattern!
@@ -187,6 +211,46 @@ function _generateSimpleMelody(options: MelodyGenerationOptions): Melody {
   }
 
   if (noteSteps.length === 0) return { notes: [] }
+
+  // New: Seed melody with a motif
+  if (seedWithMotif && motifs.length > 0) {
+    const motif = motifs[Math.floor(Math.random() * motifs.length)]
+    const motifNotesCount = motif.notes.length
+
+    if (noteSteps.length > motifNotesCount) {
+      const seededNotes: Note[] = []
+      const motifSteps = noteSteps.slice(0, motifNotesCount)
+      const lastMotifPitch = motif.notes[motifNotesCount - 1].replace(/[0-9#b]+$/, '')
+
+      for (let i = 0; i < motifNotesCount; i++) {
+        const currentStep = motifSteps[i]
+        const durationInSteps =
+          i < motifNotesCount - 1 ? motifSteps[i + 1] - currentStep : noteSteps[motifNotesCount] - currentStep
+        const duration = convertStepsToDuration(durationInSteps, subdivision)
+        const velocity = calculateVelocity({ useFixed: useFixedVelocity, fixedValue: fixedVelocity })
+
+        seededNotes.push({
+          pitch: motif.notes[i],
+          duration,
+          velocity
+        })
+      }
+
+      const remainingSteps = noteSteps.slice(motifNotesCount)
+      const remainingNotesResult = _generateNotesForSteps(
+        remainingSteps,
+        totalSteps,
+        scale,
+        markovTable,
+        octave,
+        subdivision,
+        { useFixedVelocity, fixedVelocity, restProbability },
+        lastMotifPitch
+      )
+
+      return { notes: [...seededNotes, ...remainingNotesResult.notes] }
+    }
+  }
 
   if (useMotifRepetition && bars >= 4) {
     // Generate the first two bars as the motif
@@ -257,10 +321,11 @@ function _generateNGramMelody(options: MelodyGenerationOptions): Melody {
     fixedVelocity,
     startWithRootNote = false,
     restProbability,
-    n = 2 // TODO: The n-gram logic was lost in refactoring, this currently acts like a simple melody.
+    useMotifTrainingData,
+    n = 2
   } = options
 
-  const trainingData = createTrainingData(scale.notes)
+  const trainingData = createTrainingData(scale.notes, useMotifTrainingData)
   const markovTable = buildMarkovTable(trainingData, n)
 
   const rhythmPattern = rhythm.pattern!
@@ -309,21 +374,30 @@ function _generateNotesForSteps(
     fixedVelocity: number
     startWithRootNote?: boolean
     restProbability?: number
+    n?: number
   },
   initialPitch?: string
 ): { notes: Note[]; lastPitch: string } {
   const notes: Note[] = []
   if (noteSteps.length === 0) return { notes, lastPitch: initialPitch || scale.notes[0] }
 
-  const { useFixedVelocity, fixedVelocity, startWithRootNote, restProbability = 0 } = options
+  const { useFixedVelocity, fixedVelocity, startWithRootNote, restProbability = 0, n = 1 } = options
 
-  let lastPitch = initialPitch || scale.notes[0]
+  // State for n-gram context
+  let context: string[] = []
+  if (initialPitch) {
+    context = [initialPitch]
+  } else {
+    context = [scale.notes[0]]
+  }
+
+  let lastPitch = context[context.length - 1]
   if (startWithRootNote && !initialPitch) {
     lastPitch = scale.notes[0]
+    context = [scale.notes[0]]
   }
 
   let lastActualPitch = lastPitch
-
   let consecutiveRests = 0
 
   for (let i = 0; i < noteSteps.length; i++) {
@@ -342,24 +416,28 @@ function _generateNotesForSteps(
         velocity: 0
       })
       consecutiveRests++
-      // lastActualPitch remains the same
+      // context bleibt gleich
     } else {
       // It's a note
+      let nextPitch: string
       if (i === 0 && startWithRootNote && !initialPitch) {
-        lastPitch = scale.notes[0]
+        nextPitch = scale.notes[0]
       } else {
-        lastPitch = getNextPitch([lastActualPitch], markovTable, scale, lastActualPitch)
+        // Kontext: die letzten n-1 Noten (ohne nulls)
+        const contextForNGram = context.slice(-Math.max(1, n - 1)).filter(Boolean)
+        nextPitch = getNextPitch(contextForNGram, markovTable, scale, lastActualPitch)
       }
 
       const velocity = calculateVelocity({ useFixed: useFixedVelocity, fixedValue: fixedVelocity })
-      const pitchWithOctave = getPitchWithOctave(lastPitch, octave)
+      const pitchWithOctave = getPitchWithOctave(nextPitch, octave)
 
       notes.push({
         pitch: pitchWithOctave,
         duration,
         velocity
       })
-      lastActualPitch = lastPitch
+      lastActualPitch = nextPitch
+      context.push(nextPitch)
       consecutiveRests = 0
     }
   }
@@ -374,5 +452,5 @@ function _generateNotesForSteps(
  * @returns The pitch with the octave.
  */
 function getPitchWithOctave(pitch: string, octave: number): string {
-  return pitch.replace(/[0-9]+$/, '') + octave
+  return pitch.replace(/[0-9#b]+$/, '') + octave
 }
