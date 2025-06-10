@@ -53,7 +53,7 @@ watch([pulses, steps, subdivision], () => {
 
 // --- Preset Selector Logic ---
 const availableRhythms = ref<CategorizedRhythm[]>(PREDEFINED_RHYTHMS)
-const selectedRhythm = ref<CategorizedRhythm | RhythmPattern | null>(null) // Can be either
+const selectedRhythm = ref<CategorizedRhythm | RhythmPattern | null>(null)
 const selectedCategory = ref<RhythmCategory>('melody')
 
 // Group rhythms by category
@@ -131,7 +131,7 @@ onMounted(() => {
     }
   } else {
     // If no rhythm is in store, set a default one
-    onRhythmChange(PREDEFINED_RHYTHMS[0])
+    onRhythmChange(PREDEFINED_RHYTHMS[5])
   }
 })
 

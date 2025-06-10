@@ -2,7 +2,6 @@ import type { Melody, Note, RhythmPattern, Scale } from '@/ts/models'
 import type { MelodyGenerationOptions } from '@/ts/types/melody.types'
 import { STEPS_PER_4N, STEPS_PER_8N, STEPS_PER_16N, STEPS_PER_32N, DURATION_MAP } from '@/ts/const/melody.const'
 import { buildMarkovTable, type MarkovTable } from '@/utils/markov'
-import { choose } from '@/utils/random-chooser'
 import { getNextPitch } from '@/utils/pitch'
 import { calculateVelocity } from '@/utils/velocity'
 
@@ -159,7 +158,8 @@ function _generateSimpleMelody(options: MelodyGenerationOptions): Melody {
     octave,
     useFixedVelocity,
     fixedVelocity,
-    startWithRootNote = false
+    startWithRootNote = false,
+    restProbability
   } = options
 
   const trainingData = createTrainingData(scale.notes)
@@ -197,14 +197,16 @@ function _generateSimpleMelody(options: MelodyGenerationOptions): Melody {
       return _generateNotesForSteps(noteSteps, totalSteps, scale, markovTable, octave, subdivision, {
         useFixedVelocity,
         fixedVelocity,
-        startWithRootNote
+        startWithRootNote,
+        restProbability
       })
     }
 
     const motifNotesResult = _generateNotesForSteps(motifSteps, motifEndStep, scale, markovTable, octave, subdivision, {
       useFixedVelocity,
       fixedVelocity,
-      startWithRootNote
+      startWithRootNote,
+      restProbability
     })
     const motif = motifNotesResult.notes
     const lastMotifPitch = motifNotesResult.lastPitch
@@ -225,7 +227,7 @@ function _generateSimpleMelody(options: MelodyGenerationOptions): Melody {
       markovTable,
       octave,
       subdivision,
-      { useFixedVelocity, fixedVelocity },
+      { useFixedVelocity, fixedVelocity, restProbability },
       lastMotifPitch
     ).notes
 
@@ -235,7 +237,8 @@ function _generateSimpleMelody(options: MelodyGenerationOptions): Melody {
   return _generateNotesForSteps(noteSteps, totalSteps, scale, markovTable, octave, subdivision, {
     useFixedVelocity,
     fixedVelocity,
-    startWithRootNote
+    startWithRootNote,
+    restProbability
   })
 }
 
@@ -245,14 +248,22 @@ function _generateSimpleMelody(options: MelodyGenerationOptions): Melody {
  * @returns The generated melody.
  */
 function _generateNGramMelody(options: MelodyGenerationOptions): Melody {
-  const { scale, rhythm, bars, octave, useFixedVelocity, fixedVelocity, startWithRootNote = false } = options
+  const {
+    scale,
+    rhythm,
+    bars,
+    octave,
+    useFixedVelocity,
+    fixedVelocity,
+    startWithRootNote = false,
+    restProbability,
+    n = 2 // TODO: The n-gram logic was lost in refactoring, this currently acts like a simple melody.
+  } = options
 
   const trainingData = createTrainingData(scale.notes)
-  const markovTable = buildMarkovTable(trainingData, 2)
-  const simpleMarkovTable = buildMarkovTable(trainingData, 1)
+  const markovTable = buildMarkovTable(trainingData, n)
 
   const rhythmPattern = rhythm.pattern!
-  const stepsInRhythmPattern = rhythmPattern.length
   const subdivision = rhythm.subdivision!
 
   // Calculate steps per bar based on subdivision
@@ -267,55 +278,25 @@ function _generateNGramMelody(options: MelodyGenerationOptions): Melody {
 
   const noteSteps: number[] = []
   for (let i = 0; i < totalSteps; i++) {
-    if (rhythmPattern[i % stepsInRhythmPattern] === 1) {
+    if (rhythmPattern[i % rhythmPattern.length] === 1) {
       noteSteps.push(i)
     }
   }
+
   if (noteSteps.length === 0) return { notes: [] }
 
-  const notes: Note[] = []
-  const pitchHistory: string[] = [startWithRootNote ? scale.notes[0] : choose(scale.notes)]
-
-  // 1. Handle the VERY FIRST note
-  const firstNotePitch = pitchHistory[0]
-  const firstNoteStep = noteSteps[0]
-  const nextStepForFirstNote = noteSteps.length > 1 ? noteSteps[1] : totalSteps
-  const firstNoteDurationInSteps = nextStepForFirstNote - firstNoteStep
-  const firstNoteDuration = convertStepsToDuration(firstNoteDurationInSteps, subdivision)
-  const firstNoteVelocity = calculateVelocity({ useFixed: useFixedVelocity, fixedValue: fixedVelocity })
-
-  notes.push({
-    pitch: getPitchWithOctave(firstNotePitch, octave),
-    duration: firstNoteDuration,
-    velocity: firstNoteVelocity
+  return _generateNotesForSteps(noteSteps, totalSteps, scale, markovTable, octave, subdivision, {
+    useFixedVelocity,
+    fixedVelocity,
+    startWithRootNote,
+    restProbability
   })
-
-  // 2. Loop for the REST of the notes
-  for (let i = 1; i < noteSteps.length; i++) {
-    const state = pitchHistory.length >= 2 ? pitchHistory.slice(-2) : pitchHistory.slice(-1)
-    const tableToUse = pitchHistory.length >= 2 ? markovTable : simpleMarkovTable
-    const currentPitchForWeighting = pitchHistory[pitchHistory.length - 1]
-
-    const nextPitch = getNextPitch(state, tableToUse, scale, currentPitchForWeighting)
-    pitchHistory.push(nextPitch)
-    if (pitchHistory.length > 2) pitchHistory.shift()
-
-    const currentStep = noteSteps[i]
-    const nextStep = i + 1 < noteSteps.length ? noteSteps[i + 1] : totalSteps
-    const durationInSteps = nextStep - currentStep
-    const duration = convertStepsToDuration(durationInSteps, subdivision)
-    const velocity = calculateVelocity({ useFixed: useFixedVelocity, fixedValue: fixedVelocity })
-
-    notes.push({
-      pitch: getPitchWithOctave(i === 0 ? pitchHistory[0] : pitchHistory[pitchHistory.length - 1], octave),
-      duration,
-      velocity
-    })
-  }
-
-  return { notes }
 }
 
+/**
+ * Generates notes for the given steps.
+ * @private
+ */
 function _generateNotesForSteps(
   noteSteps: number[],
   totalSteps: number,
@@ -323,25 +304,67 @@ function _generateNotesForSteps(
   markovTable: MarkovTable,
   octave: number,
   subdivision: string,
-  options: { useFixedVelocity: boolean; fixedVelocity: number; startWithRootNote?: boolean },
+  options: {
+    useFixedVelocity: boolean
+    fixedVelocity: number
+    startWithRootNote?: boolean
+    restProbability?: number
+  },
   initialPitch?: string
 ): { notes: Note[]; lastPitch: string } {
   const notes: Note[] = []
-  let currentPitch = initialPitch ?? (options.startWithRootNote ? scale.notes[0] : choose(scale.notes))
+  if (noteSteps.length === 0) return { notes, lastPitch: initialPitch || scale.notes[0] }
+
+  const { useFixedVelocity, fixedVelocity, startWithRootNote, restProbability = 0 } = options
+
+  let lastPitch = initialPitch || scale.notes[0]
+  if (startWithRootNote && !initialPitch) {
+    lastPitch = scale.notes[0]
+  }
+
+  let lastActualPitch = lastPitch
+
+  let consecutiveRests = 0
 
   for (let i = 0; i < noteSteps.length; i++) {
-    if (i > 0 || initialPitch) {
-      currentPitch = getNextPitch([currentPitch], markovTable, scale, currentPitch)
-    }
     const currentStep = noteSteps[i]
-    const nextStep = i + 1 < noteSteps.length ? noteSteps[i + 1] : totalSteps
-    const durationInSteps = nextStep - currentStep
+    const durationInSteps = i < noteSteps.length - 1 ? noteSteps[i + 1] - currentStep : totalSteps - currentStep
     const duration = convertStepsToDuration(durationInSteps, subdivision)
-    const notePitch = getPitchWithOctave(currentPitch, octave)
-    const velocity = calculateVelocity({ useFixed: options.useFixedVelocity, fixedValue: options.fixedVelocity })
-    notes.push({ pitch: notePitch, duration, velocity })
+
+    // Prevent more than 2 rests in a row
+    const forceNote = consecutiveRests >= 2
+    const shouldBeRest = !forceNote && Math.random() < restProbability
+
+    if (shouldBeRest) {
+      notes.push({
+        pitch: null,
+        duration,
+        velocity: 0
+      })
+      consecutiveRests++
+      // lastActualPitch remains the same
+    } else {
+      // It's a note
+      if (i === 0 && startWithRootNote && !initialPitch) {
+        lastPitch = scale.notes[0]
+      } else {
+        lastPitch = getNextPitch([lastActualPitch], markovTable, scale, lastActualPitch)
+      }
+
+      const velocity = calculateVelocity({ useFixed: useFixedVelocity, fixedValue: fixedVelocity })
+      const pitchWithOctave = getPitchWithOctave(lastPitch, octave)
+
+      notes.push({
+        pitch: pitchWithOctave,
+        duration,
+        velocity
+      })
+      lastActualPitch = lastPitch
+      consecutiveRests = 0
+    }
   }
-  return { notes, lastPitch: currentPitch }
+
+  return { notes, lastPitch: lastActualPitch }
 }
 
 /**

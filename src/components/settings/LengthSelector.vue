@@ -6,15 +6,24 @@ import useMusicStore from '@/stores/music.store'
 const store = useMusicStore()
 const barsOptions = ref(['1', '2', '4', '8', '16'])
 
-const selectedBars = computed({
-  get: () => store.bars.toString(),
-  set: (val) => store.setBars(Number(val))
-})
+function handleBarsChange(val: string) {
+  if (Number(val) <= 4) {
+    store.setUseMotifRepetition(false)
+  }
+  store.setBars(Number(val))
+}
+
+const selectedBars = computed(() => store.bars.toString())
 </script>
 
 <template>
   <div class="flex items-center justify-between gap-4 mt-4">
     <label class="font-medium">Length (bars)</label>
-    <SelectButton v-model="selectedBars" :options="barsOptions" :disabled="store.isEuclideanRhythm" />
+    <SelectButton
+      :model-value="selectedBars"
+      :options="barsOptions"
+      :disabled="store.isEuclideanRhythm"
+      @update:modelValue="handleBarsChange"
+    />
   </div>
 </template>

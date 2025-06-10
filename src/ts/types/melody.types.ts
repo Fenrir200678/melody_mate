@@ -9,4 +9,6 @@ export type MelodyGenerationOptions = {
   useFixedVelocity: boolean
   fixedVelocity: number
   startWithRootNote?: boolean
+  restProbability?: number
+  n?: number
 }

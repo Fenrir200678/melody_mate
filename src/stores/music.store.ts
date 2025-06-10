@@ -31,7 +31,8 @@ export const useMusicStore = defineStore('music', {
     fixedVelocity: 127,
     startWithRootNote: false,
     loopPlayback: 1,
-    euclideanRotation: 0
+    euclideanRotation: 0,
+    restProbability: 0.0
   }),
 
   actions: {
@@ -91,6 +92,9 @@ export const useMusicStore = defineStore('music', {
     setEuclideanRotation(rotation: number) {
       this.euclideanRotation = rotation
     },
+    setRestProbability(prob: number) {
+      this.restProbability = prob
+    },
     async generate() {
       const scale = generateScale(this.scaleName, this.key)
       if (!scale || !this.rhythm) {
@@ -116,7 +120,8 @@ export const useMusicStore = defineStore('music', {
             useNGrams: this.useNGrams,
             useFixedVelocity: this.useFixedVelocity,
             fixedVelocity: this.fixedVelocity,
-            startWithRootNote: this.startWithRootNote
+            startWithRootNote: this.startWithRootNote,
+            restProbability: this.restProbability
           }
           this.melody = generateMelody(melodyOptions)
         }

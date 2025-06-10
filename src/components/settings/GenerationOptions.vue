@@ -4,7 +4,16 @@ import Checkbox from 'primevue/checkbox'
 import useMusicStore from '@/stores/music.store'
 
 const store = useMusicStore()
-const disabledClass = computed(() => (store.useNGrams || store.isEuclideanRhythm ? 'text-zinc-500' : ''))
+const disabledClass = computed(() =>
+  store.useNGrams || store.isEuclideanRhythm || store.bars < 4 ? 'text-zinc-500' : ''
+)
+
+function handleUseNGramsChange(val: boolean) {
+  store.setUseNGrams(val)
+  if (val) {
+    store.setUseMotifRepetition(false)
+  }
+}
 </script>
 <template>
   <div class="space-y-4">
@@ -18,7 +27,7 @@ const disabledClass = computed(() => (store.useNGrams || store.isEuclideanRhythm
         :binary="true"
         inputId="motif-repetition"
         @update:modelValue="store.setUseMotifRepetition"
-        :disabled="store.useNGrams || store.isEuclideanRhythm"
+        :disabled="store.useNGrams || store.isEuclideanRhythm || store.bars < 4"
       />
     </div>
 
@@ -30,7 +39,12 @@ const disabledClass = computed(() => (store.useNGrams || store.isEuclideanRhythm
         >
       </div>
       <div class="flex-shrink-0 mt-1">
-        <Checkbox v-model="store.useNGrams" :binary="true" inputId="n-grams" @update:modelValue="store.setUseNGrams" />
+        <Checkbox
+          :model-value="store.useNGrams"
+          :binary="true"
+          inputId="n-grams"
+          @update:modelValue="handleUseNGramsChange"
+        />
       </div>
     </div>
 

@@ -29,14 +29,20 @@ export function saveAsMidi(melody: Melody, bpm: number, fileName = 'melody.mid')
   track.setTempo(bpm)
 
   // 3. Add notes to the track
-  const noteEvents = melody.notes.map(
-    (note) =>
-      new MidiWriter.NoteEvent({
+  const noteEvents = melody.notes.map((note) => {
+    if (note.pitch) {
+      return new MidiWriter.NoteEvent({
         pitch: [note.pitch],
         duration: formatDuration(note.duration),
         velocity: Math.round(note.velocity * 100) // Convert 0-1 range to 1-100
       })
-  )
+    }
+    // For rests, we create a 'wait' event
+    return new MidiWriter.NoteEvent({
+      wait: formatDuration(note.duration)
+    })
+  })
+
   track.addEvent(noteEvents, () => ({
     sequential: true
   }))

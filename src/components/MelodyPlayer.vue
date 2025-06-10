@@ -29,7 +29,6 @@ const downloadMidi = () => {
 </script>
 
 <template>
-  <!-- TODO: add a button to shuffle the melody -->
   <!-- TODO: find a way to add silence to the melody -->
   <!-- TODO: find a way to generate melodies that span multiple octaves -->
 

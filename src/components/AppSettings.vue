@@ -7,6 +7,7 @@ import BpmSelector from '@/components/settings/BpmSelector.vue'
 import OctaveSelector from '@/components/settings/OctaveSelector.vue'
 import VelocitySelector from '@/components/settings/VelocitySelector.vue'
 import GenerationOptions from '@/components/settings/GenerationOptions.vue'
+import RestProbabilitySelector from '@/components/settings/RestProbabilitySelector.vue'
 </script>
 <template>
   <div class="flex items-center gap-3 mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-4">
@@ -49,7 +50,8 @@ import GenerationOptions from '@/components/settings/GenerationOptions.vue'
       <div class="space-y-4">
         <!-- Length (bars) -->
         <LengthSelector />
-
+        <!-- Rest Probability -->
+        <RestProbabilitySelector />
         <!-- BPM and Octave -->
         <div class="flex items-center justify-between gap-4">
           <label class="font-medium">BPM</label>

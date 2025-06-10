@@ -12,7 +12,7 @@ const displayMelody = computed(() => {
     return 'Generate a melody to see it here.'
   }
 
-  return store.melody.notes.map((note) => `${note.pitch} (${note.duration})`).join(' → ')
+  return store.melody.notes.map((note) => `${note.pitch === null ? 'rest' : note.pitch} (${note.duration})`).join(' → ')
 })
 
 function convertMelodyToCurrentScale() {

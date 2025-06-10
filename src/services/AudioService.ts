@@ -190,17 +190,20 @@ export async function playMelody(
 
   // Create and start the Part
   part = new Tone.Part((time, value) => {
-    // Note: value.duration is now a format Tone.js understands (seconds or notation)
-    synthesizer.triggerAttackRelease(value.pitch, value.duration, time, value.velocity)
+    // value.pitch can be null for rests
+    if (value.pitch) {
+      // Note: value.duration is now a format Tone.js understands (seconds or notation)
+      synthesizer.triggerAttackRelease(value.pitch, value.duration, time, value.velocity)
 
-    // Trigger note play callback when note actually plays
-    if (notePlayCallback && rhythmPattern) {
-      // Find the corresponding step in the rhythm pattern for this note
-      const stepIndex = findStepIndexForNote(value.noteIndex, rhythmPattern)
-      if (stepIndex !== -1) {
-        // Calculate the absolute step for the animation across loops
-        const absoluteStep = value.loop * rhythmPattern.length + stepIndex
-        notePlayCallback(absoluteStep)
+      // Trigger note play callback when note actually plays
+      if (notePlayCallback && rhythmPattern) {
+        // Find the corresponding step in the rhythm pattern for this note
+        const stepIndex = findStepIndexForNote(value.noteIndex, rhythmPattern)
+        if (stepIndex !== -1) {
+          // Calculate the absolute step for the animation across loops
+          const absoluteStep = value.loop * rhythmPattern.length + stepIndex
+          notePlayCallback(absoluteStep)
+        }
       }
     }
   }, allEvents).start(0)

@@ -2,7 +2,7 @@ import { instrumentOptions } from '@/ts/const/audio.const'
 
 export type LoopEvent = {
   time: number
-  pitch: string
+  pitch: string | null
   duration: number | string
   velocity: number
   noteIndex: number
