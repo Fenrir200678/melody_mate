@@ -1,6 +1,6 @@
 import type { Melody, Note, RhythmPattern, Scale } from '@/ts/models'
 import type { MelodyGenerationOptions } from '@/ts/types/melody.types'
-import { STEPS_PER_4N, STEPS_PER_8N, STEPS_PER_16N, STEPS_PER_32N, DURATION_MAP } from '@/ts/const/melody.const'
+import { STEPS_PER_4N, STEPS_PER_8N, STEPS_PER_16N, STEPS_PER_32N, DURATION_MAP } from '@/ts/consts'
 import { buildMarkovTable, type MarkovTable } from '@/utils/markov'
 import { getNextPitch } from '@/utils/pitch'
 import { calculateVelocity } from '@/utils/velocity'

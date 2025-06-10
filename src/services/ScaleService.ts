@@ -1,6 +1,6 @@
 import type { Scale } from '@/ts/models'
 import { getNotesForScale } from '@/utils/scales'
-import { ALL_KEYS, SCALE_DEFINITIONS } from '@/ts/const/scale.const'
+import { ALL_KEYS, SCALE_DEFINITIONS } from '@/ts/consts'
 
 /**
  * Returns a list of all available scale names.

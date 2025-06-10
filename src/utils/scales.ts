@@ -1,4 +1,4 @@
-import { ALL_KEYS } from '@/ts/const/scale.const'
+import { ALL_KEYS } from '@/ts/consts'
 
 const noteIndexMap: Map<string, number> = new Map(ALL_KEYS.map((note, i) => [note.value, i]))
 
@@ -26,7 +26,8 @@ export function getNotesForScale(intervals: number[], rootNote: string, octave: 
  * @param noteName - The note name (e.g., 'C4').
  * @returns The MIDI note number.
  */
-export function noteNameToMidi(noteName: string): number {
+export function noteNameToMidi(noteName: string | null): number {
+  if (!noteName) return 0
   const match = noteName.match(/^([A-G]#?)(\d)$/)
   if (!match) throw new Error(`Invalid note name: ${noteName}`)
   const [, pitch, octaveStr] = match

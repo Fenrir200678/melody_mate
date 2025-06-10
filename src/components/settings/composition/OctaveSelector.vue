@@ -8,15 +8,17 @@ const octave = ref<number>(store.octave)
 </script>
 
 <template>
-  <label class="font-medium">Octave</label>
-  <InputNumber
-    :model-value="octave"
-    :min="1"
-    :max="8"
-    :step="1"
-    fluid
-    showButtons
-    buttonLayout="stacked"
-    @update:modelValue="store.setOctave"
-  />
+  <div class="flex items-center gap-4">
+    <label class="font-medium">Octave</label>
+    <InputNumber
+      :model-value="octave"
+      :min="1"
+      :max="8"
+      :step="1"
+      fluid
+      showButtons
+      buttonLayout="stacked"
+      @update:modelValue="store.setOctave"
+    />
+  </div>
 </template>

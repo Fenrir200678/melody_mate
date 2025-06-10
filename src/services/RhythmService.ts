@@ -1,5 +1,5 @@
 import type { RhythmPattern } from '@/ts/models'
-import { DURATION_MAP } from '@/ts/const/melody.const'
+import { DURATION_MAP } from '@/ts/consts'
 import { choose } from '@/utils/random-chooser'
 
 /**

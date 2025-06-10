@@ -1,19 +1,4 @@
-import type { RhythmPattern } from '@/ts/models/Rhythm'
-
-export type RhythmCategory = 'bass' | 'melody' | 'world'
-
-export type CategorizedRhythm = {
-  name: string
-  pattern: RhythmPattern
-  category: RhythmCategory
-  description?: string
-}
-
-export const RHYTHM_CATEGORIES = {
-  melody: 'Melody Patterns',
-  world: 'World Music',
-  bass: 'Bass Patterns'
-} as const
+import type { CategorizedRhythm } from '@/ts/types/rhythm.types'
 
 export const PREDEFINED_RHYTHMS: CategorizedRhythm[] = [
   // === SAD, SYNTH & RETRO ===
@@ -57,14 +42,7 @@ export const PREDEFINED_RHYTHMS: CategorizedRhythm[] = [
       steps: ['4n', '2n.'] // Note: Creates a very long space
     }
   },
-  {
-    name: '90s House Chords',
-    category: 'melody',
-    description: 'The iconic syncopated chord rhythm of 90s house music',
-    pattern: {
-      steps: ['16n', '16n', '8n', '16n', '16n', '4n', '4n']
-    }
-  },
+
   {
     name: 'Solemn Drone',
     category: 'bass',
@@ -309,9 +287,3 @@ export const PREDEFINED_RHYTHMS: CategorizedRhythm[] = [
     }
   }
 ]
-
-// Legacy export for backward compatibility
-export const PREDEFINED_RHYTHMS_LEGACY = PREDEFINED_RHYTHMS.map((rhythm) => ({
-  name: rhythm.name,
-  pattern: rhythm.pattern
-}))

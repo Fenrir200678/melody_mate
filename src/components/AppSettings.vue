@@ -7,7 +7,7 @@ import RhythmControl from '@/components/settings/rhythm/RhythmControl.vue'
 import LengthSelector from '@/components/settings/composition/LengthSelector.vue'
 import BpmSelector from '@/components/settings/composition/BpmSelector.vue'
 import OctaveSelector from '@/components/settings/composition/OctaveSelector.vue'
-import VelocitySelector from '@/components/settings/VelocitySelector.vue'
+import VelocitySelector from '@/components/settings/composition/VelocitySelector.vue'
 import RestProbabilitySelector from '@/components/settings/generation/RestProbabilitySelector.vue'
 import NGramSelector from '@/components/settings/generation/NGramSelector.vue'
 import MotifRepetition from '@/components/settings/generation/MotifRepetition.vue'
@@ -47,26 +47,12 @@ import PredefinedMotif from '@/components/settings/generation/PredefinedMotif.vu
           <BpmSelector />
           <OctaveSelector />
         </div>
+        <VelocitySelector />
       </div>
-    </div>
-
-    <!-- Playback Options -->
-    <div class="mt-12">
-      <h3 class="text-lg font-semibold mb-2 flex items-center gap-2">
-        <i class="pi pi-volume-up text-sm"></i>
-        Playback Options
-      </h3>
-      <Divider />
-      <VelocitySelector />
     </div>
 
     <!-- Rhythm -->
     <div class="mt-12">
-      <h3 class="text-lg font-semibold flex items-center gap-2">
-        <i class="pi pi-clock text-sm"></i>
-        Rhythm
-      </h3>
-      <Divider />
       <RhythmControl />
     </div>
 

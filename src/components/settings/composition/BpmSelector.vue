@@ -8,14 +8,16 @@ const bpm = ref<number>(store.bpm)
 </script>
 
 <template>
-  <label class="font-medium">BPM</label>
-  <InputNumber
-    :model-value="bpm"
-    :min="40"
-    :max="240"
-    fluid
-    showButtons
-    buttonLayout="stacked"
-    @update:modelValue="store.setBpm"
-  />
+  <div class="flex items-center justify-between gap-4">
+    <label class="font-medium">BPM</label>
+    <InputNumber
+      :model-value="bpm"
+      :min="40"
+      :max="240"
+      fluid
+      showButtons
+      buttonLayout="stacked"
+      @update:modelValue="store.setBpm"
+    />
+  </div>
 </template>

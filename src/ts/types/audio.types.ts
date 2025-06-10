@@ -1,4 +1,4 @@
-import { instrumentOptions } from '@/ts/const/audio.const'
+import { instrumentOptions } from '@/ts/consts'
 
 export type LoopEvent = {
   time: number
