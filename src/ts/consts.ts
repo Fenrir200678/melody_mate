@@ -53,9 +53,9 @@ export const DURATION_MAP: Readonly<Record<string, Readonly<Record<number, strin
 } as const
 
 export const RHYTHM_CATEGORIES = {
-  melody: 'Melody Patterns',
-  world: 'World Music',
-  bass: 'Bass Patterns'
+  melody: 'Melody',
+  world: 'World',
+  bass: 'Bass'
 } as const
 
 export const ALL_KEYS = [

@@ -11,6 +11,7 @@ export const useMusicStore = defineStore('music', {
     key: 'C' as string,
     rhythm: null as RhythmPattern | null,
     bars: 4,
+    lastBars: 4,
     bpm: 120,
     useMotifRepetition: true,
     useNGrams: false,
@@ -46,6 +47,7 @@ export const useMusicStore = defineStore('music', {
       this.rhythm = rhythm
     },
     setBars(bars: number) {
+      this.lastBars = this.bars
       this.bars = bars
     },
     setBpm(bpm: number) {

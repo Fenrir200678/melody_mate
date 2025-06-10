@@ -7,18 +7,36 @@ import Slider from 'primevue/slider'
 import SelectButton from 'primevue/selectbutton'
 import Button from 'primevue/button'
 
+const props = defineProps<{
+  euclideanTabSelected: boolean
+}>()
+
 const store = useMusicStore()
 
 const pulses = ref(5)
 const steps = ref(16)
 const subdivision = ref('16n')
+
 const subdivisionInt = computed(() => {
   return parseInt(subdivision.value.split('n')[0])
 })
-
 const stepDescription = computed(() => {
   return `${steps.value} × ${subdivision.value} = ${Math.round((steps.value / subdivisionInt.value) * 100) / 100} bar(s)`
 })
+
+watch([pulses, steps, subdivision], () => {
+  store.setEuclideanRotation(0)
+  generateAndSetEuclideanRhythm()
+})
+
+watch(
+  () => props.euclideanTabSelected,
+  (newVal) => {
+    if (newVal) {
+      generateAndSetEuclideanRhythm()
+    }
+  }
+)
 
 const generateAndSetEuclideanRhythm = () => {
   if (steps.value < pulses.value) {
@@ -31,11 +49,6 @@ const generateAndSetEuclideanRhythm = () => {
   store.setBars(newBars)
 }
 
-watch([pulses, steps, subdivision], () => {
-  store.setEuclideanRotation(0)
-  generateAndSetEuclideanRhythm()
-})
-
 function rotate(amount: number) {
   // amount=1  -> left rotation
   // amount=-1 -> right rotation
@@ -46,8 +59,9 @@ function rotate(amount: number) {
 
 onMounted(() => {
   const currentRhythm = store.rhythm
-  if (currentRhythm && currentRhythm.pulses !== undefined && currentRhythm.pattern) {
-    pulses.value = currentRhythm.pulses
+
+  if (currentRhythm && store.isEuclideanRhythm && currentRhythm.pattern) {
+    pulses.value = currentRhythm.pulses || 0
     steps.value = currentRhythm.pattern.length
     // Also set the correct bar count on mount
     const subdivisionToStepsPerBar: Record<string, number> = {

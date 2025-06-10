@@ -19,10 +19,10 @@ const activeTab = ref(0)
     </TabList>
     <TabPanels>
       <TabPanel :value="0">
-        <RhythmPresets />
+        <RhythmPresets :rhythm-tab-selected="activeTab === 0" />
       </TabPanel>
       <TabPanel :value="1">
-        <EuclideanRhythm />
+        <EuclideanRhythm :euclidean-tab-selected="activeTab === 1" />
       </TabPanel>
     </TabPanels>
   </Tabs>

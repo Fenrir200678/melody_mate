@@ -149,6 +149,12 @@ export const PREDEFINED_RHYTHMS: CategorizedRhythm[] = [
     pattern: { steps: ['8n', '8n.', '16n', '8n', '8n.', '16n'] }
   },
   {
+    name: 'Rolling Bass',
+    category: 'bass',
+    description: 'A rolling, syncopated bassline',
+    pattern: { steps: ['16n', '16n', '16n', '16n', '16n', '16n', '16n', '16n'] }
+  },
+  {
     name: 'Retro Funk Bass',
     category: 'bass',
     description: 'A groovy, syncopated bassline straight from the 80s',

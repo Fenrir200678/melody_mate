@@ -5,105 +5,88 @@ import useMusicStore from '@/stores/music.store'
 import { PREDEFINED_RHYTHMS } from '@/data/rhythms'
 import { RHYTHM_CATEGORIES } from '@/ts/consts'
 import type { CategorizedRhythm, RhythmCategory } from '@/ts/types/rhythm.types'
-import type { RhythmPattern } from '@/ts/models'
 
-import SelectButton from 'primevue/selectbutton'
+import Listbox from 'primevue/listbox'
+import Button from 'primevue/button'
 
+const props = defineProps<{ rhythmTabSelected: boolean }>()
 const store = useMusicStore()
 
-const availableRhythms = ref<CategorizedRhythm[]>(PREDEFINED_RHYTHMS)
-const selectedRhythm = ref<CategorizedRhythm | RhythmPattern | null>(null)
+const categoryOptions = Object.entries(RHYTHM_CATEGORIES).map(([value, label]) => ({
+  value: value as RhythmCategory,
+  label
+}))
+
 const selectedCategory = ref<RhythmCategory>('melody')
+const selectedRhythm = ref<CategorizedRhythm | null>(null)
 
-const rhythmsByCategory = computed(() => {
-  const grouped: Record<RhythmCategory, CategorizedRhythm[]> = {
-    bass: [],
-    melody: [],
-    world: []
-  }
-  availableRhythms.value.forEach((rhythm: CategorizedRhythm) => {
-    grouped[rhythm.category].push(rhythm)
-  })
-  return grouped
-})
+const filteredRhythms = computed(() =>
+  PREDEFINED_RHYTHMS.filter((r) => r.category === selectedCategory.value).sort((a, b) => a.name.localeCompare(b.name))
+)
 
-const categoryOptions = computed(() => {
-  return Object.entries(RHYTHM_CATEGORIES).map(([key, label]) => ({
-    value: key as RhythmCategory,
-    label
-  }))
-})
-
-const filteredRhythms = computed(() => {
-  const rhythms = rhythmsByCategory.value[selectedCategory.value] || []
-  return rhythms.sort((a, b) => a.name.localeCompare(b.name))
-})
-
-function onRhythmChange(value: CategorizedRhythm) {
-  if (value) {
-    selectedRhythm.value = value
-    store.setRhythm(value.pattern)
-  }
+function setDefaultRhythm() {
+  selectedRhythm.value = filteredRhythms.value[0] || null
+  store.setRhythm(filteredRhythms.value[0]?.pattern || null)
 }
 
-onMounted(() => {
-  const currentRhythm = store.rhythm
+function handleRhythmChange(rhythm: CategorizedRhythm) {
+  store.setRhythm(rhythm.pattern)
+}
 
-  if (currentRhythm && !store.isEuclideanRhythm) {
-    const preset = PREDEFINED_RHYTHMS.find((p) => p.name === currentRhythm.name)
-    if (preset) {
-      selectedRhythm.value = preset
-      selectedCategory.value = preset.category
-    }
-  } else {
-    onRhythmChange(filteredRhythms.value[0])
-  }
+// Update selection when category changes
+watch(selectedCategory, () => {
+  setDefaultRhythm()
 })
 
-watch(selectedCategory, (newCategory, oldCategory) => {
-  if (newCategory !== oldCategory) {
-    const firstRhythm = filteredRhythms.value[0]
-    if (firstRhythm) {
-      onRhythmChange(firstRhythm)
+// If the tab becomes active, ensure a rhythm is selected
+watch(
+  () => props.rhythmTabSelected,
+  (rhythmTabSelected) => {
+    if (rhythmTabSelected) {
+      setDefaultRhythm()
+      store.setBars(store.lastBars)
     }
   }
+)
+
+onMounted(() => {
+  setDefaultRhythm()
 })
 </script>
 
 <template>
-  <div class="pt-2 flex flex-col gap-4">
+  <div class="pt-2 flex gap-4">
     <!-- Category Selector -->
-    <div class="mb-2 flex flex-col gap-1">
-      <label class="text-sm block">Rhythm Category</label>
-      <div class="flex items-center justify-center w-full">
-        <SelectButton
-          v-model="selectedCategory"
-          :options="categoryOptions"
-          size="small"
-          option-label="label"
-          option-value="value"
-          placeholder="Select a category"
-        />
-      </div>
+    <div class="flex flex-col items-start gap-2 w-[100px]">
+      <Button
+        v-for="option in categoryOptions"
+        :key="option.value"
+        :label="option.label"
+        fluid
+        size="small"
+        :severity="selectedCategory === option.value ? 'primary' : 'secondary'"
+        @click="selectedCategory = option.value"
+      />
     </div>
+
     <!-- Rhythm List -->
-    <div class="flex flex-col overflow-y-auto h-[400px]">
-      <div
-        v-for="rhythm in filteredRhythms"
-        :key="rhythm.name"
-        @click="onRhythmChange(rhythm)"
-        :class="[
-          'cursor-pointer rounded transition-colors py-2 px-4',
-          selectedRhythm?.name === rhythm.name ? 'bg-zinc-700 text-zinc-200' : 'bg-zinc-900 hover:bg-zinc-800'
-        ]"
-      >
+    <Listbox
+      v-model="selectedRhythm"
+      class="w-full"
+      :options="filteredRhythms"
+      option-label="name"
+      placeholder="Select a rhythm"
+      scroll-height="300px"
+      @change="handleRhythmChange($event.value)"
+    >
+      <template #option="{ option }">
         <div class="flex flex-col">
-          <span class="font-medium text-sm">{{ rhythm.name }}</span>
-          <span v-if="rhythm.description" class="text-xs text-zinc-400 mt-1">
-            {{ rhythm.description }}
+          <span class="font-medium text-sm">{{ option.name }}</span>
+          <span v-if="option.description" class="text-xs text-zinc-400 mt-1">
+            {{ option.description }}
           </span>
         </div>
-      </div>
-    </div>
+      </template>
+    </Listbox>
   </div>
 </template>

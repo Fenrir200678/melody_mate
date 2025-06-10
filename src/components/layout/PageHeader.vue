@@ -3,7 +3,8 @@
   <header class="text-center my-8">
     <h1 class="text-4xl md:text-5xl font-bold text-primary-400">Melody Mate</h1>
     <p class="text-lg mt-2">
-      Create rule-based melodies or basslines using rhythm presets or Euclidean rhythms and export them as MIDI files.
+      Create melodies or basslines based on stochastic processes using rhythm presets or Euclidean rhythms and export
+      them as MIDI files.
     </p>
   </header>
 </template>
