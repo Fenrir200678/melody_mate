@@ -64,7 +64,7 @@ src/
 1.  Clone the repository:
 
     ```bash
-    git clone https://github.com/your-username/melody-mate.git
+    git clone https://github.com/Fenrir200678/melody_mate
     cd melody-mate
     ```
 
