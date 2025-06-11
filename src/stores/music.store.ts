@@ -22,7 +22,7 @@ export const useMusicStore = defineStore('music', {
     selectedInstrument: 'default' as InstrumentKey,
     currentStep: -1,
     activeNoteStep: -1,
-    octave: 4,
+    octave: 3,
     useFixedVelocity: true,
     fixedVelocity: 127,
     startWithRootNote: false,

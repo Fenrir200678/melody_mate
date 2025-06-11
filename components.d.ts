@@ -26,6 +26,8 @@ declare module 'vue' {
     RestProbabilitySelector: typeof import('./src/components/settings/generation/RestProbabilitySelector.vue')['default']
     RhythmControl: typeof import('./src/components/settings/rhythm/RhythmControl.vue')['default']
     RhythmPresets: typeof import('./src/components/settings/rhythm/RhythmPresets.vue')['default']
+    RouterLink: typeof import('vue-router')['RouterLink']
+    RouterView: typeof import('vue-router')['RouterView']
     ScaleSelector: typeof import('./src/components/settings/key_scale/ScaleSelector.vue')['default']
     StartWithRootNote: typeof import('./src/components/settings/generation/StartWithRootNote.vue')['default']
     VelocitySelector: typeof import('./src/components/settings/composition/VelocitySelector.vue')['default']

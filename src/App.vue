@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Analytics } from '@vercel/analytics/vue'
 import MelodyGenerator from '@/components/MelodyGenerator.vue'
 import MelodyVisualizer from '@/components/MelodyVisualizer.vue'
 import MelodyPlayer from '@/components/MelodyPlayer.vue'
@@ -9,6 +10,7 @@ import AppSettings from '@/components/AppSettings.vue'
 </script>
 
 <template>
+  <Analytics />
   <PageHeader />
   <main class="w-[90%] max-w-[1200px] mx-auto px-4">
     <div class="flex gap-4">

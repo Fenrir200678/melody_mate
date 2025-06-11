@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-
+import { router } from './router/routes'
 import PrimeVue from 'primevue/config'
 import Aura from '@primeuix/themes/aura'
 
@@ -17,5 +17,7 @@ app.use(PrimeVue, {
     preset: Aura
   }
 })
+
+app.use(router)
 
 app.mount('#app')
