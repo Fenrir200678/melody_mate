@@ -241,7 +241,6 @@ export async function playMelody(
  * Maps a note index to the corresponding step index in the rhythm pattern
  * @param noteIndex - The index of the note in the melody
  * @param rhythmPattern - The binary rhythm pattern
- * @param bars - Number of bars in the melody
  * @returns The step index in the rhythm pattern (accounting for multiple bars)
  */
 function findStepIndexForNote(noteIndex: number, rhythmPattern: (0 | 1)[]): number {

@@ -1,4 +1,5 @@
 import { ALL_KEYS } from '@/ts/consts'
+import type { Note } from '@/ts/models/Note'
 
 const noteIndexMap: Map<string, number> = new Map(ALL_KEYS.map((note, i) => [note.value, i]))
 
@@ -55,8 +56,6 @@ export function midiToNoteName(midi: number): string {
  * @param targetScaleNotes - Array der Ziel-Scale-Noten (z.B. ['C4', 'D4', ...])
  * @returns Die transformierte Melodie
  */
-import type { Note } from '@/ts/models/Note'
-
 export function mapMelodyToScale(melody: Note[], targetScaleNotes: string[]): Note[] {
   if (!melody.length || !targetScaleNotes.length) return []
 

@@ -54,6 +54,7 @@ export function generateEuclideanBinaryPattern(pulses: number, steps: number): (
  * @param pulses - The number of notes (on-beats) to distribute in the pattern.
  * @param steps - The total number of steps in the pattern (e.g., 16 for a bar of 16th notes).
  * @param subdivision - The note value for a single step (e.g., '16n').
+ * @param rotation - The number of steps to rotate the pattern (default is 0, no rotation).
  * @returns A RhythmPattern object.
  */
 export function generateEuclideanPattern(
