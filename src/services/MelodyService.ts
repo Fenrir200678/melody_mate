@@ -1,10 +1,10 @@
 import type { Melody, Note, RhythmPattern, Scale } from '@/ts/models'
 import type { MelodyGenerationOptions } from '@/ts/types/melody.types'
-import { STEPS_PER_4N, STEPS_PER_8N, STEPS_PER_16N, STEPS_PER_32N, DURATION_MAP } from '@/ts/consts'
+import { DURATION_MAP, STEPS_PER_16N, STEPS_PER_32N, STEPS_PER_4N, STEPS_PER_8N } from '@/ts/consts'
 import { buildMarkovTable, type MarkovTable } from '@/utils/markov'
 import { getNextPitch } from '@/utils/pitch'
 import { calculateVelocity } from '@/utils/velocity'
-import { motifs, snippets } from '@/data/motifs'
+import { motifs } from '@/data/motifs'
 
 /**
  * Creates training data for the Markov chain.
@@ -61,18 +61,6 @@ function createTrainingData(notes: string[], useMotifs = false): string[][] {
     motifs.forEach((motif) => {
       sequences.push(motif.notes.map(stripOctave))
     })
-
-    snippets.forEach((snippet) => {
-      if (Array.isArray(snippet.notes[0])) {
-        // It's string[][]
-        ;(snippet.notes as string[][]).forEach((phrase) => {
-          sequences.push(phrase.map(stripOctave))
-        })
-      } else {
-        // It's string[]
-        sequences.push((snippet.notes as string[]).map(stripOctave))
-      }
-    })
   }
 
   return sequences
@@ -111,7 +99,6 @@ function normalizeRhythm(rhythm: RhythmPattern): RhythmPattern {
 
   // Determine the subdivision for the pattern. Fallback to '16n' if not specified.
   const subdivision = rhythm.subdivision || '16n'
-  const noteDurations = rhythm.steps
 
   const STEPS_MAPS = {
     '4n': STEPS_PER_4N,
@@ -124,7 +111,7 @@ function normalizeRhythm(rhythm: RhythmPattern): RhythmPattern {
   const pattern: (0 | 1)[] = []
   let totalSteps = 0
 
-  for (const duration of noteDurations) {
+  for (const duration of rhythm.steps) {
     const stepsForNote = stepsMap[duration as keyof typeof stepsMap] || 0
     if (stepsForNote > 0) {
       pattern.push(1)
@@ -138,7 +125,6 @@ function normalizeRhythm(rhythm: RhythmPattern): RhythmPattern {
   return {
     ...rhythm,
     pattern,
-    noteDurations,
     subdivision,
     steps: new Array(totalSteps).fill(subdivision)
   }

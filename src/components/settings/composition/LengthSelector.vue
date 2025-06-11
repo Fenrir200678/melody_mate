@@ -19,11 +19,6 @@ const selectedBars = computed(() => store.bars.toString())
 <template>
   <div class="flex items-center justify-between gap-4">
     <label class="font-medium">Length (bars)</label>
-    <SelectButton
-      :model-value="selectedBars"
-      :options="barsOptions"
-      :disabled="store.isEuclideanRhythm"
-      @update:modelValue="handleBarsChange"
-    />
+    <SelectButton :model-value="selectedBars" :options="barsOptions" @update:modelValue="handleBarsChange" />
   </div>
 </template>

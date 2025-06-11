@@ -109,14 +109,8 @@ export const PREDEFINED_RHYTHMS: CategorizedRhythm[] = [
   {
     name: 'Dubstep Drop',
     category: 'bass',
-    description: 'Heavy syncopated dubstep',
+    description: 'Heavy syncopated dubstep like',
     pattern: { steps: ['8n', '16n', '16n', '8n.', '16n', '8n', '8n'] }
-  },
-  {
-    name: 'EBM Bassline',
-    category: 'bass',
-    description: 'A driving, energetic pattern typical for EBM and futurepop',
-    pattern: { steps: ['8n', '16n', '16n', '8n', '16n', '16n', '4n'] }
   },
   {
     name: 'Four on the Floor',
@@ -129,12 +123,6 @@ export const PREDEFINED_RHYTHMS: CategorizedRhythm[] = [
     category: 'bass',
     description: 'A slow, somber, and heavy procession',
     pattern: { steps: ['4n.', '8n', '4n', '4n'] }
-  },
-  {
-    name: 'Industrial Stomp',
-    category: 'bass',
-    description: 'A heavy, repetitive, and aggressive machine-like beat',
-    pattern: { steps: ['8n', '8n', '16n', '16n', '8n', '4n.', '16n'] }
   },
   {
     name: 'Metal Gallop',

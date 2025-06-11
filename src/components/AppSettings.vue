@@ -34,7 +34,7 @@ import PredefinedMotif from '@/components/settings/generation/PredefinedMotif.vu
     </div>
 
     <!-- Composition -->
-    <div class="mt-12">
+    <div class="mt-8">
       <h3 class="text-lg font-semibold flex items-center gap-2">
         <i class="pi pi-file-edit text-sm"></i>
         Composition
@@ -52,12 +52,12 @@ import PredefinedMotif from '@/components/settings/generation/PredefinedMotif.vu
     </div>
 
     <!-- Rhythm -->
-    <div class="mt-12">
+    <div class="mt-8">
       <RhythmControl />
     </div>
 
     <!-- Generation Options -->
-    <div class="mt-12">
+    <div class="mt-4">
       <h3 class="text-lg font-semibold flex items-center gap-2">
         <i class="pi pi-cog text-sm"></i>
         Generation Options
