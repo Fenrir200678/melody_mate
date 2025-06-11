@@ -59,14 +59,9 @@ export const useMusicStore = defineStore('music', {
     setUseNGrams(use: boolean) {
       this.useNGrams = use
     },
-    setUseAI(useAI: boolean) {
-      this.useAI = useAI
-    },
-
     setInstrument(instrument: InstrumentKey) {
       this.selectedInstrument = instrument
     },
-
     setOctave(octave: number) {
       if (this.melody && this.melody.notes.length) {
         this.melody = {
@@ -192,9 +187,7 @@ export const useMusicStore = defineStore('music', {
       saveAsMidi(this.melody, this.bpm, fileName)
     }
   },
-  getters: {
-    isEuclideanRhythm: (state) => state.rhythm?.pulses !== undefined
-  }
+  getters: {}
 })
 
 export default useMusicStore

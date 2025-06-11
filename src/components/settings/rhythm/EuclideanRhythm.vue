@@ -21,7 +21,8 @@ const subdivisionInt = computed(() => {
   return parseInt(subdivision.value.split('n')[0])
 })
 const stepDescription = computed(() => {
-  return `${steps.value} × ${subdivision.value} = ${Math.round((steps.value / subdivisionInt.value) * 100) / 100} bar(s)`
+  const bars = (steps.value / subdivisionInt.value).toFixed(2).replace(/\.00$/, '')
+  return `${steps.value} steps per pattern repetition (${bars} bars)`
 })
 
 watch([pulses, steps, subdivision], () => {
@@ -38,15 +39,24 @@ watch(
   }
 )
 
+watch(
+  () => store.rhythm,
+  (currentRhythm) => {
+    if (currentRhythm && currentRhythm.pattern) {
+      pulses.value = currentRhythm.pulses || 0
+      steps.value = currentRhythm.pattern.length || 16
+      subdivision.value = currentRhythm.subdivision || '16n'
+    }
+  },
+  { immediate: true, deep: true }
+)
+
 const generateAndSetEuclideanRhythm = () => {
   if (steps.value < pulses.value) {
     pulses.value = steps.value
   }
   const newRhythm = generateEuclideanPattern(pulses.value, steps.value, subdivision.value, store.euclideanRotation)
   store.setRhythm(newRhythm)
-  // Automatically set bars based on steps for Euclidean rhythms
-  const newBars = Math.ceil(steps.value / subdivisionInt.value)
-  store.setBars(newBars)
 }
 
 function rotate(amount: number) {
@@ -60,19 +70,9 @@ function rotate(amount: number) {
 onMounted(() => {
   const currentRhythm = store.rhythm
 
-  if (currentRhythm && store.isEuclideanRhythm && currentRhythm.pattern) {
-    pulses.value = currentRhythm.pulses || 0
+  if (currentRhythm?.pulses !== undefined && currentRhythm.pattern) {
+    pulses.value = currentRhythm.pulses
     steps.value = currentRhythm.pattern.length
-    // Also set the correct bar count on mount
-    const subdivisionToStepsPerBar: Record<string, number> = {
-      '32n': 32,
-      '16n': 16,
-      '8n': 8,
-      '4n': 4
-    }
-    const stepsPerBar = subdivisionToStepsPerBar[currentRhythm.subdivision || '16n'] || 16
-    const newBars = Math.ceil(steps.value / stepsPerBar)
-    store.setBars(newBars)
   }
 })
 
@@ -136,22 +136,10 @@ const subdivisionOptions = computed(() => {
       Your rhythm will spread <strong>{{ pulses }} notes </strong> evenly over <strong>{{ steps }} steps</strong>.
     </p>
     <p class="mt-1">
-      <strong>Pulses:</strong> Number of played notes in time raster<br />
-      <strong>Steps:</strong> Time raster ({{ stepDescription }})<br />
-      <strong>Subdivision:</strong> Rhythmic subdivision - Total duration of the rhythmic cycle (e.g. 16th notes with 16
-      steps = 1 bar)
-    </p>
-  </div>
-  <div class="text-xs text-zinc-500 leading-relaxed mt-2">
-    <p class="mt-1">
-      <strong>Note:</strong> With few pulses (e.g. 6 of 16), the last note may not reach the end of the bar. This is a
-      typical and mathematically correct property of Euclidean rhythms. Larger gaps at the end can occur when pulses are
-      distributed unevenly, which means that the exported MIDI file won't end exactly on the end of the bar.
-    </p>
-    <p class="mt-1">
-      Also <span class="font-bold">Motif Repetition</span> can't be used with Euclidean rhythms and
-      <span class="font-bold">Length (bars)</span> below has no effect on the length of the generated melody and is
-      disabled.
+      <strong>Pulses:</strong> Number of played notes in the pattern.<br />
+      <strong>Steps:</strong> The length of one pattern repetition.<br />
+      <strong>Subdivision:</strong> Rhythmic value of a single step. The total duration of one pattern repetition is
+      {{ stepDescription }}.
     </p>
   </div>
 </template>

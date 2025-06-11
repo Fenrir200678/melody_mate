@@ -12,7 +12,7 @@ const activeTab = ref(0)
 </script>
 
 <template>
-  <Tabs v-model:value="activeTab">
+  <Tabs v-model:value="activeTab" class="w-full mb-0">
     <TabList>
       <Tab :value="0">Rhythm Presets</Tab>
       <Tab :value="1">Euclidean Rhythm <span class="text-xs text-zinc-600 pl-1">beta</span></Tab>

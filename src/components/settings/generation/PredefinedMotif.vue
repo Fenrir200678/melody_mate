@@ -8,11 +8,8 @@ const store = useMusicStore()
 <template>
   <div class="flex items-start justify-between gap-4">
     <div class="flex flex-col flex-1 min-w-0">
-      <label for="use-motif-training-data" class="font-medium"> Use Pre-defined Motifs </label>
-      <span class="text-xs">
-        Tries to implement pre-defined motifs into the melody (currently only a few are available, more will be added in
-        the future).
-      </span>
+      <label for="use-motif-training-data" class="font-medium"> Implement Pre-defined Motifs </label>
+      <span class="text-xs"> Tries to implement pre-defined motifs into the seed of the melody </span>
     </div>
     <div class="flex-shrink-0 mt-1">
       <Checkbox

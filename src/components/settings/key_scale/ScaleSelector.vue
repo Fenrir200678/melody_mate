@@ -10,13 +10,6 @@ const selectedScaleName = ref<string | null>(null)
 
 onMounted(() => {
   availableScaleNames.value = getAvailableScaleNames()
-
-  // Set a default scale on mount
-  if (availableScaleNames.value.length > 0) {
-    const defaultScaleName = store.scaleName
-    selectedScaleName.value = defaultScaleName
-    store.setScaleName(defaultScaleName)
-  }
 })
 
 function onScaleChange(value: string) {

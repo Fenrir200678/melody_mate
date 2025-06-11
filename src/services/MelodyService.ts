@@ -111,7 +111,6 @@ function normalizeRhythm(rhythm: RhythmPattern): RhythmPattern {
 
   // Determine the subdivision for the pattern. Fallback to '16n' if not specified.
   const subdivision = rhythm.subdivision || '16n'
-  const noteDurations = rhythm.steps
 
   const STEPS_MAPS = {
     '4n': STEPS_PER_4N,
@@ -124,7 +123,7 @@ function normalizeRhythm(rhythm: RhythmPattern): RhythmPattern {
   const pattern: (0 | 1)[] = []
   let totalSteps = 0
 
-  for (const duration of noteDurations) {
+  for (const duration of rhythm.steps) {
     const stepsForNote = stepsMap[duration as keyof typeof stepsMap] || 0
     if (stepsForNote > 0) {
       pattern.push(1)
@@ -138,7 +137,6 @@ function normalizeRhythm(rhythm: RhythmPattern): RhythmPattern {
   return {
     ...rhythm,
     pattern,
-    noteDurations,
     subdivision,
     steps: new Array(totalSteps).fill(subdivision)
   }
