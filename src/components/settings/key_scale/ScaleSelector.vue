@@ -10,6 +10,7 @@ const selectedScaleName = ref<string | null>(null)
 
 onMounted(() => {
   availableScaleNames.value = getAvailableScaleNames()
+  selectedScaleName.value = store.scaleName
 })
 
 function onScaleChange(value: string) {
