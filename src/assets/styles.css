@@ -1,6 +1,8 @@
 @import 'tailwindcss';
 @import 'primeicons/primeicons.css';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   color-scheme: dark;
   font-synthesis: none;
