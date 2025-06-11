@@ -39,7 +39,7 @@ A web-based MIDI melody generator built with Vue 3, TypeScript, and Vite for cra
 
 The project follows a feature-oriented structure to keep the codebase organized and scalable.
 
-```
+```bash
 src/
 ├── assets/         # Static assets like images and fonts
 ├── components/     # Reusable Vue components (UI controls, visualizer)
@@ -61,17 +61,18 @@ src/
 
 ### Installation
 
-1.  Clone the repository:
+1. Clone the repository:
 
-    ```bash
-    git clone https://github.com/Fenrir200678/melody_mate
-    cd melody-mate
-    ```
+   ```bash
+   git clone https://github.com/Fenrir200678/melody_mate
+   cd melody_mate
+   ```
 
-2.  Install dependencies:
-    ```bash
-    pnpm install
-    ```
+2. Install dependencies:
+
+   ```bash
+   pnpm install
+   ```
 
 ### Running the Development Server
 
