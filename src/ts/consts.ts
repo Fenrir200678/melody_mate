@@ -60,16 +60,16 @@ export const RHYTHM_CATEGORIES = {
 
 export const ALL_KEYS = [
   { name: 'C', value: 'C' },
-  { name: 'C#', value: 'C#' },
+  { name: 'C♯ / D♭', value: 'C#' },
   { name: 'D', value: 'D' },
-  { name: 'D#', value: 'D#' },
+  { name: 'D♯ / E♭', value: 'D#' },
   { name: 'E', value: 'E' },
   { name: 'F', value: 'F' },
-  { name: 'F#', value: 'F#' },
+  { name: 'F♯ / G♭', value: 'F#' },
   { name: 'G', value: 'G' },
-  { name: 'G#', value: 'G#' },
+  { name: 'G♯ / A♭', value: 'G#' },
   { name: 'A', value: 'A' },
-  { name: 'A#', value: 'A#' },
+  { name: 'A♯ / B♭', value: 'A#' },
   { name: 'B', value: 'B' }
 ]
 

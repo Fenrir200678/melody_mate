@@ -35,23 +35,6 @@ A web-based MIDI melody generator built with Vue 3, TypeScript, and Vite for cra
 - **Web Audio:** [Tone.js](https://tonejs.github.io/) for in-browser audio synthesis and sequencing.
 - **MIDI:** `jsmidgen` for MIDI file creation.
 
-## 📂 Project Structure
-
-The project follows a feature-oriented structure to keep the codebase organized and scalable.
-
-```bash
-src/
-├── assets/         # Static assets like images and fonts
-├── components/     # Reusable Vue components (UI controls, visualizer)
-├── data/           # Predefined data like musical motifs
-├── services/       # Core logic (Melody, Audio, MIDI generation)
-├── stores/         # Pinia stores for global state management
-├── ts/             # TypeScript types, models, and constants
-├── utils/          # Helper functions (Markov chains, pitch calculation)
-├── App.vue         # Main application component
-└── main.ts         # Application entry point
-```
-
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -102,3 +85,13 @@ This project is under active development. Future enhancements include:
 - **🎶 Chord Progressions:** A dedicated module for generating and adding chord progressions.
 - **🎹 More Instrument Options:** More instruments to choose from.
 - **📄 More Export Options:** Support for formats like MusicXML and WAV.
+
+## 📜 License
+
+This project is licensed under a custom **Non-Commercial License**.
+
+You are free to use, modify, and distribute this software for personal, educational, or non-commercial purposes, **provided** that you retain attribution to the original author.
+
+**Commercial use is strictly prohibited** without prior written permission from the author.
+
+© 2025 Farid Hassan – All rights reserved.
