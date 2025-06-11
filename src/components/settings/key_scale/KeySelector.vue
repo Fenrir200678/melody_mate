@@ -23,5 +23,6 @@ function onKeyChange(value: string) {
     optionLabel="name"
     optionValue="value"
     @update:modelValue="onKeyChange"
+    class="w-full lg:w-auto"
   />
 </template>

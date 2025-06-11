@@ -13,11 +13,11 @@ import AppSettings from '@/components/AppSettings.vue'
   <Analytics />
   <PageHeader />
   <main class="w-[90%] max-w-[1200px] mx-auto px-4">
-    <div class="flex gap-4">
-      <div class="w-[60%] bg-zinc-900 rounded-lg px-4 py-8">
+    <div class="flex flex-col gap-4 md:flex-row">
+      <div class="w-full bg-zinc-900 rounded-lg px-4 py-8 md:w-[60%]">
         <AppSettings />
       </div>
-      <div class="w-[40%] bg-zinc-900 rounded-lg px-4 py-8 flex flex-col gap-8">
+      <div class="w-full bg-zinc-900 rounded-lg px-4 py-8 flex flex-col gap-8 md:w-[40%]">
         <MelodyGenerator />
         <MelodyVisualizer />
         <MelodyPlayer />
