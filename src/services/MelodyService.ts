@@ -4,7 +4,7 @@ import { STEPS_PER_4N, STEPS_PER_8N, STEPS_PER_16N, STEPS_PER_32N, DURATION_MAP 
 import { buildMarkovTable, type MarkovTable } from '@/utils/markov'
 import { getNextPitch } from '@/utils/pitch'
 import { calculateVelocity } from '@/utils/velocity'
-import { motifs, snippets } from '@/data/motifs'
+import { motifs } from '@/data/motifs'
 
 /**
  * Creates training data for the Markov chain.
@@ -60,18 +60,6 @@ function createTrainingData(notes: string[], useMotifs = false): string[][] {
 
     motifs.forEach((motif) => {
       sequences.push(motif.notes.map(stripOctave))
-    })
-
-    snippets.forEach((snippet) => {
-      if (Array.isArray(snippet.notes[0])) {
-        // It's string[][]
-        ;(snippet.notes as string[][]).forEach((phrase) => {
-          sequences.push(phrase.map(stripOctave))
-        })
-      } else {
-        // It's string[]
-        sequences.push((snippet.notes as string[]).map(stripOctave))
-      }
     })
   }
 

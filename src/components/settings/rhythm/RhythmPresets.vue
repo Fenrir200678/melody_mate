@@ -30,6 +30,7 @@ function setDefaultRhythm() {
 }
 
 function handleRhythmChange(rhythm: CategorizedRhythm) {
+  if (!rhythm) return
   store.setRhythm(rhythm.pattern)
 }
 
@@ -73,6 +74,7 @@ onMounted(() => {
     <Listbox
       v-model="selectedRhythm"
       class="w-full"
+      striped
       :options="filteredRhythms"
       option-label="name"
       placeholder="Select a rhythm"
