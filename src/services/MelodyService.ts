@@ -56,7 +56,7 @@ function createTrainingData(notes: string[], useMotifs = false): string[][] {
 
   // 2. Add sequences from predefined motifs and snippets if requested
   if (useMotifs) {
-    const stripOctave = (pitch: string): string => pitch.replace(/[0-9#b]+$/, '')
+    const stripOctave = (pitch: string): string => pitch.replace(/[0-9]+$/, '')
 
     motifs.forEach((motif) => {
       sequences.push(motif.notes.map(stripOctave))
@@ -397,5 +397,5 @@ function _generateNotesForSteps(
  * @returns The pitch with the octave.
  */
 function getPitchWithOctave(pitch: string, octave: number): string {
-  return pitch.replace(/[0-9#b]+$/, '') + octave
+  return pitch.replace(/[0-9]+$/, '') + octave
 }
