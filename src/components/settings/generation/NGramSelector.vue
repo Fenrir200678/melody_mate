@@ -21,7 +21,7 @@ function handleUseNGramsChange(val: boolean) {
 }
 </script>
 <template>
-  <div class="flex items-start justify-between">
+  <div class="flex items-center justify-between">
     <div class="flex flex-col flex-1 min-w-0">
       <label for="n-grams" class="font-medium"> Use N-Grams </label>
       <p class="text-xs break-words">

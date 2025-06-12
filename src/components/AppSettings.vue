@@ -23,7 +23,7 @@ import PredefinedMotif from '@/components/settings/generation/PredefinedMotif.vu
     </h3>
     <Divider />
 
-    <div class="flex items-center justify-between gap-4">
+    <div class="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
       <label class="font-medium block w-1/4">Key</label>
       <KeySelector />
     </div>

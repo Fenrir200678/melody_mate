@@ -10,7 +10,7 @@ const value = computed({
 })
 </script>
 <template>
-  <div class="flex items-center gap-4 w-full">
+  <div class="flex flex-col justify-around gap-4 mt-8">
     <div class="flex flex-col flex-1 min-w-0">
       <label for="rest-probability-slider" class="font-medium">Rest Probability</label>
       <span class="text-xs break-words">
@@ -18,7 +18,9 @@ const value = computed({
         syncopated melodies.
       </span>
     </div>
-    <Slider id="rest-probability-slider" v-model="value" :min="0" :max="0.75" :step="0.05" style="width: 120px" />
+    <div class="flex items-center gap-4 w-full mt-4">
+      <Slider id="rest-probability-slider" class="w-full" v-model="value" :min="0" :max="0.75" :step="0.05" />
+    </div>
     <span class="w-10 text-right text-xs tabular-nums">{{ (value * 100).toFixed(0) }}%</span>
   </div>
 </template>

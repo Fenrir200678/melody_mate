@@ -12,7 +12,7 @@ import AppSettings from '@/components/AppSettings.vue'
 <template>
   <Analytics />
   <PageHeader />
-  <main class="w-[90%] max-w-[1200px] mx-auto px-4">
+  <main class="w-full md:w-[90%] max-w-[1200px] mx-auto px-2 md:px-4">
     <div class="flex flex-col gap-4 md:flex-row">
       <div class="w-full bg-zinc-900 rounded-lg px-4 py-8 md:w-[60%]">
         <AppSettings />

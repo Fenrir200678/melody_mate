@@ -7,7 +7,7 @@ const store = useMusicStore()
 </script>
 
 <template>
-  <div class="flex items-center gap-4">
+  <div class="flex flex-col justify-around gap-4 mt-8">
     <div class="flex flex-col flex-1 min-w-0">
       <label for="fixed-velocity-switch" class="font-medium"> Use Fixed Velocity </label>
       <span class="text-xs break-words"> All notes with same velocity (1-127) </span>

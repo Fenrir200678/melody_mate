@@ -163,13 +163,17 @@ export const useMusicStore = defineStore('music', {
 
     async stopMelody() {
       if (!this.isPlaying) return
-      const { stopPlayback, clearStepUpdateCallback, clearNotePlayCallback } = await import('@/services/AudioService')
-      clearStepUpdateCallback()
-      clearNotePlayCallback()
-      stopPlayback()
-      this.isPlaying = false
-      this.setCurrentStep(-1)
-      this.setActiveNoteStep(-1)
+      try {
+        const { stopPlayback, clearStepUpdateCallback, clearNotePlayCallback } = await import('@/services/AudioService')
+        clearStepUpdateCallback()
+        clearNotePlayCallback()
+        stopPlayback()
+        this.isPlaying = false
+        this.setCurrentStep(-1)
+        this.setActiveNoteStep(-1)
+      } catch (error) {
+        console.error('Error stopping melody:', error)
+      }
     },
 
     async exportMidi() {

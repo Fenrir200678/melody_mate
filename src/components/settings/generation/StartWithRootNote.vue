@@ -6,7 +6,7 @@ const store = useMusicStore()
 </script>
 
 <template>
-  <div class="flex items-start justify-between gap-4">
+  <div class="flex items-center justify-between gap-4">
     <div class="flex flex-col flex-1 min-w-0">
       <label for="start-with-root-note" class="font-medium"> Start with root note </label>
       <span class="text-xs break-words"> Start the melody with the root note of the scale</span>
