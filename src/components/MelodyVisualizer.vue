@@ -4,6 +4,7 @@ import useMusicStore from '@/stores/music.store'
 import Button from 'primevue/button'
 import { generateScale } from '@/services/ScaleService'
 import { mapMelodyToScale } from '@/utils/scales'
+import { convertTicksToNotation } from '@/utils/duration'
 
 const store = useMusicStore()
 
@@ -12,7 +13,13 @@ const displayMelody = computed(() => {
     return 'Generate a melody to see it here.'
   }
 
-  return store.melody.notes.map((note) => `${note.pitch === null ? 'rest' : note.pitch} (${note.duration})`).join(' → ')
+  return store.melody.notes
+    .map((note) => {
+      const pitch = note.pitch === null ? 'rest' : note.pitch
+      const duration = convertTicksToNotation(note.duration)
+      return `${pitch} (${duration})`
+    })
+    .join(' → ')
 })
 
 function convertMelodyToCurrentScale() {
@@ -31,7 +38,7 @@ function convertMelodyToCurrentScale() {
       <span>Generated Melody</span>
     </div>
     <div class="p-4 rounded-lg border-l-4 border-primary-500">
-      <p class="text-center text-sm font-mono">
+      <p class="text-sm font-mono">
         {{ displayMelody }}
       </p>
     </div>

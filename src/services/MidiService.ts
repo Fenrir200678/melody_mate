@@ -2,15 +2,6 @@ import type { Melody } from '@/ts/models'
 import MidiWriter from 'midi-writer-js'
 
 /**
- * Converts the internal Note duration format to the format expected by midi-writer-js.
- * @param duration - The duration in the format '4n', '8n', etc.
- * @returns The duration in the format '4', '8', etc.
- */
-function formatDuration(duration: string): string {
-  return duration.endsWith('n') ? duration.slice(0, -1) : duration
-}
-
-/**
  * Converts a melody object into a MIDI file and triggers a download.
  * @param melody - The melody to be saved.
  * @param bpm - The tempo of the melody in beats per minute.
@@ -28,24 +19,30 @@ export function saveAsMidi(melody: Melody, bpm: number, fileName = 'melody.mid')
   // 2. Set tempo
   track.setTempo(bpm)
 
-  // 3. Add notes to the track
-  const noteEvents = melody.notes.map((note) => {
+  // 3. Add notes to the track, handling rests correctly
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const noteEvents: any[] = []
+  let pendingWaitTicks = 0
+
+  melody.notes.forEach((note) => {
     if (note.pitch) {
-      return new MidiWriter.NoteEvent({
+      // This is a note. Create an event with the accumulated wait time from previous rests.
+      const event = new MidiWriter.NoteEvent({
         pitch: [note.pitch],
-        duration: formatDuration(note.duration),
+        duration: note.duration, // Already in 'Txxx' format from MelodyService
+        wait: `T${pendingWaitTicks}`,
         velocity: Math.round(note.velocity * 100) // Convert 0-1 range to 1-100
       })
+      noteEvents.push(event)
+      pendingWaitTicks = 0 // Reset wait time after applying it to a note
+    } else {
+      // This is a rest. Add its duration to the pending wait time for the next note.
+      const restTicks = parseInt(note.duration.substring(1)) || 0
+      pendingWaitTicks += restTicks
     }
-    // For rests, we create a 'wait' event
-    return new MidiWriter.NoteEvent({
-      wait: formatDuration(note.duration)
-    })
   })
 
-  track.addEvent(noteEvents, () => ({
-    sequential: true
-  }))
+  track.addEvent(noteEvents)
 
   // 4. Generate the MIDI file and trigger download
   const writer = new MidiWriter.Writer([track])
