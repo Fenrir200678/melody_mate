@@ -84,7 +84,7 @@ onMounted(() => {
       <template #option="{ option }">
         <div class="flex flex-col">
           <span class="font-medium text-sm">{{ option.name }}</span>
-          <span v-if="option.description" class="text-xs text-zinc-400 mt-1">
+          <span v-if="option.description" class="text-xs text-zinc-300 mt-1">
             {{ option.description }}
           </span>
         </div>

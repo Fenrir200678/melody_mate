@@ -62,7 +62,7 @@ import PredefinedMotif from '@/components/settings/generation/PredefinedMotif.vu
         <i class="pi pi-cog text-sm"></i>
         Generation Options
       </h3>
-      <p class="text-xs text-zinc-500 leading-relaxed mb-4">
+      <p class="text-xs text-zinc-300 leading-relaxed mb-4">
         These options are used to control the generation of the melody. You can change them to your liking, but the
         default values are usually a good starting point. Melodies are generated using
         <a

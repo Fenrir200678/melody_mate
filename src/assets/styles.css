@@ -16,6 +16,7 @@ body {
   background-color: #242424;
   min-width: 320px;
   min-height: 100vh;
+  color: #fff;
 }
 
 #app {
