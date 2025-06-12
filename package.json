@@ -46,6 +46,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@magenta/music": "^1.23.1",
     "@primeuix/themes": "^1.1.1",
     "@tailwindcss/vite": "^4.1.8",
     "@vercel/analytics": "^1.5.0",
