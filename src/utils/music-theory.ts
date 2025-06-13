@@ -23,7 +23,7 @@ export function getIntervalInSteps(noteA: string, noteB: string, scaleNotes: rea
 /**
  * Applies musical rules to weight the probabilities of the next possible notes.
  * - Penalizes large melodic leaps.
- * - Favors stable scale degrees (tonic, third, fifth).
+ * - Favors stable scale degrees (tonic, dominant, mediant).
  * - Penalizes repeating the same note.
  *
  * @param transitions - A map of possible next notes to their raw counts from the Markov chain.
@@ -40,8 +40,14 @@ export function applyMusicalWeighting(
   const initialWeights = Array.from(transitions.values())
   const newWeights: number[] = []
 
-  // Define scale degrees to favor (1st, 3rd, 5th, 7th).
-  const favoredDegrees = [0, 2, 4, 6] // 0-indexed
+  // Weights for scale degrees (0-indexed).
+  // 1st & 5th are highest, then 3rd, then 7th.
+  const degreeWeights: Record<number, number> = {
+    0: 2.0, // 1st (Tonic)
+    4: 2.0, // 5th (Dominant)
+    2: 1.7, // 3rd (Mediant)
+    6: 1.5 // 7th (Leading Tone)
+  }
 
   for (let i = 0; i < possibleNotes.length; i++) {
     const nextNote = possibleNotes[i]
@@ -54,15 +60,21 @@ export function applyMusicalWeighting(
       // The larger the leap, the greater the penalty.
       weight /= interval - 1
     } else if (interval === 0) {
-      // Penalize staying on the same note.
-      weight *= 0.5
+      // Slightly penalize staying on the same note to avoid getting stuck,
+      // but not too harshly, to allow for repeated notes.
+      weight *= 0.75
     }
 
     // Rule 2: Scale-Degree Weighting
     const noteIndex = scaleNotes.indexOf(nextNote)
-    if (favoredDegrees.includes(noteIndex)) {
-      // Boost weight for tonic, third, fifth.
-      weight *= 1.5
+    const degreeWeight = degreeWeights[noteIndex]
+
+    if (degreeWeight) {
+      // Boost weight for favored degrees.
+      weight *= degreeWeight
+    } else {
+      // Slightly penalize non-chord tones (2nd, 4th, 6th) to make them passing notes.
+      weight *= 0.8
     }
 
     newWeights.push(Math.max(0.1, weight)) // Ensure weight is not zero.

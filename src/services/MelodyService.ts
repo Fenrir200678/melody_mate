@@ -1,41 +1,49 @@
-import type { Melody, Note, RhythmPattern, Scale } from '@/ts/models'
+import type { Melody, AppNote, RhythmPattern, AppScale } from '@/ts/models'
 import type { MelodyGenerationOptions } from '@/ts/types/melody.types'
 import { STEPS_PER_16N, STEPS_PER_32N, STEPS_PER_4N, STEPS_PER_8N } from '@/ts/consts'
 import { buildMarkovTable, type MarkovTable } from '@/utils/markov'
 import { getNextPitch } from '@/utils/pitch'
 import { calculateVelocity } from '@/utils/velocity'
 import { motifs } from '@/data/motifs'
+import { Chord } from 'tonal'
 
 /**
  * Creates training data for the Markov chain.
- * @param notes - Array of notes to create training data from.
+ * @param scale - The scale object to create training data from.
  * @param useMotifs - Flag to indicate whether to use motifs for training.
  * @returns Array of sequences for training.
  */
-function createTrainingData(notes: string[], useMotifs = false): string[][] {
+function createTrainingData(scale: AppScale, useMotifs = false): string[][] {
   const sequences: string[][] = []
+  const { name, notes } = scale
+  const nameParts = name.split(' ')
+  const key = nameParts[0]
+  const type = nameParts.slice(1).join(' ')
 
-  // 1. Generate sequences from the provided scale notes
+  // 1. Generate sequences from the provided scale notes using tonal.js
   if (notes.length >= 5) {
     const tonic = notes[0]
-    const dominant = notes[4]
+    const dominant = notes[4] // 5th degree
     const leadingTone = notes[notes.length - 1]
 
     // 1. Ascending and Descending Scale (resolving to tonic)
     sequences.push([...notes, tonic])
-    sequences.push([...[...notes].reverse(), tonic])
+    sequences.push([[...notes].reverse(), tonic].flat())
 
-    // 2. Arpeggios (1-3-5) up and down
-    const triad = [notes[0], notes[2], notes[4], tonic]
-    sequences.push(triad)
-    sequences.push([...triad].reverse())
+    // 2. Arpeggios (1-3-5) up and down using tonal.js
+    const chordType = type.toLowerCase().includes('minor') ? 'm' : 'M'
+    const triadNotes = Chord.getChord(chordType, key).notes
+    if (triadNotes.length > 0) {
+      sequences.push([...triadNotes, tonic])
+      sequences.push([[...triadNotes].reverse(), tonic].flat())
+    }
 
     // 3. Turn patterns (e.g., upper turn on the second degree)
     const upperTurnOnSecond = [notes[1], notes[2], notes[1], notes[0], notes[1]]
     sequences.push(upperTurnOnSecond)
 
-    // 4. V-I Cadence based patterns (e.g., 2-5-1 and 7-1)
-    sequences.push([notes[1], dominant, tonic])
+    // 4. V-I Cadence based patterns (e.g., 5-1 and 7-1)
+    sequences.push([dominant, tonic])
     sequences.push([leadingTone, tonic])
 
     // 5. Short stepwise fragments
@@ -44,14 +52,8 @@ function createTrainingData(notes: string[], useMotifs = false): string[][] {
       sequences.push([notes[i + 2], notes[i + 1], notes[i]]) // 3-note descending
     }
 
-    // 6. Add the original simple arpeggio for more variety
-    const arpeggio: string[] = []
-    for (let i = 0; i < notes.length; i += 2) {
-      arpeggio.push(notes[i])
-    }
-    arpeggio.push(notes[1]) // Add second degree to lead back
-    arpeggio.push(tonic) // Resolve to tonic
-    sequences.push(arpeggio)
+    // 6. Add a pattern emphasizing the 5th (dominant)
+    sequences.push([tonic, dominant, tonic])
   }
 
   // 2. Add sequences from predefined motifs and snippets if requested
@@ -173,7 +175,7 @@ function _generateSimpleMelody(options: MelodyGenerationOptions): Melody {
     useMotifTrainingData
   } = options
 
-  const trainingData = createTrainingData(scale.notes, useMotifTrainingData)
+  const trainingData = createTrainingData(scale, useMotifTrainingData)
   const markovTable = buildMarkovTable(trainingData, 1)
 
   const rhythmPattern = rhythm.pattern!
@@ -272,7 +274,7 @@ function _generateNGramMelody(options: MelodyGenerationOptions): Melody {
     n = 2
   } = options
 
-  const trainingData = createTrainingData(scale.notes, useMotifTrainingData)
+  const trainingData = createTrainingData(scale, useMotifTrainingData)
   const markovTable = buildMarkovTable(trainingData, n)
 
   const rhythmPattern = rhythm.pattern!
@@ -312,7 +314,7 @@ function _generateNGramMelody(options: MelodyGenerationOptions): Melody {
 function _generateNotesForSteps(
   noteSteps: number[],
   totalSteps: number,
-  scale: Scale,
+  scale: AppScale,
   markovTable: MarkovTable,
   octave: number,
   subdivision: string,
@@ -324,8 +326,8 @@ function _generateNotesForSteps(
     n?: number
   },
   initialPitch?: string
-): { notes: Note[]; lastPitch: string } {
-  const notes: Note[] = []
+): { notes: AppNote[]; lastPitch: string } {
+  const notes: AppNote[] = []
   if (noteSteps.length === 0) return { notes, lastPitch: initialPitch || scale.notes[0] }
 
   const { useFixedVelocity, fixedVelocity, startWithRootNote, restProbability = 0, n = 1 } = options

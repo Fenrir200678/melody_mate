@@ -1,5 +1,5 @@
-export type { Note } from './Note'
-export type { Scale } from './Scale'
+export type { AppNote } from './AppNote'
+export type { AppScale } from './AppScale'
 export type { RhythmPattern } from './Rhythm'
 export type { Melody } from './Melody'
 export type { Config } from './Config'

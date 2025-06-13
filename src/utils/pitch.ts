@@ -1,4 +1,4 @@
-import type { Scale } from '@/ts/models'
+import type { AppScale } from '@/ts/models'
 import type { MarkovTable } from './markov'
 import { getTransitions } from './markov'
 import { choose, chooseWeighted } from './random-chooser'
@@ -8,14 +8,14 @@ import { applyMusicalWeighting } from './music-theory'
  * Determines the next pitch in a melody using a Markov chain and musical weighting rules.
  * @param state - The current state (sequence of previous notes) to predict from.
  * @param markovTable - The pre-built Markov table to use for prediction.
- * @param scale - The musical scale to adhere to.
+ * @param scale - The musical AppScale to adhere to.
  * @param currentPitchForWeighting - The most recent pitch, used for weighting calculations.
  * @returns The next chosen pitch.
  */
 export function getNextPitch(
   state: string[],
   markovTable: MarkovTable,
-  scale: Scale,
+  scale: AppScale,
   currentPitchForWeighting: string
 ): string {
   const transitions = getTransitions(markovTable, state)

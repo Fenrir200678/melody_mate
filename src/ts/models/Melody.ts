@@ -1,5 +1,5 @@
-import type { Note } from './Note'
+import type { AppNote } from './AppNote'
 
 export interface Melody {
-  notes: Note[]
+  notes: AppNote[]
 }
