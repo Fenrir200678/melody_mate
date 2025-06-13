@@ -74,6 +74,9 @@ export default defineConfig(({ mode }) => {
               if (id.includes('vue') || id.includes('@vue') || id.includes('pinia')) {
                 return 'vue'
               }
+              if (id.includes('midi-writer-js')) {
+                return 'midi-writer-js'
+              }
               return 'vendor' // all other node_modules
             }
           }
