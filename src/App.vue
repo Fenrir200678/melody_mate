@@ -8,7 +8,7 @@ import PageFooter from '@/components/layout/PageFooter.vue'
 <template>
   <Analytics />
   <PageHeader />
-  <main class="w-full md:w-[90%] max-w-[1200px] mx-auto px-2 md:px-4">
+  <main class="w-full md:w-[90%] max-w-[1500px] mx-auto px-2 md:px-4">
     <RouterView />
   </main>
   <PageFooter />

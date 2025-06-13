@@ -5,6 +5,14 @@ import useMusicStore from '@/stores/music.store'
 
 const store = useMusicStore()
 const bpm = ref<number>(store.bpm)
+
+async function updateBpm(value: number) {
+  store.setBpm(value)
+
+  if (store.midiUrl) {
+    await store.generateMidiFile()
+  }
+}
 </script>
 
 <template>
@@ -17,7 +25,7 @@ const bpm = ref<number>(store.bpm)
       fluid
       showButtons
       buttonLayout="stacked"
-      @update:modelValue="store.setBpm"
+      @update:modelValue="updateBpm"
     />
   </div>
 </template>

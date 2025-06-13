@@ -116,7 +116,7 @@ const subdivisionOptions = computed(() => {
       </div>
     </div>
     <div class="w-[50%] flex flex-col items-center justify-center">
-      <EuclideanVisualizer :isAnimated="store.isPlaying" />
+      <EuclideanVisualizer />
       <div class="flex items-center justify-center gap-2 w-full">
         <Button icon="pi pi-arrow-left" rounded text severity="secondary" aria-label="Rotate Left" @click="rotate(1)" />
         <Button

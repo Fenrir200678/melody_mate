@@ -8,10 +8,6 @@ const store = useMusicStore()
 const isGenerationDisabled = computed(() => {
   return !store.scaleName || !store.rhythm || store.isGenerating
 })
-
-function handleGenerate() {
-  store.generate()
-}
 </script>
 
 <template>
@@ -22,7 +18,7 @@ function handleGenerate() {
     icon="pi pi-sparkles"
     :loading="store.isGenerating"
     :disabled="isGenerationDisabled"
-    @click="handleGenerate"
+    @click="store.generateMelody()"
     class="w-full"
   />
 </template>

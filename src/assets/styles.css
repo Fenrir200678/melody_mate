@@ -25,3 +25,19 @@ body {
   place-items: center;
   min-height: 100vh;
 }
+
+.midi-player {
+  width: 100%;
+}
+
+midi-player::part(control-panel) {
+  background: #303030;
+  padding: 5px 10px;
+}
+
+midi-visualizer {
+  margin: 4px;
+  background: #fff;
+  padding: 10px 5px;
+  overflow: auto;
+}

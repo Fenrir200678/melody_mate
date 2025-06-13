@@ -45,7 +45,7 @@ export function applyMusicalWeighting(
   const degreeWeights: Record<number, number> = {
     0: 2.0, // 1st (Tonic)
     4: 2.0, // 5th (Dominant)
-    2: 1.7, // 3rd (Mediant)
+    2: 1.8, // 3rd (Mediant)
     6: 1.5 // 7th (Leading Tone)
   }
 
@@ -62,7 +62,7 @@ export function applyMusicalWeighting(
     } else if (interval === 0) {
       // Slightly penalize staying on the same note to avoid getting stuck,
       // but not too harshly, to allow for repeated notes.
-      weight *= 0.75
+      weight *= 0.6
     }
 
     // Rule 2: Scale-Degree Weighting

@@ -15,7 +15,13 @@ export default defineConfig(({ mode }) => {
   return {
     base: './',
     plugins: [
-      vue(),
+      vue({
+        template: {
+          compilerOptions: {
+            isCustomElement: (tag: string) => tag.startsWith('midi-')
+          }
+        }
+      }),
       !isProduction ? vueDevtools() : undefined,
       tailwindcss(),
       Components({

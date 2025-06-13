@@ -1,58 +1,60 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import 'html-midi-player'
+import useMusicStore from '@/stores/music.store'
+import { generalMidiInstruments } from '@/data/general-midi-instruments'
+
 import Button from 'primevue/button'
 import Divider from 'primevue/divider'
-import SelectButton from 'primevue/selectbutton'
-
-import useMusicStore from '@/stores/music.store'
+import ToggleSwitch from 'primevue/toggleswitch'
+import Select from 'primevue/select'
+import type { SelectChangeEvent } from 'primevue/select'
 
 const store = useMusicStore()
 
+const generalMidiInstrumentsOptions = ref(generalMidiInstruments)
 const canPlay = computed(() => store.melody?.notes && store.melody.notes.length > 0)
-const loopOptions = ref(['1x', '2x', '4x'])
-const selectedLoop = computed({
-  get: () => `${store.loopPlayback}x`,
-  set: (val) => store.setLoopPlayback(parseInt(val.replace('x', ''), 10))
-})
+const midiUrl = computed(() => store.midiUrl)
+const loop = ref(false)
+const isPlaying = ref(false)
 
-const playMelody = () => {
-  store.playMelody()
-}
-
-const stopMelody = () => {
-  store.stopMelody()
-}
-
-const downloadMidi = () => {
-  store.exportMidi()
+async function changeInstrument(event: SelectChangeEvent) {
+  store.setSelectedInstrument(event.value as number)
+  await store.generateMidiFile()
 }
 </script>
 
 <template>
-  <!-- TODO: find a way to generate melodies that span multiple octaves -->
-
-  <div class="flex flex-col gap-4 mt-4">
-    <div class="flex items-center justify-center gap-4">
-      <Button
-        class="w-[50%]"
-        severity="success"
-        label="Play"
-        icon="pi pi-play"
-        :disabled="!canPlay || store.isPlaying"
-        @click="playMelody"
-      />
-      <Button
-        class="w-[50%]"
-        severity="danger"
-        label="Stop"
-        icon="pi pi-stop"
-        :disabled="!store.isPlaying"
-        @click="stopMelody"
+  <div class="flex flex-col gap-4">
+    <div class="flex items-center justify-between gap-4 w-full">
+      <label class="text-zinc-400">Instrument:</label>
+      <Select
+        v-model="store.selectedInstrument"
+        :options="generalMidiInstrumentsOptions"
+        option-label="name"
+        option-value="value"
+        class="w-full"
+        filter
+        filter-placeholder="Search instrument"
+        @change="changeInstrument"
       />
     </div>
-    <div class="flex items-center justify-center gap-2">
-      <label class="text-xs text-zinc-400">Loop:</label>
-      <SelectButton v-model="selectedLoop" :options="loopOptions" size="small" />
+
+    <div class="flex items-center justify-between gap-2 mb-2">
+      <label class="text-zinc-400">Endless Loop:</label>
+      <ToggleSwitch v-model="loop" />
+    </div>
+
+    <div class="flex flex-col items-start justify-center gap-4">
+      <midi-player
+        id="player"
+        class="w-full midi-player"
+        :src="midiUrl"
+        sound-font
+        :loop="loop"
+        @start="isPlaying = true"
+        @stop="isPlaying = false"
+      />
     </div>
     <Divider />
     <div class="flex items-center justify-center gap-2">
@@ -60,9 +62,10 @@ const downloadMidi = () => {
         label="Download MIDI"
         icon="pi pi-download"
         :disabled="!canPlay"
-        @click="downloadMidi"
+        @click="store.downloadMidiFile()"
         class="w-full"
         severity="success"
+        size="large"
       />
     </div>
   </div>

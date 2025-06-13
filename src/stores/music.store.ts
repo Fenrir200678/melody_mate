@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import type { Melody, RhythmPattern } from '@/ts/models'
 import { generateScale } from '@/services/ScaleService'
-import type { InstrumentKey } from '@/ts/types/audio.types'
 import type { MelodyGenerationOptions } from '@/services/melody/melody.types'
 import { setMelodyOctave } from '@/utils/transpose'
+import MidiWriter from 'midi-writer-js'
 
 export const useMusicStore = defineStore('music', {
   state: () => ({
@@ -15,22 +15,21 @@ export const useMusicStore = defineStore('music', {
     bpm: 120,
     useMotifRepetition: true,
     useNGrams: false,
-    useAI: false,
     melody: null as Melody | null,
     isGenerating: false,
     isPlaying: false,
-    selectedInstrument: 'default' as InstrumentKey,
-    currentStep: -1,
-    activeNoteStep: -1,
+    selectedInstrument: 2,
     octave: 3,
     useFixedVelocity: true,
-    fixedVelocity: 127,
+    fixedVelocity: 100,
     startWithRootNote: false,
     loopPlayback: 1,
     euclideanRotation: 0,
-    restProbability: 0.15,
-    useMotifTrainingData: true,
-    nGramLength: 2
+    restProbability: 0.1,
+    useMotifTrainingData: false,
+    nGramLength: 2,
+    midiUrl: '',
+    track: new MidiWriter.Track()
   }),
 
   actions: {
@@ -89,11 +88,16 @@ export const useMusicStore = defineStore('music', {
     setNGramLength(n: number) {
       this.nGramLength = n
     },
-    async generate() {
+    setMidiUrl(url: string) {
+      this.midiUrl = url
+    },
+    setSelectedInstrument(instrument: number) {
+      this.selectedInstrument = instrument
+    },
+
+    async generateMelody() {
       const scale = generateScale(this.scaleName, this.key)
-      if (!scale || !this.rhythm) {
-        return
-      }
+      if (!scale || !this.rhythm) return
 
       this.isGenerating = true
       this.melody = null
@@ -118,73 +122,32 @@ export const useMusicStore = defineStore('music', {
       } catch (error) {
         console.error('Error during melody generation:', error)
       } finally {
+        this.generateMidiFile()
         this.isGenerating = false
       }
     },
 
-    setCurrentStep(step: number) {
-      this.currentStep = step
-    },
-
-    setActiveNoteStep(step: number) {
-      this.activeNoteStep = step
-    },
-
-    async playMelody() {
-      if (!this.melody || this.isPlaying) return
-
-      this.isPlaying = true
-      const { playMelody, setStepUpdateCallback, setNotePlayCallback } = await import('@/services/AudioService')
-
-      // Set up continuous step update callback for base animation
-      setStepUpdateCallback((step: number) => {
-        this.setCurrentStep(step)
-      })
-
-      // Set up note play callback for pulse highlights
-      setNotePlayCallback((step: number) => {
-        this.setActiveNoteStep(step)
-        // Reset the note highlight after a short duration
-        setTimeout(() => {
-          this.setActiveNoteStep(-1)
-        }, 150) // 150ms highlight duration
-      })
-
-      // Get the rhythm pattern for animation sync
-      const rhythmPattern = this.rhythm?.pattern
-
-      await playMelody(this.melody, this.bpm, this.selectedInstrument, rhythmPattern, this.loopPlayback, () => {
-        this.isPlaying = false
-        this.setCurrentStep(-1) // Reset animation
-        this.setActiveNoteStep(-1) // Reset note highlights
-      })
-    },
-
-    async stopMelody() {
-      if (!this.isPlaying) return
-      try {
-        const { stopPlayback, clearStepUpdateCallback, clearNotePlayCallback } = await import('@/services/AudioService')
-        clearStepUpdateCallback()
-        clearNotePlayCallback()
-        stopPlayback()
-        this.isPlaying = false
-        this.setCurrentStep(-1)
-        this.setActiveNoteStep(-1)
-      } catch (error) {
-        console.error('Error stopping melody:', error)
-      }
-    },
-
-    async exportMidi() {
+    async generateMidiFile() {
       if (!this.melody) return
-      const { saveAsMidi } = await import('@/services/MidiService')
+      this.track = new MidiWriter.Track()
+      const { generateMidiFile } = await import('@/services/MidiService')
+      const dataUri = generateMidiFile(this.melody, this.bpm, this.selectedInstrument, this.track)
+      this.setMidiUrl(dataUri)
+    },
+
+    async downloadMidiFile() {
+      if (!this.melody) return
+      const { downloadMidiFile } = await import('@/services/MidiService')
+      const fileName = this.getFileName()
+      downloadMidiFile(this.midiUrl, fileName, this.track)
+    },
+
+    getFileName() {
       const key = this.key.replace(/\s+/g, '_').toLowerCase()
       const scale = this.scaleName.replace(/\s+/g, '_').toLowerCase().replace('scale', '')
       const bars = this.bars
       const barString = bars > 1 ? `-${bars}_bars` : ''
-      const fileName = `${key}-${scale}${barString}.mid`
-      console.log(fileName)
-      saveAsMidi(this.melody, this.bpm, fileName)
+      return `${key}-${scale}${barString}.mid`
     }
   },
   getters: {}

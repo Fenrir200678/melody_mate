@@ -2,21 +2,11 @@
 import { ref, onMounted, watch, computed } from 'vue'
 import { useMusicStore } from '@/stores/music.store'
 
-// Props to receive data from parent component
-const props = defineProps<{
-  isAnimated?: boolean
-}>()
-
-// Get rhythm data from the store
 const store = useMusicStore()
 const rhythm = computed(() => store.rhythm)
 const pulses = computed(() => (rhythm.value?.pulses !== undefined ? rhythm.value.pulses : 0))
 const steps = computed(() => rhythm.value?.pattern?.length ?? 0)
 const euclideanPattern = computed(() => (rhythm.value?.pattern as (0 | 1)[]) ?? [])
-
-// Get current step from store for animation
-const currentStep = computed(() => (props.isAnimated ? store.currentStep : -1))
-const activeNoteStep = computed(() => (props.isAnimated ? store.activeNoteStep : -1))
 
 // Canvas reference
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -42,8 +32,8 @@ const drawPattern = () => {
 
   const pattern = euclideanPattern.value
   const totalSteps = pattern.length
-  const currentStepIndex = currentStep.value
-  const activeNoteStepIndex = activeNoteStep.value
+  const currentStepIndex = -1
+  const activeNoteStepIndex = -1
 
   // Map absolute step indices to pattern indices (for multiple bars)
   const currentPatternStep = currentStepIndex >= 0 ? currentStepIndex % totalSteps : -1
@@ -137,8 +127,7 @@ const drawPattern = () => {
   ctx.fillText('rotation: ' + store.euclideanRotation, centerX, centerY + 30)
 }
 
-// Watch for changes and redraw
-watch([() => rhythm.value?.pattern, currentStep, activeNoteStep], drawPattern, { deep: true })
+watch([() => rhythm.value?.pattern], drawPattern, { deep: true })
 
 onMounted(() => {
   drawPattern()
