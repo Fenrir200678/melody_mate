@@ -28,6 +28,7 @@ function onScaleChange(value: string) {
     :options="availableScaleNames"
     placeholder="Select a Scale"
     height="3rem"
+    filter
     @update:modelValue="onScaleChange"
   />
 </template>
