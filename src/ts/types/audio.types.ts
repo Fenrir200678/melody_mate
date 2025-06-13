@@ -10,3 +10,6 @@ export type LoopEvent = {
 }
 
 export type InstrumentKey = keyof typeof instrumentOptions
+
+export type StepUpdateCallback = (stepIndex: number) => void
+export type NotePlayCallback = (stepIndex: number) => void
