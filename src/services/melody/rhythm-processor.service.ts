@@ -27,7 +27,6 @@ export function normalizeRhythm(rhythm: RhythmPattern): RhythmPattern {
   const stepsMap = STEPS_MAPS[subdivision as keyof typeof STEPS_MAPS] || STEPS_PER_16N
 
   const pattern: (0 | 1)[] = []
-  let totalSteps = 0
 
   for (const duration of rhythm.steps) {
     const stepsForNote = stepsMap[duration as keyof typeof stepsMap] || 0
@@ -36,15 +35,13 @@ export function normalizeRhythm(rhythm: RhythmPattern): RhythmPattern {
       if (stepsForNote > 1) {
         pattern.push(...new Array(stepsForNote - 1).fill(0))
       }
-      totalSteps += stepsForNote
     }
   }
 
   return {
     ...rhythm,
     pattern,
-    subdivision,
-    steps: new Array(totalSteps).fill(subdivision)
+    subdivision
   }
 }
 

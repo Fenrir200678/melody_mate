@@ -1,107 +1,85 @@
-import type { AppNote, AppScale } from '@/ts/models'
-import type { MarkovTable } from '@/utils/markov'
+import type { AppNote } from '@/ts/models'
 import { convertStepsToDuration } from './duration.service'
 import { getPitchWithOctave } from './pitch-utils.service'
 import { getNextPitch } from '@/utils/pitch'
 import { calculateVelocity } from '@/utils/velocity'
+import type { MelodyGenerationContext, NoteGenerationResult } from './melody.types'
 
 /**
  * Service for generating individual notes based on Markov chains and parameters.
  */
 
-export interface NoteGenerationOptions {
-  useFixedVelocity: boolean
-  fixedVelocity: number
-  startWithRootNote?: boolean
-  restProbability?: number
-  n?: number
+type NoteGenerationState = {
+  pitchContext: string[]
+  lastActualPitch: string
+  consecutiveRests: number
+}
+
+function initializeState(context: MelodyGenerationContext, initialPitch?: string): NoteGenerationState {
+  const { scale } = context.options
+  const startWithRootNote = context.options.startWithRootNote ?? false
+
+  let pitch = initialPitch || scale.notes[0]
+  if (startWithRootNote && !initialPitch) {
+    pitch = scale.notes[0]
+  }
+
+  return {
+    pitchContext: [pitch],
+    lastActualPitch: pitch,
+    consecutiveRests: 0
+  }
 }
 
 /**
  * Generates notes for the given steps using Markov chain logic.
- * @param noteSteps - Array of step indices where notes should be placed.
- * @param totalSteps - Total number of steps in the sequence.
- * @param scale - The scale to use for note generation.
- * @param markovTable - The Markov table for pitch prediction.
- * @param octave - The octave for the notes.
- * @param subdivision - The rhythmic subdivision.
- * @param options - Additional generation options.
+ * @param context - The melody generation context.
  * @param initialPitch - Optional initial pitch to start with.
  * @returns Object containing generated notes and the last pitch used.
  */
-export function generateNotesForSteps(
-  noteSteps: number[],
-  totalSteps: number,
-  scale: AppScale,
-  markovTable: MarkovTable,
-  octave: number,
-  subdivision: string,
-  options: NoteGenerationOptions,
-  initialPitch?: string
-): { notes: AppNote[]; lastPitch: string } {
+export function generateNotesForSteps(context: MelodyGenerationContext, initialPitch?: string): NoteGenerationResult {
+  const { noteSteps, totalSteps, scale, markovTable, octave, subdivision, n, options } = context
+  const { useFixedVelocity, fixedVelocity, startWithRootNote, restProbability = 0 } = options
   const notes: AppNote[] = []
-  if (noteSteps.length === 0) return { notes, lastPitch: initialPitch || scale.notes[0] }
 
-  const { useFixedVelocity, fixedVelocity, startWithRootNote, restProbability = 0, n = 1 } = options
-
-  // State for n-gram context
-  let context: string[] = []
-  if (initialPitch) {
-    context = [initialPitch]
-  } else {
-    context = [scale.notes[0]]
+  if (noteSteps.length === 0) {
+    return { notes, lastPitch: initialPitch || scale.notes[0] }
   }
 
-  let lastPitch = context[context.length - 1]
-  if (startWithRootNote && !initialPitch) {
-    lastPitch = scale.notes[0]
-    context = [scale.notes[0]]
-  }
-
-  let lastActualPitch = lastPitch
-  let consecutiveRests = 0
+  const state = initializeState(context, initialPitch)
 
   for (let i = 0; i < noteSteps.length; i++) {
     const currentStep = noteSteps[i]
     const durationInSteps = i < noteSteps.length - 1 ? noteSteps[i + 1] - currentStep : totalSteps - currentStep
     const duration = convertStepsToDuration(durationInSteps, subdivision)
 
-    // Prevent more than 2 rests in a row
-    const forceNote = consecutiveRests >= 2
+    const forceNote = state.consecutiveRests >= 2
     const shouldBeRest = !forceNote && Math.random() < restProbability
 
     if (shouldBeRest) {
-      notes.push({
-        pitch: null,
-        duration,
-        velocity: 0
-      })
-      consecutiveRests++
-      // context bleibt gleich
+      notes.push({ pitch: null, duration, velocity: 0 })
+      state.consecutiveRests++
     } else {
-      // It's a note
       let nextPitch: string
       if (i === 0 && startWithRootNote && !initialPitch) {
         nextPitch = scale.notes[0]
       } else {
-        // Kontext: die letzten n-1 Noten (ohne nulls)
-        const contextForNGram = context.slice(-Math.max(1, n - 1)).filter(Boolean)
-        nextPitch = getNextPitch(contextForNGram, markovTable, scale, lastActualPitch)
+        const pitchNGramContext = state.pitchContext.slice(-Math.max(1, n - 1)).filter(Boolean)
+        nextPitch = getNextPitch(pitchNGramContext, markovTable, scale, state.lastActualPitch)
       }
 
       const velocity = calculateVelocity({ useFixed: useFixedVelocity, fixedValue: fixedVelocity })
-      const pitchWithOctave = getPitchWithOctave(nextPitch, octave)
-
       notes.push({
-        pitch: pitchWithOctave,
+        pitch: getPitchWithOctave(nextPitch, octave),
         duration,
         velocity
       })
-      lastActualPitch = nextPitch
-      context.push(nextPitch)
-      consecutiveRests = 0
+
+      state.lastActualPitch = nextPitch
+      state.pitchContext.push(nextPitch)
+      state.consecutiveRests = 0
     }
   }
 
-  return { notes, lastPitch: lastActualPitch }
+  return { notes, lastPitch: state.lastActualPitch }
 }

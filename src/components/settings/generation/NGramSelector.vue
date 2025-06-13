@@ -58,7 +58,8 @@ function handleUseNGramsChange(val: boolean) {
     </div>
     <p class="text-xs mt-2">
       Higher values make the melody more idiomatic and less random. However, too large n values can also lead to the
-      melody becoming too rigid. Usually, 2 is a good compromise.
+      melody becoming too rigid. Usually, 2-3 works well. But it depends on the rhythm and the rest probability and you
+      might get happy accidents with 1 or 4.
     </p>
     <Divider />
   </div>

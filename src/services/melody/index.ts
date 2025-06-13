@@ -10,5 +10,11 @@ export { generateMelody } from './melody-generator.service'
 export { createTrainingData } from './training-data.service'
 export { normalizeRhythm, extractNoteSteps } from './rhythm-processor.service'
 export { convertStepsToDuration, getStepsPerBar } from './duration.service'
-export { generateNotesForSteps, type NoteGenerationOptions } from './note-generator.service'
+export { generateNotesForSteps } from './note-generator.service'
 export { getPitchWithOctave } from './pitch-utils.service'
+export type {
+  MelodyGenerationOptions,
+  NoteGenerationOptions,
+  MelodyGenerationContext,
+  NoteGenerationResult
+} from './melody.types'

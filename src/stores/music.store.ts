@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import type { Melody, RhythmPattern } from '@/ts/models'
 import { generateScale } from '@/services/ScaleService'
 import type { InstrumentKey } from '@/ts/types/audio.types'
-import type { MelodyGenerationOptions } from '@/ts/types/melody.types'
+import type { MelodyGenerationOptions } from '@/services/melody/melody.types'
 import { setMelodyOctave } from '@/utils/transpose'
 
 export const useMusicStore = defineStore('music', {
@@ -92,7 +92,6 @@ export const useMusicStore = defineStore('music', {
     async generate() {
       const scale = generateScale(this.scaleName, this.key)
       if (!scale || !this.rhythm) {
-        console.error('Scale and rhythm must be selected before generating.')
         return
       }
 
@@ -100,7 +99,7 @@ export const useMusicStore = defineStore('music', {
       this.melody = null
 
       try {
-        const { generateMelody } = await import('@/services/MelodyService')
+        const { generateMelody } = await import('@/services/melody')
         const melodyOptions: MelodyGenerationOptions = {
           scale,
           rhythm: this.rhythm,

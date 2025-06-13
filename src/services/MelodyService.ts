@@ -1,5 +1,5 @@
 import type { Melody } from '@/ts/models'
-import type { MelodyGenerationOptions } from '@/ts/types/melody.types'
+import type { MelodyGenerationOptions } from './melody/melody.types'
 import { generateMelody as generateMelodyInternal } from './melody'
 
 /**
@@ -24,6 +24,7 @@ export {
   convertStepsToDuration,
   getStepsPerBar,
   generateNotesForSteps,
-  getPitchWithOctave,
-  type NoteGenerationOptions
+  getPitchWithOctave
 } from './melody'
+
+export type { NoteGenerationOptions } from './melody/melody.types'
