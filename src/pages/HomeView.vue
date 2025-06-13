@@ -1,9 +1,32 @@
 <script setup lang="ts">
-import MelodyGenerator from '@/components/MelodyGenerator.vue'
-import MelodyVisualizer from '@/components/MelodyVisualizer.vue'
-import MelodyPlayer from '@/components/MelodyPlayer.vue'
-import AppSettings from '@/components/AppSettings.vue'
+import { defineAsyncComponent } from 'vue'
 import Divider from 'primevue/divider'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+
+// Lazy load heavy components to improve initial bundle size
+const MelodyGenerator = defineAsyncComponent({
+  loader: () => import('@/components/MelodyGenerator.vue'),
+  loadingComponent: LoadingSpinner,
+  delay: 200
+})
+
+const MelodyVisualizer = defineAsyncComponent({
+  loader: () => import('@/components/MelodyVisualizer.vue'),
+  loadingComponent: LoadingSpinner,
+  delay: 200
+})
+
+const MelodyPlayer = defineAsyncComponent({
+  loader: () => import('@/components/MelodyPlayer.vue'),
+  loadingComponent: LoadingSpinner,
+  delay: 200
+})
+
+const AppSettings = defineAsyncComponent({
+  loader: () => import('@/components/AppSettings.vue'),
+  loadingComponent: LoadingSpinner,
+  delay: 200
+})
 </script>
 
 <template>

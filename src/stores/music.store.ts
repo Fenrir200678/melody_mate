@@ -1,9 +1,7 @@
 import { defineStore } from 'pinia'
 import type { Melody, RhythmPattern } from '@/ts/models'
-import { generateScale } from '@/services/ScaleService'
 import type { MelodyGenerationOptions } from '@/services/melody/melody.types'
 import { setMelodyOctave } from '@/utils/transpose'
-import MidiWriter from 'midi-writer-js'
 
 export const useMusicStore = defineStore('music', {
   state: () => ({
@@ -29,7 +27,7 @@ export const useMusicStore = defineStore('music', {
     useMotifTrainingData: false,
     nGramLength: 2,
     midiUrl: '',
-    track: new MidiWriter.Track()
+    track: null
   }),
 
   actions: {
@@ -96,14 +94,21 @@ export const useMusicStore = defineStore('music', {
     },
 
     async generateMelody() {
-      const scale = generateScale(this.scaleName, this.key)
-      if (!scale || !this.rhythm) return
+      if (!this.rhythm) return
 
       this.isGenerating = true
       this.melody = null
 
       try {
-        const { generateMelody } = await import('@/services/melody')
+        // Dynamically import services
+        const [{ generateScale }, { generateMelody }] = await Promise.all([
+          import('@/services/ScaleService'),
+          import('@/services/melody')
+        ])
+
+        const scale = generateScale(this.scaleName, this.key)
+        if (!scale) return
+
         const melodyOptions: MelodyGenerationOptions = {
           scale,
           rhythm: this.rhythm,
@@ -129,8 +134,15 @@ export const useMusicStore = defineStore('music', {
 
     async generateMidiFile() {
       if (!this.melody) return
-      this.track = new MidiWriter.Track()
-      const { generateMidiFile } = await import('@/services/MidiService')
+
+      // Dynamically import MidiWriter and MidiService
+      const [MidiWriter, { generateMidiFile }] = await Promise.all([
+        import('midi-writer-js'),
+        import('@/services/MidiService')
+      ])
+
+      // @ts-expect-error - track is not typed
+      this.track = new MidiWriter.default.Track()
       const dataUri = generateMidiFile(this.melody, this.bpm, this.selectedInstrument, this.track)
       this.setMidiUrl(dataUri)
     },

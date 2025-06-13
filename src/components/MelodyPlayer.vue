@@ -1,21 +1,22 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import 'html-midi-player'
+import { computed, ref, onMounted } from 'vue'
 import useMusicStore from '@/stores/music.store'
 import { generalMidiInstruments } from '@/data/general-midi-instruments'
 
 import Button from 'primevue/button'
 import Divider from 'primevue/divider'
-import ToggleSwitch from 'primevue/toggleswitch'
 import Select from 'primevue/select'
 import type { SelectChangeEvent } from 'primevue/select'
+
+onMounted(async () => {
+  await import('html-midi-player')
+})
 
 const store = useMusicStore()
 
 const generalMidiInstrumentsOptions = ref(generalMidiInstruments)
 const canPlay = computed(() => store.melody?.notes && store.melody.notes.length > 0)
 const midiUrl = computed(() => store.midiUrl)
-const loop = ref(false)
 const isPlaying = ref(false)
 
 async function changeInstrument(event: SelectChangeEvent) {
@@ -26,7 +27,7 @@ async function changeInstrument(event: SelectChangeEvent) {
 
 <template>
   <div class="flex flex-col gap-4">
-    <div class="flex items-center justify-between gap-4 w-full">
+    <div class="flex items-center justify-between gap-4 w-full mb-2">
       <label class="text-zinc-400">Instrument:</label>
       <Select
         v-model="store.selectedInstrument"
@@ -40,18 +41,12 @@ async function changeInstrument(event: SelectChangeEvent) {
       />
     </div>
 
-    <div class="flex items-center justify-between gap-2 mb-2">
-      <label class="text-zinc-400">Endless Loop:</label>
-      <ToggleSwitch v-model="loop" />
-    </div>
-
     <div class="flex flex-col items-start justify-center gap-4">
       <midi-player
         id="player"
         class="w-full midi-player"
         :src="midiUrl"
         sound-font
-        :loop="loop"
         @start="isPlaying = true"
         @stop="isPlaying = false"
       />

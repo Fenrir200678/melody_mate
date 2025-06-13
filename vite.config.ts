@@ -49,6 +49,7 @@ export default defineConfig(({ mode }) => {
       }
     },
     build: {
+      chunkSizeWarningLimit: 1800,
       minify: isProduction ? 'terser' : 'esbuild',
       terserOptions: isProduction
         ? {
@@ -65,19 +66,16 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks(id: string) {
             if (id.includes('node_modules')) {
-              if (id.includes('primevue') || id.includes('primeicons')) {
-                return 'primevue'
-              }
-              if (id.includes('tone')) {
-                return 'tone'
-              }
+              // Core Vue ecosystem
               if (id.includes('vue') || id.includes('@vue') || id.includes('pinia')) {
                 return 'vue'
               }
-              if (id.includes('midi-writer-js')) {
-                return 'midi-writer-js'
+              // UI Framework
+              if (id.includes('primevue') || id.includes('primeicons')) {
+                return 'primevue'
               }
-              return 'vendor' // all other node_modules
+
+              return 'vendor'
             }
           }
         }
