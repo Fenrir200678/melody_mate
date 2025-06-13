@@ -5,7 +5,7 @@ import { buildMarkovTable, type MarkovTable } from '@/utils/markov'
 import { getNextPitch } from '@/utils/pitch'
 import { calculateVelocity } from '@/utils/velocity'
 import { motifs } from '@/data/motifs'
-import { Chord } from 'tonal'
+import { Chord, Note, Scale } from 'tonal'
 
 /**
  * Creates training data for the Markov chain.
@@ -15,51 +15,53 @@ import { Chord } from 'tonal'
  */
 function createTrainingData(scale: AppScale, useMotifs = false): string[][] {
   const sequences: string[][] = []
-  const { name, notes } = scale
+  const { name } = scale
   const nameParts = name.split(' ')
   const key = nameParts[0]
   const type = nameParts.slice(1).join(' ')
 
-  // 1. Generate sequences from the provided scale notes using tonal.js
-  if (notes.length >= 5) {
-    const tonic = notes[0]
-    const dominant = notes[4] // 5th degree
-    const leadingTone = notes[notes.length - 1]
+  // Skalen- und Akkordnoten mit tonal.js holen
+  const scaleNotes = Scale.get(name).notes.map((n) => Note.pitchClass(n))
+  const tonic = scaleNotes[0]
+  const dominant = scaleNotes[4] // 5. Stufe
+  const leadingTone = scaleNotes[scaleNotes.length - 1]
 
-    // 1. Ascending and Descending Scale (resolving to tonic)
-    sequences.push([...notes, tonic])
-    sequences.push([[...notes].reverse(), tonic].flat())
+  // 1. Ascending und Descending Scale (mit Auflösung auf Tonic)
+  if (scaleNotes.length >= 5) {
+    sequences.push([...scaleNotes, tonic])
+    sequences.push([[...scaleNotes].reverse(), tonic].flat())
 
-    // 2. Arpeggios (1-3-5) up and down using tonal.js
+    // 2. Arpeggios (1-3-5) auf- und absteigend
     const chordType = type.toLowerCase().includes('minor') ? 'm' : 'M'
-    const triadNotes = Chord.getChord(chordType, key).notes
+    const triadNotes = Chord.get(key + chordType).notes.map((n) => Note.pitchClass(n))
     if (triadNotes.length > 0) {
       sequences.push([...triadNotes, tonic])
       sequences.push([[...triadNotes].reverse(), tonic].flat())
     }
 
-    // 3. Turn patterns (e.g., upper turn on the second degree)
-    const upperTurnOnSecond = [notes[1], notes[2], notes[1], notes[0], notes[1]]
-    sequences.push(upperTurnOnSecond)
+    // 3. Turn patterns (z.B. upper turn auf der zweiten Stufe)
+    if (scaleNotes.length > 2) {
+      const upperTurnOnSecond = [scaleNotes[1], scaleNotes[2], scaleNotes[1], scaleNotes[0], scaleNotes[1]]
+      sequences.push(upperTurnOnSecond)
+    }
 
-    // 4. V-I Cadence based patterns (e.g., 5-1 and 7-1)
+    // 4. V-I Kadenz (5-1 und 7-1)
     sequences.push([dominant, tonic])
     sequences.push([leadingTone, tonic])
 
-    // 5. Short stepwise fragments
-    for (let i = 0; i < notes.length - 2; i++) {
-      sequences.push([notes[i], notes[i + 1], notes[i + 2]]) // 3-note ascending
-      sequences.push([notes[i + 2], notes[i + 1], notes[i]]) // 3-note descending
+    // 5. Stepwise fragments
+    for (let i = 0; i < scaleNotes.length - 2; i++) {
+      sequences.push([scaleNotes[i], scaleNotes[i + 1], scaleNotes[i + 2]])
+      sequences.push([scaleNotes[i + 2], scaleNotes[i + 1], scaleNotes[i]])
     }
 
-    // 6. Add a pattern emphasizing the 5th (dominant)
+    // 6. Betonung der Dominante
     sequences.push([tonic, dominant, tonic])
   }
 
-  // 2. Add sequences from predefined motifs and snippets if requested
+  // 2. Motive aus motifs, falls gewünscht
   if (useMotifs) {
-    const stripOctave = (pitch: string): string => pitch.replace(/[0-9]+$/, '')
-
+    const stripOctave = (pitch: string): string => Note.pitchClass(pitch)
     motifs.forEach((motif) => {
       sequences.push(motif.notes.map(stripOctave))
     })
@@ -401,5 +403,9 @@ function _generateNotesForSteps(
  * @returns The pitch with the octave.
  */
 function getPitchWithOctave(pitch: string, octave: number): string {
-  return pitch.replace(/[0-9]+$/, '') + octave
+  const parsed = Note.get(pitch)
+  if (!parsed || !parsed.pc) {
+    return pitch.replace(/[0-9]+$/, '') + octave
+  }
+  return parsed.pc + octave
 }

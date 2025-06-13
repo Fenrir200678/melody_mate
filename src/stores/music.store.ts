@@ -7,8 +7,8 @@ import { setMelodyOctave } from '@/utils/transpose'
 
 export const useMusicStore = defineStore('music', {
   state: () => ({
-    scaleName: 'Minor Scale' as string,
-    key: 'C' as string,
+    scaleName: 'minor',
+    key: 'C',
     rhythm: null as RhythmPattern | null,
     bars: 4,
     lastBars: 4,
@@ -28,8 +28,8 @@ export const useMusicStore = defineStore('music', {
     startWithRootNote: false,
     loopPlayback: 1,
     euclideanRotation: 0,
-    restProbability: 0.1,
-    useMotifTrainingData: false,
+    restProbability: 0.15,
+    useMotifTrainingData: true,
     nGramLength: 2
   }),
 
