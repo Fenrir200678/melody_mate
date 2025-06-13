@@ -27,7 +27,6 @@ export function getAvailableScaleNames(): string[] {
     'phrygian dominant',
     'double harmonic major',
     'ichikosucho'
-    // ... weitere Skalen nach Bedarf
   ]
 }
 

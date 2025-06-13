@@ -1,6 +1,6 @@
-import type { RhythmPattern, Scale } from '@/ts/models'
+import type { RhythmPattern, AppScale } from '@/ts/models'
 export type MelodyGenerationOptions = {
-  scale: Scale
+  scale: AppScale
   rhythm: RhythmPattern
   bars: number
   octave: number
