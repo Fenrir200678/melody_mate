@@ -13,6 +13,8 @@ export const useMusicStore = defineStore('music', {
     lastBars: 4,
     bpm: 120,
     useMotifRepetition: true,
+    motifRepetitionPattern: 'ABAC',
+    useRandomMotifPattern: false,
     useNGrams: false,
     melody: null as Melody | null,
     isGenerating: false,
@@ -24,8 +26,9 @@ export const useMusicStore = defineStore('music', {
     startWithRootNote: false,
     loopPlayback: 1,
     euclideanRotation: 0,
-    restProbability: 0.1,
+    restProbability: 0.05,
     useMotifTrainingData: false,
+
     nGramLength: 2,
     midiUrl: '',
     track: null
@@ -53,6 +56,12 @@ export const useMusicStore = defineStore('music', {
     },
     setUseMotifRepetition(use: boolean) {
       this.useMotifRepetition = use
+    },
+    setMotifRepetitionPattern(pattern: string) {
+      this.motifRepetitionPattern = pattern
+    },
+    setUseRandomMotifPattern(use: boolean) {
+      this.useRandomMotifPattern = use
     },
     setUseNGrams(use: boolean) {
       this.useNGrams = use
@@ -116,6 +125,8 @@ export const useMusicStore = defineStore('music', {
           bars: this.bars,
           octave: this.octave,
           useMotifRepetition: this.useMotifRepetition,
+          motifRepetitionPattern: this.motifRepetitionPattern,
+          useRandomMotifPattern: this.useRandomMotifPattern,
           useNGrams: this.useNGrams,
           useFixedVelocity: this.useFixedVelocity,
           fixedVelocity: this.fixedVelocity,

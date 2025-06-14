@@ -12,6 +12,8 @@ export type MelodyGenerationOptions = {
   bars: number
   octave: number
   useMotifRepetition: boolean
+  motifRepetitionPattern: string
+  useRandomMotifPattern: boolean
   useNGrams: boolean
   useFixedVelocity: boolean
   fixedVelocity: number
@@ -49,6 +51,8 @@ export type MelodyGenerationContext = {
   octave: number
   subdivision: string
   n: number
+  motifRepetitionPattern: string
+  useRandomMotifPattern: boolean
 }
 
 /**

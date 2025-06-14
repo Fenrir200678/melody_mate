@@ -1,27 +1,70 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import Checkbox from 'primevue/checkbox'
 import useMusicStore from '@/stores/music.store'
+import { MOTIF_PATTERNS } from '@/services/melody/motif.service'
+import Checkbox from 'primevue/checkbox'
+import Select from 'primevue/select'
 
 const store = useMusicStore()
 
+const motifPatterns = computed(() => {
+  return MOTIF_PATTERNS.map((pattern) => ({
+    label: pattern.replace(/([A-Z])/g, ' $1').trim(),
+    value: pattern
+  }))
+})
 const labelClass = computed(() => {
   return store.useNGrams || store.bars < 4 ? 'text-zinc-500' : ''
+})
+const isDisabled = computed(() => {
+  return store.useNGrams || store.bars < 4
 })
 </script>
 
 <template>
-  <div class="flex items-center justify-between gap-4">
-    <div class="flex flex-col flex-1 min-w-0" :class="labelClass">
-      <label for="motif-repetition" class="font-medium"> Motif Repetition </label>
-      <span class="text-xs break-words"> Tries to repeat melodic motifs if you have selected at least 4 bars. </span>
+  <div class="flex flex-col gap-2">
+    <div class="flex items-center justify-between gap-4">
+      <div class="flex flex-col flex-1 min-w-0" :class="labelClass">
+        <label for="motif-repetition" class="font-medium leading-tight">
+          Motif Repetition<br />
+          <span class="text-xs break-words"> Repeat melodic motifs if you have selected at least 4 bars. </span>
+        </label>
+      </div>
+      <Checkbox
+        v-model="store.useMotifRepetition"
+        :binary="true"
+        inputId="motif-repetition"
+        @update:modelValue="store.setUseMotifRepetition"
+        :disabled="isDisabled"
+      />
     </div>
-    <Checkbox
-      v-model="store.useMotifRepetition"
-      :binary="true"
-      inputId="motif-repetition"
-      @update:modelValue="store.setUseMotifRepetition"
-      :disabled="store.useNGrams || store.bars < 4"
-    />
+    <div class="flex items-center justify-between gap-4">
+      <div class="flex flex-col flex-1 min-w-0" :class="labelClass">
+        <label for="motif-repetition-pattern" class="font-medium"> Motif Repetition Pattern </label>
+        <span class="text-xs break-words"> The pattern of motifs to repeat. </span>
+      </div>
+      <Select
+        v-model="store.motifRepetitionPattern"
+        inputId="motif-repetition-pattern"
+        :disabled="isDisabled || store.useRandomMotifPattern"
+        :options="motifPatterns"
+        optionLabel="label"
+        optionValue="value"
+      />
+    </div>
+    <div class="flex items-center justify-between gap-4">
+      <div class="flex flex-col flex-1 min-w-0" :class="labelClass">
+        <label for="use-random-motif-pattern" class="font-medium leading-tight">
+          Use Random Motif Pattern<br />
+          <span class="text-xs break-words"> Use a random motif pattern instead of the selected one. </span>
+        </label>
+      </div>
+      <Checkbox
+        v-model="store.useRandomMotifPattern"
+        :binary="true"
+        inputId="use-random-motif-pattern"
+        @update:modelValue="store.setUseRandomMotifPattern"
+      />
+    </div>
   </div>
 </template>

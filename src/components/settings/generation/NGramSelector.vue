@@ -23,16 +23,18 @@ function handleUseNGramsChange(val: boolean) {
 <template>
   <div class="flex items-center justify-between">
     <div class="flex flex-col flex-1 min-w-0">
-      <label for="n-grams" class="font-medium"> Use N-Grams </label>
-      <p class="text-xs break-words">
-        <a
-          class="text-emerald-400 underline hover:no-underline"
-          href="https://en.wikipedia.org/wiki/N-gram"
-          target="_blank"
-          >Advanced algorithm
-        </a>
-        for structured melodies (can't be used with Motif Repetition).
-      </p>
+      <label for="n-grams" class="font-medium">
+        Use N-Grams
+        <p class="text-xs break-words">
+          <a
+            class="text-emerald-400 underline hover:no-underline"
+            href="https://en.wikipedia.org/wiki/N-gram"
+            target="_blank"
+            >Advanced algorithm
+          </a>
+          for structured melodies (can't be used with Motif Repetition).
+        </p>
+      </label>
     </div>
     <Checkbox
       :model-value="store.useNGrams"
