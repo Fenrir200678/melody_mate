@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import useMusicStore from '@/stores/music.store'
-
-import { PREDEFINED_RHYTHMS } from '@/data/rhythms'
+import { WEIGHTED_RHYTHMS } from '@/data/weighted_rhythms'
 import { RHYTHM_CATEGORIES } from '@/ts/consts'
-import type { CategorizedRhythm, RhythmCategory } from '@/ts/types/rhythm.types'
+import type { WeightedRhythm, RhythmCategory } from '@/ts/types/rhythm.types'
 
 import Listbox from 'primevue/listbox'
 import Button from 'primevue/button'
@@ -18,20 +17,23 @@ const categoryOptions = Object.entries(RHYTHM_CATEGORIES).map(([value, label]) =
 }))
 
 const selectedCategory = ref<RhythmCategory>('melody')
-const selectedRhythm = ref<CategorizedRhythm | null>(null)
+const selectedRhythm = ref<WeightedRhythm | null>(null)
 
 const filteredRhythms = computed(() =>
-  PREDEFINED_RHYTHMS.filter((r) => r.category === selectedCategory.value).sort((a, b) => a.name.localeCompare(b.name))
+  WEIGHTED_RHYTHMS.filter((r) => r.category === selectedCategory.value).sort((a, b) => a.name.localeCompare(b.name))
 )
 
 function setDefaultRhythm() {
-  selectedRhythm.value = filteredRhythms.value[0] || null
-  store.setRhythm(filteredRhythms.value[0]?.pattern || null)
+  const firstRhythm = filteredRhythms.value[0] || null
+  selectedRhythm.value = firstRhythm
+  if (firstRhythm) {
+    store.setRhythm(firstRhythm)
+  }
 }
 
-function handleRhythmChange(rhythm: CategorizedRhythm) {
+function handleRhythmChange(rhythm: WeightedRhythm) {
   if (!rhythm) return
-  store.setRhythm(rhythm.pattern)
+  store.setRhythm(rhythm)
 }
 
 // Update selection when category changes
@@ -42,8 +44,8 @@ watch(selectedCategory, () => {
 // If the tab becomes active, ensure a rhythm is selected
 watch(
   () => props.rhythmTabSelected,
-  (rhythmTabSelected) => {
-    if (rhythmTabSelected) {
+  (rhythmTabSelected, prevRhythmTabSelected) => {
+    if (rhythmTabSelected && !prevRhythmTabSelected && !store.rhythm) {
       setDefaultRhythm()
       store.setBars(store.lastBars)
     }
@@ -51,7 +53,10 @@ watch(
 )
 
 onMounted(() => {
-  setDefaultRhythm()
+  // Set default rhythm only if the tab is already active on mount
+  if (props.rhythmTabSelected) {
+    setDefaultRhythm()
+  }
 })
 </script>
 

@@ -1,4 +1,4 @@
-import type { RhythmPattern } from '@/ts/models'
+import type { EuclideanRhythm } from '@/ts/types/rhythm.types'
 
 /**
  * Generates a rhythm pattern using a Euclidean algorithm to create musically pleasing distributions.
@@ -14,12 +14,23 @@ export function generateEuclideanPattern(
   steps: number,
   subdivision: string = '16n',
   rotation: number = 0
-): RhythmPattern {
+): EuclideanRhythm {
+  const emptyPattern = {
+    name: 'Empty',
+    pulses: 0,
+    category: 'euclidean' as const,
+    pattern: {
+      steps: [],
+      pattern: new Array(steps).fill(0),
+      subdivision
+    }
+  }
+
   if (pulses > steps || pulses < 0 || steps <= 0) {
-    return { steps: [], pattern: [], subdivision, pulses: 0, name: 'Empty' }
+    return emptyPattern
   }
   if (pulses === 0) {
-    return { steps: [], pattern: new Array(steps).fill(0), subdivision, pulses: 0, name: 'Empty' }
+    return { ...emptyPattern, pattern: { ...emptyPattern.pattern, pattern: new Array(steps).fill(0) } }
   }
 
   const unrotatedBinaryPattern = _generateEuclideanBinaryPattern(pulses, steps)
@@ -27,10 +38,13 @@ export function generateEuclideanPattern(
 
   return {
     name: `Euclidean ${pulses}/${steps}`,
-    steps: new Array(steps).fill(subdivision),
-    pattern: binaryPattern,
-    subdivision,
-    pulses
+    pulses,
+    category: 'euclidean',
+    pattern: {
+      steps: [], // Euclidean rhythms don't use note names like '4n'
+      pattern: binaryPattern,
+      subdivision
+    }
   }
 }
 

@@ -42,10 +42,10 @@ watch(
 watch(
   () => store.rhythm,
   (currentRhythm) => {
-    if (currentRhythm && currentRhythm.pattern) {
-      pulses.value = currentRhythm.pulses || 0
-      steps.value = currentRhythm.pattern.length || 16
-      subdivision.value = currentRhythm.subdivision || '16n'
+    if (currentRhythm?.category === 'euclidean') {
+      pulses.value = currentRhythm.pulses
+      steps.value = currentRhythm.pattern.pattern?.length || 16
+      subdivision.value = currentRhythm.pattern.subdivision || '16n'
     }
   },
   { immediate: true, deep: true }
@@ -70,9 +70,10 @@ function rotate(amount: number) {
 onMounted(() => {
   const currentRhythm = store.rhythm
 
-  if (currentRhythm?.pulses !== undefined && currentRhythm.pattern) {
+  if (currentRhythm?.category === 'euclidean') {
     pulses.value = currentRhythm.pulses
-    steps.value = currentRhythm.pattern.length
+    steps.value = currentRhythm.pattern.pattern?.length || 16
+    subdivision.value = currentRhythm.pattern.subdivision || '16n'
   }
 })
 

@@ -10,13 +10,15 @@ import { applyMusicalWeighting } from './music-theory'
  * @param markovTable - The pre-built Markov table to use for prediction.
  * @param scale - The musical AppScale to adhere to.
  * @param currentPitchForWeighting - The most recent pitch, used for weighting calculations.
+ * @param degreeWeights - Optional rhythm-specific degree weights.
  * @returns The next chosen pitch.
  */
 export function getNextPitch(
   state: string[],
   markovTable: MarkovTable,
   scale: AppScale,
-  currentPitchForWeighting: string
+  currentPitchForWeighting: string,
+  degreeWeights?: Record<number, number>
 ): string {
   const transitions = getTransitions(markovTable, state)
 
@@ -25,7 +27,12 @@ export function getNextPitch(
     return choose(scale.notes)
   }
 
-  const { notes: possibleNotes, weights } = applyMusicalWeighting(transitions, currentPitchForWeighting, scale.notes)
+  const { notes: possibleNotes, weights } = applyMusicalWeighting(
+    transitions,
+    currentPitchForWeighting,
+    scale.notes,
+    degreeWeights
+  )
 
   return chooseWeighted(possibleNotes, weights)
 }

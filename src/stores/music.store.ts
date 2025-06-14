@@ -1,13 +1,14 @@
 import { defineStore } from 'pinia'
-import type { Melody, RhythmPattern } from '@/ts/models'
+import type { Melody } from '@/ts/models'
 import type { MelodyGenerationOptions } from '@/services/melody/melody.types'
 import { setMelodyOctave } from '@/utils/transpose'
+import type { AnyRhythm } from '@/ts/types/rhythm.types'
 
 export const useMusicStore = defineStore('music', {
   state: () => ({
     scaleName: 'minor',
     key: 'C',
-    rhythm: null as RhythmPattern | null,
+    rhythm: null as AnyRhythm | null,
     bars: 4,
     lastBars: 4,
     bpm: 120,
@@ -40,7 +41,7 @@ export const useMusicStore = defineStore('music', {
     setKey(key: string) {
       this.key = key
     },
-    setRhythm(rhythm: RhythmPattern) {
+    setRhythm(rhythm: AnyRhythm | null) {
       this.rhythm = rhythm
     },
     setBars(bars: number) {

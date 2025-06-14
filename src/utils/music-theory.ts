@@ -29,20 +29,21 @@ export function getIntervalInSteps(noteA: string, noteB: string, scaleNotes: rea
  * @param transitions - A map of possible next notes to their raw counts from the Markov chain.
  * @param currentNote - The note from which the transition originates.
  * @param scaleNotes - An array of notes representing the scale.
+ * @param rhythmDegreeWeights - Optional rhythm-specific degree weights.
  * @returns An object containing an array of the notes and an array of their new calculated weights.
  */
 export function applyMusicalWeighting(
   transitions: Map<string, number>,
   currentNote: string,
-  scaleNotes: readonly string[]
+  scaleNotes: readonly string[],
+  rhythmDegreeWeights?: Record<number, number>
 ): { notes: string[]; weights: number[] } {
   const possibleNotes = Array.from(transitions.keys())
   const initialWeights = Array.from(transitions.values())
   const newWeights: number[] = []
 
-  // Weights for scale degrees (0-indexed).
-  // 1st & 5th are highest, then 3rd, then 7th.
-  const degreeWeights: Record<number, number> = {
+  // Use the provided rhythm-specific degree weights, or fall back to the default.
+  const degreeWeights = rhythmDegreeWeights || {
     0: 2.0, // 1st (Tonic)
     4: 2.0, // 5th (Dominant)
     2: 1.8, // 3rd (Mediant)

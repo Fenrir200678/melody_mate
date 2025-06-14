@@ -1,12 +1,20 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 import { useMusicStore } from '@/stores/music.store'
+import { isEuclideanRhythm } from '@/ts/types/rhythm.types'
 
 const store = useMusicStore()
 const rhythm = computed(() => store.rhythm)
-const pulses = computed(() => (rhythm.value?.pulses !== undefined ? rhythm.value.pulses : 0))
-const steps = computed(() => rhythm.value?.pattern?.length ?? 0)
-const euclideanPattern = computed(() => (rhythm.value?.pattern as (0 | 1)[]) ?? [])
+
+const pulses = computed(() => {
+  return isEuclideanRhythm(rhythm.value) ? rhythm.value.pulses : 0
+})
+const steps = computed(() => {
+  return isEuclideanRhythm(rhythm.value) ? (rhythm.value.pattern.pattern?.length ?? 0) : 0
+})
+const euclideanPattern = computed(() => {
+  return isEuclideanRhythm(rhythm.value) ? (rhythm.value.pattern.pattern ?? []) : []
+})
 
 // Canvas reference
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -124,10 +132,13 @@ const drawPattern = () => {
   ctx.font = '11px sans-serif'
   ctx.fillStyle = '#9ca3af'
   ctx.fillText('pulses / steps', centerX, centerY + 5)
-  ctx.fillText('rotation: ' + store.euclideanRotation, centerX, centerY + 30)
+
+  if (isEuclideanRhythm(rhythm.value)) {
+    ctx.fillText('rotation: ' + store.euclideanRotation, centerX, centerY + 30)
+  }
 }
 
-watch([() => rhythm.value?.pattern], drawPattern, { deep: true })
+watch(euclideanPattern, drawPattern)
 
 onMounted(() => {
   drawPattern()

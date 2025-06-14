@@ -1,6 +1,4 @@
-import type { CategorizedRhythm } from '@/ts/types/rhythm.types'
-
-export const PREDEFINED_RHYTHMS: CategorizedRhythm[] = [
+export const PREDEFINED_RHYTHMS = [
   // === MELODY ===
   {
     name: 'Anxious Heartbeat',

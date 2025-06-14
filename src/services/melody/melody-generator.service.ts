@@ -14,16 +14,18 @@ import { generateNotesForSteps } from './note-generator.service'
 function prepareGenerationContext(options: MelodyGenerationOptions): MelodyGenerationContext {
   const { scale, useNGrams, useMotifTrainingData, n = 1, bars, octave } = options
 
-  const rhythm = normalizeRhythm(options.rhythm)
+  // Normalize the rhythm pattern while preserving the other rhythm properties.
+  const normalizedPattern = normalizeRhythm(options.rhythm.pattern)
+  const rhythm = { ...options.rhythm, pattern: normalizedPattern }
 
   const trainingData = createTrainingData(scale, useMotifTrainingData)
   const markovN = useNGrams ? n : 1
   const markovTable = buildMarkovTable(trainingData, markovN)
 
-  const subdivision = rhythm.subdivision!
+  const subdivision = rhythm.pattern.subdivision!
   const stepsPerBar = getStepsPerBar(subdivision)
   const totalSteps = bars * stepsPerBar
-  const noteSteps = extractNoteSteps(rhythm.pattern!, totalSteps)
+  const noteSteps = extractNoteSteps(rhythm.pattern.pattern!, totalSteps)
 
   return {
     options,
@@ -111,7 +113,7 @@ export function generateMelody(options: MelodyGenerationOptions): Melody {
   const { scale, rhythm } = context
   const { bars, useMotifRepetition } = context.options
 
-  if (!scale.notes.length || !rhythm.pattern || !rhythm.pattern.length) {
+  if (!scale.notes.length || !rhythm.pattern.pattern || !rhythm.pattern.pattern.length) {
     return { notes: [] }
   }
 

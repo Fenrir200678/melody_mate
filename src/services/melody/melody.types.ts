@@ -1,5 +1,6 @@
-import type { RhythmPattern, AppScale, AppNote } from '@/ts/models'
+import type { AppScale, AppNote } from '@/ts/models'
 import type { MarkovTable } from '@/utils/markov'
+import type { AnyRhythm } from '@/ts/types/rhythm.types'
 
 /**
  * Options for generating a melody.
@@ -7,7 +8,7 @@ import type { MarkovTable } from '@/utils/markov'
  */
 export type MelodyGenerationOptions = {
   scale: AppScale
-  rhythm: RhythmPattern
+  rhythm: AnyRhythm
   bars: number
   octave: number
   useMotifRepetition: boolean
@@ -40,7 +41,7 @@ export type NoteGenerationOptions = {
 export type MelodyGenerationContext = {
   options: MelodyGenerationOptions
   scale: AppScale
-  rhythm: RhythmPattern
+  rhythm: AnyRhythm
   markovTable: MarkovTable
   totalSteps: number
   stepsPerBar: number

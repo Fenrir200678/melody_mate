@@ -38,7 +38,7 @@ function initializeState(context: MelodyGenerationContext, initialPitch?: string
  * @returns Object containing generated notes and the last pitch used.
  */
 export function generateNotesForSteps(context: MelodyGenerationContext, initialPitch?: string): NoteGenerationResult {
-  const { noteSteps, totalSteps, scale, markovTable, octave, subdivision, n, options } = context
+  const { noteSteps, totalSteps, scale, markovTable, octave, subdivision, n, options, rhythm } = context
   const { useFixedVelocity, fixedVelocity, startWithRootNote, restProbability = 0 } = options
   const notes: AppNote[] = []
 
@@ -65,7 +65,8 @@ export function generateNotesForSteps(context: MelodyGenerationContext, initialP
         nextPitch = scale.notes[0]
       } else {
         const pitchNGramContext = state.pitchContext.slice(-Math.max(1, n - 1)).filter(Boolean)
-        nextPitch = getNextPitch(pitchNGramContext, markovTable, scale, state.lastActualPitch)
+        const degreeWeights = 'degreeWeights' in rhythm ? rhythm.degreeWeights : undefined
+        nextPitch = getNextPitch(pitchNGramContext, markovTable, scale, state.lastActualPitch, degreeWeights)
       }
 
       const velocity = calculateVelocity({ useFixed: useFixedVelocity, fixedValue: fixedVelocity })
