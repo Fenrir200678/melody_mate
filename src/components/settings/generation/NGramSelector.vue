@@ -21,6 +21,7 @@ function handleUseNGramsChange(val: boolean) {
 }
 </script>
 <template>
+  <Divider />
   <div class="flex items-center justify-between">
     <div class="flex flex-col flex-1 min-w-0">
       <label for="n-grams" class="font-medium">
@@ -63,6 +64,5 @@ function handleUseNGramsChange(val: boolean) {
       melody becoming too rigid. Usually, 2-3 works well. But it depends on the rhythm and the rest probability and you
       might get happy accidents with 1 or 4.
     </p>
-    <Divider />
   </div>
 </template>

@@ -76,6 +76,7 @@ import PredefinedMotif from '@/components/settings/generation/PredefinedMotif.vu
       <Divider />
       <div class="space-y-4">
         <RestProbabilitySelector />
+        <Divider />
         <MotifRepetition />
         <NGramSelector />
         <Divider />

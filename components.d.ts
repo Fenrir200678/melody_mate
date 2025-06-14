@@ -12,7 +12,6 @@ declare module 'vue' {
     BpmSelector: typeof import('./src/components/settings/composition/BpmSelector.vue')['default']
     EuclideanRhythm: typeof import('./src/components/settings/rhythm/EuclideanRhythm.vue')['default']
     EuclideanVisualizer: typeof import('./src/components/settings/rhythm/EuclideanVisualizer.vue')['default']
-    InputText: typeof import('primevue/inputtext')['default']
     KeySelector: typeof import('./src/components/settings/key_scale/KeySelector.vue')['default']
     LengthSelector: typeof import('./src/components/settings/composition/LengthSelector.vue')['default']
     LoadingSpinner: typeof import('./src/components/common/LoadingSpinner.vue')['default']

@@ -22,7 +22,7 @@ const isDisabled = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2">
+  <div class="flex flex-col gap-4">
     <div class="flex items-center justify-between gap-4">
       <div class="flex flex-col flex-1 min-w-0" :class="labelClass">
         <label for="motif-repetition" class="font-medium leading-tight">
@@ -66,5 +66,10 @@ const isDisabled = computed(() => {
         @update:modelValue="store.setUseRandomMotifPattern"
       />
     </div>
+    <p class="text-sm text-zinc-300 leading-relaxed mt-2" v-if="!isDisabled">
+      Not every motif pattern is suitable for every rhythm. You have to experiment with the different patterns to find
+      the best one for your selected rhythm. Some rhythms even don't make sense at all with a motif pattern and give you
+      better results with the N-Gram option.
+    </p>
   </div>
 </template>

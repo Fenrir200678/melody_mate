@@ -13,7 +13,7 @@ export const useMusicStore = defineStore('music', {
     lastBars: 4,
     bpm: 120,
     useMotifRepetition: true,
-    motifRepetitionPattern: 'ABAC',
+    motifRepetitionPattern: 'ABAB',
     useRandomMotifPattern: false,
     useNGrams: false,
     melody: null as Melody | null,
@@ -28,7 +28,6 @@ export const useMusicStore = defineStore('music', {
     euclideanRotation: 0,
     restProbability: 0.05,
     useMotifTrainingData: false,
-
     nGramLength: 2,
     midiUrl: '',
     track: null
@@ -110,7 +109,6 @@ export const useMusicStore = defineStore('music', {
       this.melody = null
 
       try {
-        // Dynamically import services
         const [{ generateScale }, { generateMelody }] = await Promise.all([
           import('@/services/ScaleService'),
           import('@/services/melody')
