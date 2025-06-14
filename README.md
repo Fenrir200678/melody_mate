@@ -1,97 +1,83 @@
 # Melody Mate
 
-A web-based MIDI melody generator built with Vue 3, TypeScript, and Vite for crafting rule-based musical melodies. This tool allows you to generate unique, harmonically consistent tunes by defining a set of constraints and generation parameters.
+Melody Mate is a web-based tool for generating MIDI melodies. With just a few clicks, you can create, customize, listen to, and export your own melodies as MIDI files—no musical background required.
 
-<!-- Placeholder for a live demo link -->
-<!-- > **Live Demo:** [Link to live demo] -->
+## ✨ What can Melody Mate do?
 
-<!-- Placeholder for a screenshot or GIF -->
-<!-- ![Screenshot of Melody Mate](./path/to/screenshot.png) -->
+- **Choose scale & key:** Ensure every note fits harmonically.
+- **Design rhythms:** Create your own rhythms, use presets, or explore Euclidean rhythms.
+- **Rule-based generation:** Control the melody with N-Gram/Markov-Chain models, motifs, rest probability, and more.
+- **Composition parameters:** Set length (1–4 bars), tempo (BPM), octave, and velocity.
+- **Instruments:** Choose from over 100 General MIDI instruments.
+- **Playback:** Listen to your melody directly in the browser.
+- **Visualization:** Instantly see the generated note sequence.
+- **MIDI export:** Download your melody as a .mid file for use in your DAW.
 
-## ✨ Features
+## 🚦 How does it work? (User Workflow)
 
-- **🎼 Scale & Key:** Choose from a variety of musical scales to ensure every generated note is harmonically correct.
-- **🥁 Rhythm Definition:** Create custom rhythmic patterns by selecting note durations and subdivisions.
-- **🤖 Rule-Based Generation:** The core of Melody Mate uses an N-gram (Markov chain) model for melody generation. You can influence the outcome by:
-  - Using predefined musical motifs to train the generation model.
-  - Repeating motifs across the melody.
-  - Adjusting the probability of rests to create more varied rhythms.
-  - Forcing the melody to start on the root note of the selected scale.
-- **🎛️ Composition Controls:**
-  - **Length:** Set the melody length from 1 to 4 bars.
-  - **Tempo:** Adjust the Beats Per Minute (BPM).
-  - **Octave:** Define the target octave for the melody.
-- **🎹 Playback & Visualization:**
-  - Listen to your creation directly in the browser with an integrated sampler.
-  - See the generated notes on a piano roll visualizer.
-- **MIDI Export:** Download your melody as a `.mid` file to use in any Digital Audio Workstation (DAW).
+1. **Set your preferences:**
+   - Select key and scale
+   - Adjust length, BPM, octave, and velocity
+   - Tweak rhythm and generation options (motifs, N-Gram, rests, etc.)
+2. **Generate a melody:**
+   - Click "Generate Melody"—your melody appears and is ready to play.
+3. **Pick an instrument & play:**
+   - Choose an instrument from the list and play your melody instantly.
+4. **Export:**
+   - Download your melody as a MIDI file and use it in your favorite DAW.
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** [Vue 3](https://vuejs.org/) (using `<script setup>`)
-- **Language:** [TypeScript](https://www.typescriptlang.org/)
-- **Build Tool:** [Vite](https://vitejs.dev/)
-- **State Management:** [Pinia](https://pinia.vuejs.org/)
-- **Web Audio:** [Tone.js](https://tonejs.github.io/) for in-browser audio synthesis and sequencing.
-- **MIDI:** `jsmidgen` for MIDI file creation.
+- **Frontend:** Vue 3, TypeScript, Vite
+- **UI:** PrimeVue, TailwindCSS
+- **State Management:** Pinia
+- **MIDI Playback:** [html-midi-player](https://github.com/cifkao/html-midi-player) (100+ General MIDI instruments)
+- **MIDI Export:** [midi-writer-js](https://github.com/grimmdude/MidiWriterJS)
+- **Music theory:** [tonal](https://github.com/tonaljs/tonal) + custom utilities
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (version 18.x or higher recommended)
-- [pnpm](https://pnpm.io/) (or npm/yarn)
+- Node.js (version 18 or higher)
+- pnpm (or npm/yarn)
 
 ### Installation
 
-1. Clone the repository:
+```bash
+git clone https://github.com/Fenrir200678/melody_mate
+cd melody_mate
+pnpm install
+```
 
-   ```bash
-   git clone https://github.com/Fenrir200678/melody_mate
-   cd melody_mate
-   ```
-
-2. Install dependencies:
-
-   ```bash
-   pnpm install
-   ```
-
-### Running the Development Server
-
-To start the local development server, run:
+### Start development server
 
 ```bash
 pnpm dev
 ```
 
-The application will be available at `http://localhost:5173`.
+The app will be available at `http://localhost:5173`.
 
-### Building for Production
-
-To create a production-ready build, run:
+### Production build
 
 ```bash
 pnpm build
 ```
 
-The optimized files will be located in the `dist/` directory.
+The build output will be in the `dist/` directory.
 
 ## 🗺️ Roadmap
 
-This project is under active development. Future enhancements include:
-
-- **🧠 AI-Powered Generation:** Integrating `Magenta.js` to offer an alternative, AI-based melody generation model.
-- **🎶 Chord Progressions:** A dedicated module for generating and adding chord progressions.
-- **🎹 More Instrument Options:** More instruments to choose from.
-- **📄 More Export Options:** Support for formats like MusicXML and WAV.
+- **AI-powered models:** Integration of Magenta.js for AI-based melody generation (planned)
+- **Chord progressions:** Module for automatic chord progressions (planned)
+- **More export formats:** e.g. MusicXML, WAV (planned)
 
 ## 📜 License
 
-This project is licensed under a custom **Non-Commercial License**.
+This project is licensed under a **Non-Commercial License**.
 
-You are free to use, modify, and distribute this software for personal, educational, or non-commercial purposes, **provided** that you retain attribution to the original author.
+You may use, modify, and share it for personal, educational, or non-commercial purposes—with attribution.
 
-**Commercial use is strictly prohibited** without prior written permission from the author.
+**Commercial use is strictly prohibited without written permission.**
 
 © 2025 Farid Hassan – All rights reserved.
