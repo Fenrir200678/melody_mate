@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import ToggleSwitch from 'primevue/toggleswitch'
 import InputNumber from 'primevue/inputnumber'
-import useMusicStore from '@/stores/music.store'
+import { usePlayerStore } from '@/stores/player.store'
 
-const store = useMusicStore()
+const playerStore = usePlayerStore()
 </script>
 
 <template>
@@ -15,21 +15,21 @@ const store = useMusicStore()
     <div class="flex items-center gap-4">
       <ToggleSwitch
         class="flex-shrink-0"
-        v-model="store.useFixedVelocity"
+        v-model="playerStore.useFixedVelocity"
         inputId="fixed-velocity-switch"
-        @update:modelValue="store.setUseFixedVelocity"
+        @update:modelValue="playerStore.setUseFixedVelocity"
       />
       <InputNumber
-        v-model="store.fixedVelocity"
+        v-model="playerStore.fixedVelocity"
         :min="1"
         :max="127"
         :step="1"
         fluid
         showButtons
         buttonLayout="stacked"
-        @update:modelValue="store.setFixedVelocity"
+        @update:modelValue="playerStore.setFixedVelocity"
         inputId="velocity-input"
-        :disabled="!store.useFixedVelocity"
+        :disabled="!playerStore.useFixedVelocity"
       />
     </div>
   </div>

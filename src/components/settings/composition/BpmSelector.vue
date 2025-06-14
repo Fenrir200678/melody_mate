@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import InputNumber from 'primevue/inputnumber'
-import useMusicStore from '@/stores/music.store'
+import { usePlayerStore } from '@/stores/player.store'
+import { useMelodyStore } from '@/stores/melody.store'
 
-const store = useMusicStore()
-const bpm = ref<number>(store.bpm)
+const playerStore = usePlayerStore()
+const melodyStore = useMelodyStore()
+const bpm = ref<number>(playerStore.bpm)
 
 async function updateBpm(value: number) {
-  store.setBpm(value)
+  playerStore.setBpm(value)
 
-  if (store.midiUrl) {
-    await store.generateMidiFile()
+  if (melodyStore.midiUrl) {
+    await melodyStore.generateMidiFile()
   }
 }
 </script>

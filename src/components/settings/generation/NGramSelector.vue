@@ -1,22 +1,22 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import useMusicStore from '@/stores/music.store'
+import { useGenerationStore } from '@/stores/generation.store'
 import SelectButton from 'primevue/selectbutton'
 import Checkbox from 'primevue/checkbox'
 import Divider from 'primevue/divider'
 
 const nGramLengthOptions = ref(['1', '2', '3', '4'])
 
-const store = useMusicStore()
+const generationStore = useGenerationStore()
 
 function handleNGramLengthChange(val: string) {
-  store.setNGramLength(Number(val))
+  generationStore.setNGramLength(Number(val))
 }
 
 function handleUseNGramsChange(val: boolean) {
-  store.setUseNGrams(val)
+  generationStore.setUseNGrams(val)
   if (val) {
-    store.setUseMotifRepetition(false)
+    generationStore.setUseMotifRepetition(false)
   }
 }
 </script>
@@ -38,7 +38,7 @@ function handleUseNGramsChange(val: boolean) {
       </label>
     </div>
     <Checkbox
-      :model-value="store.useNGrams"
+      :model-value="generationStore.useNGrams"
       :binary="true"
       inputId="n-grams"
       @update:modelValue="handleUseNGramsChange"
@@ -46,7 +46,7 @@ function handleUseNGramsChange(val: boolean) {
   </div>
 
   <!-- N-Gram Context Length -->
-  <div v-if="store.useNGrams">
+  <div v-if="generationStore.useNGrams">
     <div class="flex items-center justify-between gap-4">
       <div class="flex flex-col flex-1 min-w-0">
         <span class="font-medium">N-Gram Context Length</span>
@@ -54,7 +54,7 @@ function handleUseNGramsChange(val: boolean) {
       <div class="flex-shrink-0">
         <SelectButton
           :options="nGramLengthOptions"
-          :model-value="store.nGramLength.toString()"
+          :model-value="generationStore.nGramLength.toString()"
           @update:modelValue="handleNGramLengthChange"
         />
       </div>

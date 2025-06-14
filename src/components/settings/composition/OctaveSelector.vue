@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import InputNumber from 'primevue/inputnumber'
-import useMusicStore from '@/stores/music.store'
+import { useCompositionStore } from '@/stores/composition.store'
+import { useMelodyStore } from '@/stores/melody.store'
 
-const store = useMusicStore()
+const compositionStore = useCompositionStore()
+const melodyStore = useMelodyStore()
 
 async function updateOctave(value: number) {
-  store.setOctave(value)
+  compositionStore.setOctave(value)
 
-  if (store.midiUrl) {
-    await store.generateMidiFile()
+  if (melodyStore.midiUrl) {
+    await melodyStore.generateMidiFile()
   }
 }
 </script>
@@ -17,7 +19,7 @@ async function updateOctave(value: number) {
   <div class="flex items-center gap-4">
     <label class="font-medium">Octave</label>
     <InputNumber
-      :model-value="store.octave"
+      :model-value="compositionStore.octave"
       :min="1"
       :max="8"
       :step="1"

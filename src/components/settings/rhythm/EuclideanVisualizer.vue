@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
-import { useMusicStore } from '@/stores/music.store'
+import { useRhythmStore } from '@/stores/rhythm.store'
 import { isEuclideanRhythm } from '@/ts/types/rhythm.types'
 
-const store = useMusicStore()
-const rhythm = computed(() => store.rhythm)
+const rhythmStore = useRhythmStore()
+const rhythm = computed(() => rhythmStore.rhythm)
 
 const pulses = computed(() => {
   return isEuclideanRhythm(rhythm.value) ? rhythm.value.pulses : 0
@@ -134,7 +134,7 @@ const drawPattern = () => {
   ctx.fillText('pulses / steps', centerX, centerY + 5)
 
   if (isEuclideanRhythm(rhythm.value)) {
-    ctx.fillText('rotation: ' + store.euclideanRotation, centerX, centerY + 30)
+    ctx.fillText('rotation: ' + rhythmStore.euclideanRotation, centerX, centerY + 30)
   }
 }
 

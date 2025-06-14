@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import useMusicStore from '@/stores/music.store'
+import { useCompositionStore } from '@/stores/composition.store'
 import { getAvailableKeys } from '@/services/ScaleService'
 import Button from 'primevue/button'
 
-const store = useMusicStore()
+const compositionStore = useCompositionStore()
 const availableKeys = ref<{ name: string; value: string }[]>(getAvailableKeys())
-const selectedKey = ref<string | null>(store.key)
+const selectedKey = ref<string | null>(compositionStore.key)
 
 function onKeyChange(value: string) {
   if (value) {
     selectedKey.value = value
-    store.setKey(value)
+    compositionStore.setKey(value)
   }
 }
 </script>

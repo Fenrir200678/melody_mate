@@ -1,14 +1,18 @@
 import { defineStore } from 'pinia'
-import type { RhythmPattern } from '@/ts/models'
+import type { AnyRhythm } from '@/ts/types/rhythm.types'
 
 export const useRhythmStore = defineStore('rhythm', {
   state: () => ({
-    rhythm: null as RhythmPattern | null
+    rhythm: null as AnyRhythm | null,
+    euclideanRotation: 0,
   }),
 
   actions: {
-    setRhythm(rhythm: RhythmPattern) {
+    setRhythm(rhythm: AnyRhythm | null) {
       this.rhythm = rhythm
-    }
-  }
+    },
+    setEuclideanRotation(rotation: number) {
+      this.euclideanRotation = rotation
+    },
+  },
 })

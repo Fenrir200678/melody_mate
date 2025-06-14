@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import useMusicStore from '@/stores/music.store'
+import { useGenerationStore } from '@/stores/generation.store'
+import { useCompositionStore } from '@/stores/composition.store'
 import { MOTIF_PATTERNS } from '@/services/melody/motif.service'
 import Checkbox from 'primevue/checkbox'
 import Select from 'primevue/select'
 
-const store = useMusicStore()
+const generationStore = useGenerationStore()
+const compositionStore = useCompositionStore()
 
 const motifPatterns = computed(() => {
   return MOTIF_PATTERNS.map((pattern) => ({
@@ -14,10 +16,10 @@ const motifPatterns = computed(() => {
   }))
 })
 const labelClass = computed(() => {
-  return store.useNGrams || store.bars < 4 ? 'text-zinc-500' : ''
+  return generationStore.useNGrams || compositionStore.bars < 4 ? 'text-zinc-500' : ''
 })
 const isDisabled = computed(() => {
-  return store.useNGrams || store.bars < 4
+  return generationStore.useNGrams || compositionStore.bars < 4
 })
 </script>
 
@@ -31,10 +33,10 @@ const isDisabled = computed(() => {
         </label>
       </div>
       <Checkbox
-        v-model="store.useMotifRepetition"
+        v-model="generationStore.useMotifRepetition"
         :binary="true"
         inputId="motif-repetition"
-        @update:modelValue="store.setUseMotifRepetition"
+        @update:modelValue="generationStore.setUseMotifRepetition"
         :disabled="isDisabled"
       />
     </div>
@@ -44,12 +46,13 @@ const isDisabled = computed(() => {
         <span class="text-xs break-words"> The pattern of motifs to repeat. </span>
       </div>
       <Select
-        v-model="store.motifRepetitionPattern"
+        v-model="generationStore.motifRepetitionPattern"
         inputId="motif-repetition-pattern"
-        :disabled="isDisabled || store.useRandomMotifPattern"
+        :disabled="isDisabled || generationStore.useRandomMotifPattern"
         :options="motifPatterns"
         optionLabel="label"
         optionValue="value"
+        @update:modelValue="generationStore.setMotifRepetitionPattern"
       />
     </div>
     <div class="flex items-center justify-between gap-4">
@@ -60,10 +63,10 @@ const isDisabled = computed(() => {
         </label>
       </div>
       <Checkbox
-        v-model="store.useRandomMotifPattern"
+        v-model="generationStore.useRandomMotifPattern"
         :binary="true"
         inputId="use-random-motif-pattern"
-        @update:modelValue="store.setUseRandomMotifPattern"
+        @update:modelValue="generationStore.setUseRandomMotifPattern"
       />
     </div>
     <p class="text-sm text-zinc-300 leading-relaxed mt-2" v-if="!isDisabled">

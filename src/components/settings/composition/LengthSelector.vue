@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import SelectButton from 'primevue/selectbutton'
-import useMusicStore from '@/stores/music.store'
+import { useCompositionStore } from '@/stores/composition.store'
+import { useGenerationStore } from '@/stores/generation.store'
 
-const store = useMusicStore()
+const compositionStore = useCompositionStore()
+const generationStore = useGenerationStore()
 const barsOptions = ref(['1', '2', '4', '8', '16'])
 
 function handleBarsChange(val: string) {
   if (Number(val) <= 4) {
-    store.setUseMotifRepetition(false)
+    generationStore.setUseMotifRepetition(false)
   }
-  store.setBars(Number(val))
+  compositionStore.setBars(Number(val))
 }
 
-const selectedBars = computed(() => store.bars.toString())
+const selectedBars = computed(() => compositionStore.bars.toString())
 </script>
 
 <template>

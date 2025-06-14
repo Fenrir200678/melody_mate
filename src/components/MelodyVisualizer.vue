@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import useMusicStore from '@/stores/music.store'
+import { useMelodyStore } from '@/stores/melody.store'
 import { convertTicksToNotation } from '@/utils/duration'
 
-const store = useMusicStore()
+const melodyStore = useMelodyStore()
 
 const displayMelody = computed(() => {
-  if (!store.melody?.notes.length) {
+  if (!melodyStore.melody?.notes.length) {
     return 'Generate a melody to see it here.'
   }
 
-  return store.melody.notes
+  return melodyStore.melody.notes
     .map((note) => {
       const pitch = note.pitch === null ? 'rest' : note.pitch
       const duration = convertTicksToNotation(note.duration)

@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import Button from 'primevue/button'
-import useMusicStore from '@/stores/music.store'
+import { useMelodyStore } from '@/stores/melody.store'
+import { useCompositionStore } from '@/stores/composition.store'
+import { useRhythmStore } from '@/stores/rhythm.store'
 import { computed } from 'vue'
 
-const store = useMusicStore()
+const melodyStore = useMelodyStore()
+const compositionStore = useCompositionStore()
+const rhythmStore = useRhythmStore()
 
 const isGenerationDisabled = computed(() => {
-  return !store.scaleName || !store.rhythm || store.isGenerating
+  return !compositionStore.scaleName || !rhythmStore.rhythm || melodyStore.isGenerating
 })
 </script>
 
@@ -16,9 +20,9 @@ const isGenerationDisabled = computed(() => {
     severity="success"
     size="large"
     icon="pi pi-sparkles"
-    :loading="store.isGenerating"
+    :loading="melodyStore.isGenerating"
     :disabled="isGenerationDisabled"
-    @click="store.generateMelody()"
+    @click="melodyStore.generateMelody()"
     class="w-full"
   />
 </template>

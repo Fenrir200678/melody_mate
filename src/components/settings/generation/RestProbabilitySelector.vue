@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useMusicStore } from '@/stores/music.store'
+import { useGenerationStore } from '@/stores/generation.store'
 import Slider from 'primevue/slider'
 
-const store = useMusicStore()
+const generationStore = useGenerationStore()
 const value = computed({
-  get: () => store.restProbability,
-  set: (v: number) => store.setRestProbability(v)
+  get: () => generationStore.restProbability,
+  set: (v: number) => generationStore.setRestProbability(v)
 })
 </script>
 <template>
@@ -20,7 +20,7 @@ const value = computed({
     </div>
     <div class="flex items-center gap-4 w-full mt-4">
       <Slider id="rest-probability-slider" class="w-full" v-model="value" :min="0" :max="0.75" :step="0.05" />
+      <span class="w-10 text-right text-xs tabular-nums">{{ (value * 100).toFixed(0) }}%</span>
     </div>
-    <span class="w-10 text-right text-xs tabular-nums">{{ (value * 100).toFixed(0) }}%</span>
   </div>
 </template>

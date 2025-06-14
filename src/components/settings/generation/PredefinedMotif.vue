@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import useMusicStore from '@/stores/music.store'
+import { useGenerationStore } from '@/stores/generation.store'
 import Checkbox from 'primevue/checkbox'
 
-const store = useMusicStore()
+const generationStore = useGenerationStore()
 </script>
 
 <template>
@@ -15,10 +15,10 @@ const store = useMusicStore()
     </div>
     <div class="flex-shrink-0 mt-1">
       <Checkbox
-        v-model="store.useMotifTrainingData"
+        v-model="generationStore.useMotifTrainingData"
         :binary="true"
         inputId="use-motif-training-data"
-        @update:modelValue="store.setUseMotifTrainingData"
+        @update:modelValue="generationStore.setUseMotifTrainingData"
       />
     </div>
   </div>

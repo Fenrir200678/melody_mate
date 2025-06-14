@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
-import useMusicStore from '@/stores/music.store'
+import { useMelodyStore } from '@/stores/melody.store'
+import { usePlayerStore } from '@/stores/player.store'
 import { generalMidiInstruments } from '@/data/general-midi-instruments'
 
 import Button from 'primevue/button'
@@ -12,16 +13,16 @@ onMounted(async () => {
   await import('html-midi-player')
 })
 
-const store = useMusicStore()
+const melodyStore = useMelodyStore()
+const playerStore = usePlayerStore()
 
 const generalMidiInstrumentsOptions = ref(generalMidiInstruments)
-const canPlay = computed(() => store.melody?.notes && store.melody.notes.length > 0)
-const midiUrl = computed(() => store.midiUrl)
-const isPlaying = ref(false)
+const canPlay = computed(() => melodyStore.melody?.notes && melodyStore.melody.notes.length > 0)
+const midiUrl = computed(() => melodyStore.midiUrl)
 
 async function changeInstrument(event: SelectChangeEvent) {
-  store.setSelectedInstrument(event.value as number)
-  await store.generateMidiFile()
+  playerStore.setSelectedInstrument(event.value as number)
+  await melodyStore.generateMidiFile()
 }
 </script>
 
@@ -30,7 +31,7 @@ async function changeInstrument(event: SelectChangeEvent) {
     <div class="flex items-center justify-between gap-4 w-full mb-2">
       <label class="text-zinc-400">Instrument:</label>
       <Select
-        v-model="store.selectedInstrument"
+        v-model="playerStore.selectedInstrument"
         :options="generalMidiInstrumentsOptions"
         option-label="name"
         option-value="value"
@@ -47,8 +48,8 @@ async function changeInstrument(event: SelectChangeEvent) {
         class="w-full midi-player"
         :src="midiUrl"
         sound-font
-        @start="isPlaying = true"
-        @stop="isPlaying = false"
+        @start="playerStore.setIsPlaying(true)"
+        @stop="playerStore.setIsPlaying(false)"
       />
     </div>
     <Divider />
@@ -57,7 +58,7 @@ async function changeInstrument(event: SelectChangeEvent) {
         label="Download MIDI"
         icon="pi pi-download"
         :disabled="!canPlay"
-        @click="store.downloadMidiFile()"
+        @click="melodyStore.downloadMidiFile()"
         class="w-full"
         severity="success"
         size="large"

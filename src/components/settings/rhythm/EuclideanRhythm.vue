@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from 'vue'
-import useMusicStore from '@/stores/music.store'
+import { useRhythmStore } from '@/stores/rhythm.store'
 import { generateEuclideanPattern } from '@/services/RhythmService'
 import EuclideanVisualizer from '@/components/settings/rhythm/EuclideanVisualizer.vue'
 import Slider from 'primevue/slider'
@@ -11,7 +11,7 @@ const props = defineProps<{
   euclideanTabSelected: boolean
 }>()
 
-const store = useMusicStore()
+const rhythmStore = useRhythmStore()
 
 const pulses = ref(5)
 const steps = ref(16)
@@ -26,7 +26,7 @@ const stepDescription = computed(() => {
 })
 
 watch([pulses, steps, subdivision], () => {
-  store.setEuclideanRotation(0)
+  rhythmStore.setEuclideanRotation(0)
   generateAndSetEuclideanRhythm()
 })
 
@@ -40,7 +40,7 @@ watch(
 )
 
 watch(
-  () => store.rhythm,
+  () => rhythmStore.rhythm,
   (currentRhythm) => {
     if (currentRhythm?.category === 'euclidean') {
       pulses.value = currentRhythm.pulses
@@ -55,20 +55,20 @@ const generateAndSetEuclideanRhythm = () => {
   if (steps.value < pulses.value) {
     pulses.value = steps.value
   }
-  const newRhythm = generateEuclideanPattern(pulses.value, steps.value, subdivision.value, store.euclideanRotation)
-  store.setRhythm(newRhythm)
+  const newRhythm = generateEuclideanPattern(pulses.value, steps.value, subdivision.value, rhythmStore.euclideanRotation)
+  rhythmStore.setRhythm(newRhythm)
 }
 
 function rotate(amount: number) {
   // amount=1  -> left rotation
   // amount=-1 -> right rotation
-  const newRotation = store.euclideanRotation + amount
-  store.setEuclideanRotation(newRotation)
+  const newRotation = rhythmStore.euclideanRotation + amount
+  rhythmStore.setEuclideanRotation(newRotation)
   generateAndSetEuclideanRhythm()
 }
 
 onMounted(() => {
-  const currentRhythm = store.rhythm
+  const currentRhythm = rhythmStore.rhythm
 
   if (currentRhythm?.category === 'euclidean') {
     pulses.value = currentRhythm.pulses
