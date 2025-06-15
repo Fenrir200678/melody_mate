@@ -19,11 +19,13 @@ type NoteGenerationState = {
 
 function initializeState(context: MelodyGenerationContext, initialPitch?: string): NoteGenerationState {
   const { scale } = context
-  const { startWithRootNote } = useGenerationStore()
+  const { startWithRootNote, endWithRootNote } = useGenerationStore()
 
   let pitch = initialPitch || scale.notes[0]
   if (startWithRootNote && !initialPitch) {
     pitch = scale.notes[0]
+  } else if (endWithRootNote && !initialPitch) {
+    pitch = scale.notes[scale.notes.length - 1]
   }
 
   return {
@@ -42,7 +44,7 @@ function initializeState(context: MelodyGenerationContext, initialPitch?: string
 export function generateNotesForSteps(context: MelodyGenerationContext, initialPitch?: string): NoteGenerationResult {
   const { noteSteps, totalSteps, scale, markovTable, octave, subdivision, n, rhythm } = context
   const { useFixedVelocity, fixedVelocity } = usePlayerStore()
-  const { startWithRootNote, restProbability } = useGenerationStore()
+  const { startWithRootNote, endWithRootNote, restProbability } = useGenerationStore()
   const notes: AppNote[] = []
 
   if (noteSteps.length === 0) {
@@ -55,6 +57,21 @@ export function generateNotesForSteps(context: MelodyGenerationContext, initialP
     const currentStep = noteSteps[i]
     const durationInSteps = i < noteSteps.length - 1 ? noteSteps[i + 1] - currentStep : totalSteps - currentStep
     const duration = convertStepsToDuration(durationInSteps, subdivision)
+
+    const isLastStep = i === noteSteps.length - 1
+    if (isLastStep && endWithRootNote) {
+      const nextPitch = scale.notes[0]
+      const velocity = calculateVelocity({ useFixed: useFixedVelocity, fixedValue: fixedVelocity })
+      notes.push({
+        pitch: getPitchWithOctave(nextPitch, octave),
+        duration,
+        velocity
+      })
+      state.lastActualPitch = nextPitch
+      state.pitchContext.push(nextPitch)
+      state.consecutiveRests = 0
+      continue
+    }
 
     const forceNote = state.consecutiveRests >= 2
     const shouldBeRest = !forceNote && Math.random() < restProbability

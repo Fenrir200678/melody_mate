@@ -12,6 +12,7 @@ import RestProbabilitySelector from '@/components/settings/generation/RestProbab
 import NGramSelector from '@/components/settings/generation/NGramSelector.vue'
 import MotifRepetition from '@/components/settings/generation/MotifRepetition.vue'
 import StartWithRootNote from '@/components/settings/generation/StartWithRootNote.vue'
+import EndWithRootNote from '@/components/settings/generation/EndWithRootNote.vue'
 import PredefinedMotif from '@/components/settings/generation/PredefinedMotif.vue'
 </script>
 <template>
@@ -81,6 +82,8 @@ import PredefinedMotif from '@/components/settings/generation/PredefinedMotif.vu
         <NGramSelector />
         <Divider />
         <StartWithRootNote />
+        <EndWithRootNote />
+        <Divider />
         <PredefinedMotif />
       </div>
     </div>

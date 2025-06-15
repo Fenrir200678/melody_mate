@@ -8,8 +8,9 @@ export const useGenerationStore = defineStore('generation', {
     useNGrams: false,
     nGramLength: 2,
     startWithRootNote: false,
+    endWithRootNote: false,
     restProbability: 0.05,
-    useMotifTrainingData: false,
+    useMotifTrainingData: false
   }),
 
   actions: {
@@ -37,5 +38,8 @@ export const useGenerationStore = defineStore('generation', {
     setUseMotifTrainingData(use: boolean) {
       this.useMotifTrainingData = use
     },
+    setEndWithRootNote(endWithRootNote: boolean) {
+      this.endWithRootNote = endWithRootNote
+    }
   }
 })

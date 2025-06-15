@@ -18,6 +18,7 @@ export type MelodyGenerationOptions = {
   useFixedVelocity: boolean
   fixedVelocity: number
   startWithRootNote?: boolean
+  endWithRootNote?: boolean
   restProbability?: number
   n?: number
   useMotifTrainingData?: boolean
@@ -31,6 +32,7 @@ export type NoteGenerationOptions = {
   useFixedVelocity: boolean
   fixedVelocity: number
   startWithRootNote?: boolean
+  endWithRootNote?: boolean
   restProbability?: number
   n?: number
 }
