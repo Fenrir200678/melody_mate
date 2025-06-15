@@ -36,7 +36,7 @@ export const useMelodyStore = defineStore('melody', {
       try {
         const [{ generateScale }, { generateMelody }] = await Promise.all([
           import('@/services/ScaleService'),
-          import('@/services/melody')
+          import('@/services/MelodyService')
         ])
 
         const scale = generateScale()

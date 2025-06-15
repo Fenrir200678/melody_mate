@@ -6,7 +6,7 @@ const melodyStore = useMelodyStore()
 export const usePlayerStore = defineStore('player', {
   state: () => ({
     isPlaying: false,
-    loopPlayback: 1,
+    loop: true,
     selectedInstrument: 0,
     useFixedVelocity: false,
     fixedVelocity: 100,
@@ -17,8 +17,15 @@ export const usePlayerStore = defineStore('player', {
     setIsPlaying(playing: boolean) {
       this.isPlaying = playing
     },
-    setLoopPlayback(count: number) {
-      this.loopPlayback = count
+    setLoop(loop: boolean) {
+      this.loop = loop
+
+      const player = document.getElementById('player')
+      if (player?.hasAttribute('loop')) {
+        player?.removeAttribute('loop')
+      } else {
+        player?.setAttribute('loop', 'true')
+      }
     },
     setSelectedInstrument(instrument: number) {
       this.selectedInstrument = instrument

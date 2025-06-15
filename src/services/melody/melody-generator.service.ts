@@ -128,7 +128,7 @@ function generateMotifBasedMelody(context: MelodyGenerationContext): Melody {
  * Generates a melody based on the given scale, rhythm, and parameters.
  * @returns The generated melody.
  */
-export function generateMelody(): Melody {
+export function _generateMelody(): Melody {
   const context = prepareGenerationContext()
   if (!context) return { notes: [] }
 

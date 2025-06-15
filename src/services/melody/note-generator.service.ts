@@ -2,7 +2,7 @@ import type { AppNote } from '@/ts/models'
 import { convertStepsToDuration } from './duration.service'
 import { getPitchWithOctave } from './pitch-utils.service'
 import { getNextPitch } from '@/utils/pitch'
-import { calculateVelocity } from '@/utils/velocity'
+import { calculateVelocity } from './velocity.service'
 import type { MelodyGenerationContext, NoteGenerationResult } from './melody.types'
 import { useGenerationStore } from '@/stores/generation.store'
 import { usePlayerStore } from '@/stores/player.store'
@@ -91,6 +91,7 @@ export function generateNotesForSteps(context: MelodyGenerationContext, initialP
       }
 
       const velocity = calculateVelocity({ useFixed: useFixedVelocity, fixedValue: fixedVelocity })
+
       notes.push({
         pitch: getPitchWithOctave(nextPitch, octave),
         duration,

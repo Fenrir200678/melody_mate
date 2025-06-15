@@ -25,15 +25,6 @@ async function changeInstrument(event: SelectChangeEvent) {
   playerStore.setSelectedInstrument(event.value as number)
   await melodyStore.generateMidiFile()
 }
-
-function toggleLoop() {
-  const player = document.getElementById('player')
-  if (player?.hasAttribute('loop')) {
-    player?.removeAttribute('loop')
-  } else {
-    player?.setAttribute('loop', 'true')
-  }
-}
 </script>
 
 <template>
@@ -58,12 +49,13 @@ function toggleLoop() {
         class="w-full midi-player"
         :src="midiUrl"
         sound-font
+        loop
         @start="playerStore.setIsPlaying(true)"
         @stop="playerStore.setIsPlaying(false)"
       />
       <div class="flex flex-col items-center justify-center gap-2">
         <label for="loop" class="text-zinc-400">Loop:</label>
-        <ToggleSwitch inputId="loop" @change="toggleLoop" />
+        <ToggleSwitch :modelValue="playerStore.loop" inputId="loop" @update:modelValue="playerStore.setLoop" />
       </div>
     </div>
 

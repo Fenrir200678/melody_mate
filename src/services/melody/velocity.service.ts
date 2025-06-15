@@ -4,7 +4,7 @@ type VelocityOptions = {
 }
 
 const MAX_VELOCITY = 127
-const DEFAULT_RANDOM_MIN = 0.4
+const DEFAULT_RANDOM_MIN = 0.5
 const DEFAULT_RANDOM_RANGE = 0.2
 
 /**

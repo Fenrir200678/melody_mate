@@ -34,6 +34,8 @@ watch(
   () => props.euclideanTabSelected,
   (newVal) => {
     if (newVal) {
+      rhythmStore.setUseRandomRhythm(false)
+      rhythmStore.setEuclideanRotation(0)
       generateAndSetEuclideanRhythm()
     }
   }
