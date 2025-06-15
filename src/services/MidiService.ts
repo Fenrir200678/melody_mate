@@ -1,4 +1,4 @@
-import type { Melody } from '@/ts/models'
+import type { AppNote, Melody } from '@/ts/models'
 import MidiWriter from 'midi-writer-js'
 import { usePlayerStore } from '@/stores/player.store'
 
@@ -15,7 +15,7 @@ export function generateMidiFile(melody: Melody, track: any): string {
     return ''
   }
   const playerStore = usePlayerStore()
-  const { bpm, selectedInstrument: instrument, useFixedVelocity, fixedVelocity } = playerStore
+  const { bpm, selectedInstrument: instrument } = playerStore
 
   track.addEvent(new MidiWriter.ProgramChangeEvent({ instrument }))
   track.setTempo(bpm, 0)
@@ -31,7 +31,7 @@ export function generateMidiFile(melody: Melody, track: any): string {
         pitch: [note.pitch],
         duration: note.duration,
         wait: `T${pendingWaitTicks}`,
-        velocity: useFixedVelocity ? fixedVelocity : Math.round(note.velocity * 100) // Convert 0-1 range to 1-100
+        velocity: _getVelocity(note)
       })
       noteEvents.push(event)
       pendingWaitTicks = 0 // Reset wait time after applying it to a note
@@ -58,4 +58,19 @@ export function downloadMidiFile(dataUri: string, fileName: string, track: any):
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
+}
+
+function _getVelocity(note: AppNote) {
+  const playerStore = usePlayerStore()
+  const { useFixedVelocity, fixedVelocity, useDynamics, selectedDynamic } = playerStore
+
+  if (useFixedVelocity) {
+    return fixedVelocity
+  }
+
+  if (useDynamics) {
+    return Math.round(selectedDynamic.range[0] + note.velocity * (selectedDynamic.range[1] - selectedDynamic.range[0]))
+  }
+
+  return Math.round(note.velocity * 100) // Convert 0-1 range to 1-100
 }

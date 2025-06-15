@@ -6,29 +6,20 @@ import { getAvailableScaleNames } from '@/services/ScaleService'
 
 const compositionStore = useCompositionStore()
 const availableScaleNames = ref<string[]>([])
-const selectedScaleName = ref<string | null>(null)
 
 onMounted(() => {
   availableScaleNames.value = getAvailableScaleNames()
-  selectedScaleName.value = compositionStore.scaleName
 })
-
-function onScaleChange(value: string) {
-  if (value) {
-    selectedScaleName.value = value
-    compositionStore.setScaleName(value)
-  }
-}
 </script>
 
 <template>
   <Select
     class="w-[50%]"
-    v-model="selectedScaleName"
+    :modelValue="compositionStore.scaleName"
     :options="availableScaleNames"
     placeholder="Select a Scale"
     height="3rem"
     filter
-    @update:modelValue="onScaleChange"
+    @update:modelValue="compositionStore.setScaleName"
   />
 </template>

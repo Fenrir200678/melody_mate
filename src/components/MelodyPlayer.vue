@@ -2,7 +2,7 @@
 import { computed, ref, onMounted } from 'vue'
 import { useMelodyStore } from '@/stores/melody.store'
 import { usePlayerStore } from '@/stores/player.store'
-import { generalMidiInstruments } from '@/data/general-midi-instruments'
+import { generalMidiInstruments, type GeneralMidiInstrument } from '@/data/general-midi-instruments'
 
 import Button from 'primevue/button'
 import Divider from 'primevue/divider'
@@ -17,14 +17,25 @@ onMounted(async () => {
 const melodyStore = useMelodyStore()
 const playerStore = usePlayerStore()
 
-const generalMidiInstrumentsOptions = ref(generalMidiInstruments)
+const instruments = ref<GeneralMidiInstrument[]>(generalMidiInstruments)
+const selectedInstrument = ref<GeneralMidiInstrument['items'][number] | null>(null)
 const canPlay = computed(() => melodyStore.melody?.notes && melodyStore.melody.notes.length > 0)
 const midiUrl = computed(() => melodyStore.midiUrl)
 
 async function changeInstrument(event: SelectChangeEvent) {
-  playerStore.setSelectedInstrument(event.value as number)
+  playerStore.setSelectedInstrument(event.value.value as number)
   await melodyStore.generateMidiFile()
 }
+
+onMounted(() => {
+  const instrument = instruments.value.find((group) =>
+    group.items.find((item) => item.value === playerStore.selectedInstrument)
+  )
+
+  if (instrument) {
+    selectedInstrument.value = instrument.items.find((item) => item.value === playerStore.selectedInstrument) || null
+  }
+})
 </script>
 
 <template>
@@ -32,15 +43,20 @@ async function changeInstrument(event: SelectChangeEvent) {
     <div class="flex items-center justify-between gap-4 w-full mb-2">
       <label class="text-zinc-400">Instrument:</label>
       <Select
-        v-model="playerStore.selectedInstrument"
-        :options="generalMidiInstrumentsOptions"
-        option-label="name"
-        option-value="value"
+        v-model="selectedInstrument"
+        :options="instruments"
+        optionLabel="name"
+        optionGroupLabel="label"
+        optionGroupChildren="items"
         class="w-full"
-        filter
-        filter-placeholder="Search instrument"
         @change="changeInstrument"
-      />
+      >
+        <template #optiongroup="slotProps">
+          <div class="flex items-center gap-2 mt-4 border-b border-zinc-700 pb-2 font-bold">
+            <span class="text-zinc-400">{{ slotProps.option.label }}</span>
+          </div>
+        </template>
+      </Select>
     </div>
 
     <div class="flex items-start justify-center gap-4 w-full">

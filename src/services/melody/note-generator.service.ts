@@ -43,7 +43,7 @@ function initializeState(context: MelodyGenerationContext, initialPitch?: string
  */
 export function generateNotesForSteps(context: MelodyGenerationContext, initialPitch?: string): NoteGenerationResult {
   const { noteSteps, totalSteps, scale, markovTable, octave, subdivision, n, rhythm } = context
-  const { useFixedVelocity, fixedVelocity } = usePlayerStore()
+  const { useFixedVelocity, fixedVelocity, useDynamics, selectedDynamic } = usePlayerStore()
   const { startWithRootNote, endWithRootNote, restProbability } = useGenerationStore()
   const notes: AppNote[] = []
 
@@ -61,7 +61,11 @@ export function generateNotesForSteps(context: MelodyGenerationContext, initialP
     const isLastStep = i === noteSteps.length - 1
     if (isLastStep && endWithRootNote) {
       const nextPitch = scale.notes[0]
-      const velocity = calculateVelocity({ useFixed: useFixedVelocity, fixedValue: fixedVelocity })
+      const velocity = calculateVelocity({
+        useFixedVelocity,
+        fixedVelocity,
+        dynamics: useDynamics ? [selectedDynamic] : undefined
+      })
       notes.push({
         pitch: getPitchWithOctave(nextPitch, octave),
         duration,
@@ -90,7 +94,11 @@ export function generateNotesForSteps(context: MelodyGenerationContext, initialP
         nextPitch = getNextPitch(pitchNGramContext, markovTable, scale, state.lastActualPitch, degreeWeights)
       }
 
-      const velocity = calculateVelocity({ useFixed: useFixedVelocity, fixedValue: fixedVelocity })
+      const velocity = calculateVelocity({
+        useFixedVelocity,
+        fixedVelocity,
+        dynamics: useDynamics ? [selectedDynamic] : undefined
+      })
 
       notes.push({
         pitch: getPitchWithOctave(nextPitch, octave),
