@@ -1,19 +1,21 @@
 import type { Melody } from '@/ts/models'
 import MidiWriter from 'midi-writer-js'
+import { usePlayerStore } from '@/stores/player.store'
 
 /**
  * Converts a melody object into a MIDI file and triggers a download.
  * @param melody - The melody to be saved.
- * @param bpm - The tempo of the melody in beats per minute.
  * @param fileName - The desired name for the MIDI file.
  */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function generateMidiFile(melody: Melody, bpm: number, instrument: number, track: any): string {
+export function generateMidiFile(melody: Melody, track: any): string {
   if (!melody.notes.length) {
     console.warn('Cannot save an empty melody.')
     return ''
   }
+  const playerStore = usePlayerStore()
+  const { bpm, selectedInstrument: instrument } = playerStore
 
   track.addEvent(new MidiWriter.ProgramChangeEvent({ instrument }))
   track.setTempo(bpm, 0)

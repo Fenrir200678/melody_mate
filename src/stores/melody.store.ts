@@ -1,9 +1,6 @@
 import { defineStore } from 'pinia'
 import type { Melody } from '@/ts/models'
-import type { MelodyGenerationOptions } from '@/services/melody/melody.types'
 import { useCompositionStore } from './composition.store'
-import { useGenerationStore } from './generation.store'
-import { usePlayerStore } from './player.store'
 import { useRhythmStore } from './rhythm.store'
 
 export const useMelodyStore = defineStore('melody', {
@@ -11,18 +8,15 @@ export const useMelodyStore = defineStore('melody', {
     melody: null as Melody | null,
     isGenerating: false,
     midiUrl: '',
-    track: null,
+    track: null
   }),
 
   actions: {
     setMelody(melody: Melody | null) {
       this.melody = melody
     },
-    
+
     async generateMelody() {
-      const composition = useCompositionStore()
-      const generation = useGenerationStore()
-      const player = usePlayerStore()
       const rhythm = useRhythmStore()
 
       if (!rhythm.rhythm) return
@@ -36,26 +30,10 @@ export const useMelodyStore = defineStore('melody', {
           import('@/services/melody')
         ])
 
-        const scale = generateScale(composition.scaleName, composition.key)
+        const scale = generateScale()
         if (!scale) return
 
-        const melodyOptions: MelodyGenerationOptions = {
-          scale,
-          rhythm: rhythm.rhythm,
-          bars: composition.bars,
-          octave: composition.octave,
-          useMotifRepetition: generation.useMotifRepetition,
-          motifRepetitionPattern: generation.motifRepetitionPattern,
-          useRandomMotifPattern: generation.useRandomMotifPattern,
-          useNGrams: generation.useNGrams,
-          useFixedVelocity: player.useFixedVelocity,
-          fixedVelocity: player.fixedVelocity,
-          startWithRootNote: generation.startWithRootNote,
-          restProbability: generation.restProbability,
-          useMotifTrainingData: generation.useMotifTrainingData,
-          n: generation.useNGrams ? generation.nGramLength : 1
-        }
-        this.melody = generateMelody(melodyOptions)
+        this.melody = generateMelody()
       } catch (error) {
         console.error('Error during melody generation:', error)
       } finally {
@@ -66,7 +44,6 @@ export const useMelodyStore = defineStore('melody', {
 
     async generateMidiFile() {
       if (!this.melody) return
-      const player = usePlayerStore()
 
       const [MidiWriter, { generateMidiFile }] = await Promise.all([
         import('midi-writer-js'),
@@ -75,7 +52,7 @@ export const useMelodyStore = defineStore('melody', {
 
       // @ts-expect-error - track is not typed
       this.track = new MidiWriter.default.Track()
-      const dataUri = generateMidiFile(this.melody, player.bpm, player.selectedInstrument, this.track)
+      const dataUri = generateMidiFile(this.melody, this.track)
       this.midiUrl = dataUri
     },
 

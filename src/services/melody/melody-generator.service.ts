@@ -1,46 +1,53 @@
 import type { Melody, AppNote } from '@/ts/models'
 import { buildMarkovTable } from '@/utils/markov'
-import type { MelodyGenerationOptions, MelodyGenerationContext, NoteGenerationResult } from './melody.types'
+import type { MelodyGenerationContext, NoteGenerationResult } from './melody.types'
 import { createTrainingData } from './training-data.service'
 import { normalizeRhythm, extractNoteSteps } from './rhythm-processor.service'
 import { getStepsPerBar } from './duration.service'
 import { generateNotesForSteps } from './note-generator.service'
 import { getRandomMotifPattern } from './motif.service'
+import { useCompositionStore } from '@/stores/composition.store'
+import { useGenerationStore } from '@/stores/generation.store'
+import { useRhythmStore } from '@/stores/rhythm.store'
+
+import { generateScale } from '../ScaleService'
+import type { AnyRhythm } from '@/ts/types/rhythm.types'
 
 /**
- * Prepares the generation context object from the user-provided options.
- * @param options - The melody generation options.
- * @returns The fully populated melody generation context.
+ * Prepares the generation context object from the current store state.
+ * @returns The fully populated melody generation context, or null if essential data is missing.
  */
-function prepareGenerationContext(options: MelodyGenerationOptions): MelodyGenerationContext {
-  const {
-    scale,
-    useNGrams,
-    useMotifTrainingData,
-    n = 1,
-    bars,
-    octave,
-    motifRepetitionPattern,
-    useRandomMotifPattern
-  } = options
+function prepareGenerationContext(): MelodyGenerationContext | null {
+  const compositionStore = useCompositionStore()
+  const generationStore = useGenerationStore()
+  const rhythmStore = useRhythmStore()
+
+  const { bars, octave } = compositionStore
+  const { useNGrams, nGramLength, useMotifTrainingData, motifRepetitionPattern, useRandomMotifPattern } =
+    generationStore
+  const { rhythm } = rhythmStore
+
+  if (!rhythm) return null
+
+  const scale = generateScale()
+  if (!scale) return null
 
   // Normalize the rhythm pattern while preserving the other rhythm properties.
-  const normalizedPattern = normalizeRhythm(options.rhythm.pattern)
-  const rhythm = { ...options.rhythm, pattern: normalizedPattern }
+  const normalizedPattern = normalizeRhythm(rhythm.pattern)
+  const normalizedRhythm = { ...rhythm, pattern: normalizedPattern } as AnyRhythm
 
   const trainingData = createTrainingData(scale, useMotifTrainingData)
-  const markovN = useNGrams ? n : 1
+  const markovN = useNGrams ? nGramLength : 1
   const markovTable = buildMarkovTable(trainingData, markovN)
 
-  const subdivision = rhythm.pattern.subdivision!
+  const subdivision = normalizedRhythm.pattern.subdivision!
   const stepsPerBar = getStepsPerBar(subdivision)
   const totalSteps = bars * stepsPerBar
-  const noteSteps = extractNoteSteps(rhythm.pattern.pattern!, totalSteps)
+  const noteSteps = extractNoteSteps(normalizedRhythm.pattern.pattern!, totalSteps)
 
   return {
-    options,
     scale,
-    rhythm,
+    rhythm: normalizedRhythm,
     markovTable,
     totalSteps,
     stepsPerBar,
@@ -119,13 +126,15 @@ function generateMotifBasedMelody(context: MelodyGenerationContext): Melody {
 
 /**
  * Generates a melody based on the given scale, rhythm, and parameters.
- * @param options - The melody generation options.
  * @returns The generated melody.
  */
-export function generateMelody(options: MelodyGenerationOptions): Melody {
-  const context = prepareGenerationContext(options)
+export function generateMelody(): Melody {
+  const context = prepareGenerationContext()
+  if (!context) return { notes: [] }
+
   const { scale, rhythm } = context
-  const { bars, useMotifRepetition } = context.options
+  const { bars } = useCompositionStore()
+  const { useMotifRepetition } = useGenerationStore()
 
   if (!scale.notes.length || !rhythm.pattern.pattern || !rhythm.pattern.pattern.length) {
     return { notes: [] }

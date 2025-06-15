@@ -1,3 +1,4 @@
+import { useCompositionStore } from '@/stores/composition.store'
 import type { AppScale } from '@/ts/models'
 import { Scale } from 'tonal'
 
@@ -52,15 +53,15 @@ export function getAvailableKeys(): { name: string; value: string }[] {
 
 /**
  * Generates a scale object for a given name and root note.
- * @param name - The name of the scale (e.g., 'Major Scale').
- * @param key - The root note of the scale (e.g., 'G').
  * @returns A AppScale object with the calculated notes.
  */
-export function generateScale(name: string, key: string): AppScale | undefined {
-  const scale = Scale.get(`${key} ${name}`)
+export function generateScale(): AppScale | undefined {
+  const compositionStore = useCompositionStore()
+  const { scaleName, key } = compositionStore
+  const scale = Scale.get(`${key} ${scaleName}`)
   if (!scale.notes.length) return undefined
   return {
-    name: `${key} ${name}`,
+    name: `${key} ${scaleName}`,
     notes: scale.notes
   }
 }

@@ -4,6 +4,8 @@ import { getPitchWithOctave } from './pitch-utils.service'
 import { getNextPitch } from '@/utils/pitch'
 import { calculateVelocity } from '@/utils/velocity'
 import type { MelodyGenerationContext, NoteGenerationResult } from './melody.types'
+import { useGenerationStore } from '@/stores/generation.store'
+import { usePlayerStore } from '@/stores/player.store'
 
 /**
  * Service for generating individual notes based on Markov chains and parameters.
@@ -16,8 +18,8 @@ type NoteGenerationState = {
 }
 
 function initializeState(context: MelodyGenerationContext, initialPitch?: string): NoteGenerationState {
-  const { scale } = context.options
-  const startWithRootNote = context.options.startWithRootNote ?? false
+  const { scale } = context
+  const { startWithRootNote } = useGenerationStore()
 
   let pitch = initialPitch || scale.notes[0]
   if (startWithRootNote && !initialPitch) {
@@ -38,8 +40,9 @@ function initializeState(context: MelodyGenerationContext, initialPitch?: string
  * @returns Object containing generated notes and the last pitch used.
  */
 export function generateNotesForSteps(context: MelodyGenerationContext, initialPitch?: string): NoteGenerationResult {
-  const { noteSteps, totalSteps, scale, markovTable, octave, subdivision, n, options, rhythm } = context
-  const { useFixedVelocity, fixedVelocity, startWithRootNote, restProbability = 0 } = options
+  const { noteSteps, totalSteps, scale, markovTable, octave, subdivision, n, rhythm } = context
+  const { useFixedVelocity, fixedVelocity } = usePlayerStore()
+  const { startWithRootNote, restProbability } = useGenerationStore()
   const notes: AppNote[] = []
 
   if (noteSteps.length === 0) {

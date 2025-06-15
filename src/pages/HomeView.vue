@@ -35,8 +35,8 @@ const AppSettings = defineAsyncComponent({
       <AppSettings />
     </div>
     <div class="w-full bg-zinc-900 rounded-lg px-4 py-8 flex flex-col gap-8 md:w-[50%]">
-      <MelodyGenerator />
       <MelodyVisualizer />
+      <MelodyGenerator />
       <Divider />
       <MelodyPlayer />
     </div>

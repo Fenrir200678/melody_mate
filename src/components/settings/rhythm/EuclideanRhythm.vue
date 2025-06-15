@@ -55,7 +55,12 @@ const generateAndSetEuclideanRhythm = () => {
   if (steps.value < pulses.value) {
     pulses.value = steps.value
   }
-  const newRhythm = generateEuclideanPattern(pulses.value, steps.value, subdivision.value, rhythmStore.euclideanRotation)
+  const newRhythm = generateEuclideanPattern(
+    pulses.value,
+    steps.value,
+    subdivision.value,
+    rhythmStore.euclideanRotation
+  )
   rhythmStore.setRhythm(newRhythm)
 }
 
@@ -86,23 +91,23 @@ const subdivisionOptions = computed(() => {
 </script>
 
 <template>
-  <div class="flex items-startjustify-between gap-2 w-full">
-    <div class="pt-2 flex flex-col gap-4 w-[50%]">
-      <div class="mb-2">
+  <div class="flex flex-col md:flex-row items-center justify-center gap-2 w-full">
+    <div class="pt-2 flex flex-col gap-4 w-full md:w-[50%] items-center justify-center">
+      <div class="mb-2 w-full">
         <label :for="'pulses-slider'" class="text-sm pb-2 flex items-center gap-2">
           <span>Pulses</span>
           <span class="text-zinc-400">{{ pulses }}</span>
         </label>
         <Slider v-model="pulses" :min="1" :max="steps" :id="'pulses-slider'" />
       </div>
-      <div class="mb-2">
+      <div class="mb-2 w-full">
         <label :for="'steps-slider'" class="text-sm pb-2 flex items-center gap-2">
           <span>Steps</span>
           <span class="text-zinc-400">{{ steps }}</span>
         </label>
         <Slider v-model="steps" :min="2" :max="32" :id="'steps-slider'" />
       </div>
-      <div class="mb-2">
+      <div class="mb-2 w-full">
         <label :for="'subdivision-select'" class="text-sm pb-2 flex items-center gap-2">
           <span>Subdivision</span>
           <span class="text-zinc-400">{{ subdivision }}</span>
@@ -116,7 +121,7 @@ const subdivisionOptions = computed(() => {
         />
       </div>
     </div>
-    <div class="w-[50%] flex flex-col items-center justify-center">
+    <div class="w-full flex flex-col items-center justify-center">
       <EuclideanVisualizer />
       <div class="flex items-center justify-center gap-2 w-full">
         <Button icon="pi pi-arrow-left" rounded text severity="secondary" aria-label="Rotate Left" @click="rotate(1)" />

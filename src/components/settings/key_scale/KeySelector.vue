@@ -17,7 +17,7 @@ function onKeyChange(value: string) {
 </script>
 
 <template>
-  <div class="flex items-start align gap-4 w-full justify-start flex-wrap mb-4">
+  <div class="flex items-center align gap-4 w-full justify-center flex-wrap mb-4 md:justify-start">
     <div v-for="key in availableKeys" :key="key.value">
       <Button
         :label="key.name"

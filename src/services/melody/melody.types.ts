@@ -41,7 +41,6 @@ export type NoteGenerationOptions = {
  * preventing the need to pass many individual parameters.
  */
 export type MelodyGenerationContext = {
-  options: MelodyGenerationOptions
   scale: AppScale
   rhythm: AnyRhythm
   markovTable: MarkovTable

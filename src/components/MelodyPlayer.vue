@@ -7,6 +7,7 @@ import { generalMidiInstruments } from '@/data/general-midi-instruments'
 import Button from 'primevue/button'
 import Divider from 'primevue/divider'
 import Select from 'primevue/select'
+import ToggleSwitch from 'primevue/toggleswitch'
 import type { SelectChangeEvent } from 'primevue/select'
 
 onMounted(async () => {
@@ -23,6 +24,15 @@ const midiUrl = computed(() => melodyStore.midiUrl)
 async function changeInstrument(event: SelectChangeEvent) {
   playerStore.setSelectedInstrument(event.value as number)
   await melodyStore.generateMidiFile()
+}
+
+function toggleLoop() {
+  const player = document.getElementById('player')
+  if (player?.hasAttribute('loop')) {
+    player?.removeAttribute('loop')
+  } else {
+    player?.setAttribute('loop', 'true')
+  }
 }
 </script>
 
@@ -42,7 +52,7 @@ async function changeInstrument(event: SelectChangeEvent) {
       />
     </div>
 
-    <div class="flex flex-col items-start justify-center gap-4">
+    <div class="flex items-start justify-center gap-4 w-full">
       <midi-player
         id="player"
         class="w-full midi-player"
@@ -51,7 +61,12 @@ async function changeInstrument(event: SelectChangeEvent) {
         @start="playerStore.setIsPlaying(true)"
         @stop="playerStore.setIsPlaying(false)"
       />
+      <div class="flex flex-col items-center justify-center gap-2">
+        <label for="loop" class="text-zinc-400">Loop:</label>
+        <ToggleSwitch inputId="loop" @change="toggleLoop" />
+      </div>
     </div>
+
     <Divider />
     <div class="flex items-center justify-center gap-2">
       <Button
