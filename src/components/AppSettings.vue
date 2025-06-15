@@ -57,9 +57,11 @@ import PredefinedMotif from '@/components/settings/generation/PredefinedMotif.vu
       <RhythmControl />
     </div>
 
+    <Divider />
+
     <!-- Generation Options -->
     <div class="mt-4">
-      <h3 class="text-lg font-semibold flex items-center gap-2">
+      <h3 class="text-lg font-semibold flex items-center gap-2 mb-2">
         <i class="pi pi-cog text-sm"></i>
         Generation Options
       </h3>

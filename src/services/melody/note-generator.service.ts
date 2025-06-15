@@ -73,8 +73,9 @@ export function generateNotesForSteps(context: MelodyGenerationContext, initialP
       continue
     }
 
-    const forceNote = state.consecutiveRests >= 2
-    const shouldBeRest = !forceNote && Math.random() < restProbability
+    const forceNote = state.consecutiveRests >= 1
+    const roundedRandom = Math.round((Math.random() + Number.EPSILON) * 100) / 100
+    const shouldBeRest = !forceNote && roundedRandom < restProbability
 
     if (shouldBeRest) {
       notes.push({ pitch: null, duration, velocity: 0 })

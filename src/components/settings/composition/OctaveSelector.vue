@@ -1,17 +1,11 @@
 <script setup lang="ts">
 import InputNumber from 'primevue/inputnumber'
 import { useCompositionStore } from '@/stores/composition.store'
-import { useMelodyStore } from '@/stores/melody.store'
 
 const compositionStore = useCompositionStore()
-const melodyStore = useMelodyStore()
 
-async function updateOctave(value: number) {
-  compositionStore.setOctave(value)
-
-  if (melodyStore.midiUrl) {
-    await melodyStore.generateMidiFile()
-  }
+async function updateOctave(value: string) {
+  compositionStore.setOctave(parseInt(value))
 }
 </script>
 
@@ -26,7 +20,8 @@ async function updateOctave(value: number) {
       fluid
       showButtons
       buttonLayout="stacked"
-      @update:modelValue="updateOctave"
+      @blur="updateOctave($event.value)"
+      @keydown.enter="updateOctave($event.target.value)"
     />
   </div>
 </template>

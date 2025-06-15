@@ -8,7 +8,7 @@ export const useCompositionStore = defineStore('composition', {
     key: 'C',
     bars: 4,
     lastBars: 4,
-    octave: 3,
+    octave: 3
   }),
 
   actions: {
@@ -31,6 +31,7 @@ export const useCompositionStore = defineStore('composition', {
         })
       }
       this.octave = octave
-    },
+      melodyStore.generateMidiFile()
+    }
   }
 })

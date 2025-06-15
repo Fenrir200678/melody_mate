@@ -33,7 +33,7 @@ const isDisabled = computed(() => {
         </label>
       </div>
       <Checkbox
-        v-model="generationStore.useMotifRepetition"
+        :modelValue="generationStore.useMotifRepetition"
         :binary="true"
         inputId="motif-repetition"
         @update:modelValue="generationStore.setUseMotifRepetition"
@@ -46,7 +46,7 @@ const isDisabled = computed(() => {
         <span class="text-xs break-words"> The pattern of motifs to repeat. </span>
       </div>
       <Select
-        v-model="generationStore.motifRepetitionPattern"
+        :modelValue="generationStore.motifRepetitionPattern"
         inputId="motif-repetition-pattern"
         :disabled="isDisabled || generationStore.useRandomMotifPattern"
         :options="motifPatterns"
@@ -63,7 +63,7 @@ const isDisabled = computed(() => {
         </label>
       </div>
       <Checkbox
-        v-model="generationStore.useRandomMotifPattern"
+        :modelValue="generationStore.useRandomMotifPattern"
         :binary="true"
         inputId="use-random-motif-pattern"
         @update:modelValue="generationStore.setUseRandomMotifPattern"

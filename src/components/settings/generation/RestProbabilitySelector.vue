@@ -9,6 +9,7 @@ const value = computed({
   set: (v: number) => generationStore.setRestProbability(v)
 })
 </script>
+
 <template>
   <div class="flex flex-col justify-around gap-4 mt-8">
     <div class="flex flex-col flex-1 min-w-0">
@@ -18,7 +19,7 @@ const value = computed({
         syncopated melodies.
       </span>
     </div>
-    <div class="flex items-center gap-4 w-full mt-4">
+    <div class="flex items-center gap-4 w-full mt-2">
       <Slider id="rest-probability-slider" class="w-full" v-model="value" :min="0" :max="0.75" :step="0.05" />
       <span class="w-10 text-right text-xs tabular-nums">{{ (value * 100).toFixed(0) }}%</span>
     </div>

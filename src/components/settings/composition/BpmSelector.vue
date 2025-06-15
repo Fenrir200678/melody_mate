@@ -2,18 +2,12 @@
 import { ref } from 'vue'
 import InputNumber from 'primevue/inputnumber'
 import { usePlayerStore } from '@/stores/player.store'
-import { useMelodyStore } from '@/stores/melody.store'
 
 const playerStore = usePlayerStore()
-const melodyStore = useMelodyStore()
 const bpm = ref<number>(playerStore.bpm)
 
-async function updateBpm(value: number) {
-  playerStore.setBpm(value)
-
-  if (melodyStore.midiUrl) {
-    await melodyStore.generateMidiFile()
-  }
+async function updateBpm(value: string) {
+  playerStore.setBpm(parseInt(value))
 }
 </script>
 
@@ -27,7 +21,8 @@ async function updateBpm(value: number) {
       fluid
       showButtons
       buttonLayout="stacked"
-      @update:modelValue="updateBpm"
+      @blur="updateBpm($event.value)"
+      @keydown.enter="updateBpm($event.target.value)"
     />
   </div>
 </template>

@@ -15,7 +15,7 @@ export function generateMidiFile(melody: Melody, track: any): string {
     return ''
   }
   const playerStore = usePlayerStore()
-  const { bpm, selectedInstrument: instrument } = playerStore
+  const { bpm, selectedInstrument: instrument, useFixedVelocity, fixedVelocity } = playerStore
 
   track.addEvent(new MidiWriter.ProgramChangeEvent({ instrument }))
   track.setTempo(bpm, 0)
@@ -31,7 +31,7 @@ export function generateMidiFile(melody: Melody, track: any): string {
         pitch: [note.pitch],
         duration: note.duration,
         wait: `T${pendingWaitTicks}`,
-        velocity: Math.round(note.velocity * 100) // Convert 0-1 range to 1-100
+        velocity: useFixedVelocity ? fixedVelocity : Math.round(note.velocity * 100) // Convert 0-1 range to 1-100
       })
       noteEvents.push(event)
       pendingWaitTicks = 0 // Reset wait time after applying it to a note

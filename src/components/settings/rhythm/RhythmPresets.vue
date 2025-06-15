@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { computed, watch, onMounted } from 'vue'
 import { useRhythmStore } from '@/stores/rhythm.store'
 import { useCompositionStore } from '@/stores/composition.store'
 import { WEIGHTED_RHYTHMS } from '@/data/weighted_rhythms'
@@ -18,19 +18,12 @@ const categoryOptions = Object.entries(RHYTHM_CATEGORIES).map(([value, label]) =
   label
 }))
 
-const selectedCategory = ref<RhythmCategory>('melody')
-const selectedRhythm = ref<WeightedRhythm | null>(null)
-
 const filteredRhythms = computed(() =>
-  WEIGHTED_RHYTHMS.filter((r) => r.category === selectedCategory.value).sort((a, b) => a.name.localeCompare(b.name))
+  WEIGHTED_RHYTHMS.filter((r) => r.category === rhythmStore.rhythmCategory).sort((a, b) => a.name.localeCompare(b.name))
 )
 
-function setDefaultRhythm() {
-  const firstRhythm = filteredRhythms.value[0] || null
-  selectedRhythm.value = firstRhythm
-  if (firstRhythm) {
-    rhythmStore.setRhythm(firstRhythm)
-  }
+function handleCategoryChange(category: RhythmCategory) {
+  rhythmStore.setRhythmCategory(category)
 }
 
 function handleRhythmChange(rhythm: WeightedRhythm) {
@@ -38,26 +31,23 @@ function handleRhythmChange(rhythm: WeightedRhythm) {
   rhythmStore.setRhythm(rhythm)
 }
 
-// Update selection when category changes
-watch(selectedCategory, () => {
-  setDefaultRhythm()
-})
+function handleUseRandomRhythmChange(use: boolean) {
+  rhythmStore.setUseRandomRhythm(use)
+}
 
-// If the tab becomes active, ensure a rhythm is selected
 watch(
   () => props.rhythmTabSelected,
   (rhythmTabSelected, prevRhythmTabSelected) => {
     if (rhythmTabSelected && !prevRhythmTabSelected && !rhythmStore.rhythm) {
-      setDefaultRhythm()
+      rhythmStore.setDefaultRhythm()
       compositionStore.setBars(compositionStore.lastBars)
     }
   }
 )
 
 onMounted(() => {
-  // Set default rhythm only if the tab is already active on mount
   if (props.rhythmTabSelected) {
-    setDefaultRhythm()
+    rhythmStore.setDefaultRhythm()
   }
 })
 </script>
@@ -72,16 +62,16 @@ onMounted(() => {
         :label="option.label"
         fluid
         size="small"
-        :severity="selectedCategory === option.value ? 'primary' : 'secondary'"
-        @click="selectedCategory = option.value"
+        :severity="rhythmStore.rhythmCategory === option.value ? 'primary' : 'secondary'"
+        @click="handleCategoryChange(option.value)"
       />
     </div>
 
     <!-- Rhythm List -->
     <Listbox
-      v-model="selectedRhythm"
+      v-model="rhythmStore.rhythm"
       class="w-full"
-      striped
+      :disabled="rhythmStore.useRandomRhythm"
       :options="filteredRhythms"
       option-label="name"
       placeholder="Select a rhythm"
@@ -97,5 +87,23 @@ onMounted(() => {
         </div>
       </template>
     </Listbox>
+  </div>
+
+  <!-- Random Rhythm -->
+  <div class="flex items-center justify-between gap-4 mt-4">
+    <div class="flex flex-col flex-1 min-w-0">
+      <label for="use-random-rhythm" class="font-medium leading-tight">
+        Use Random Rhythm<br />
+        <span class="text-xs break-words">
+          Use a random rhythm of the selected category instead of the selected one.
+        </span>
+      </label>
+    </div>
+    <Checkbox
+      v-model="rhythmStore.useRandomRhythm"
+      :binary="true"
+      inputId="use-random-rhythm"
+      @update:modelValue="handleUseRandomRhythmChange"
+    />
   </div>
 </template>

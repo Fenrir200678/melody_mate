@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import type { Melody } from '@/ts/models'
 import { useCompositionStore } from './composition.store'
 import { useRhythmStore } from './rhythm.store'
+import { WEIGHTED_RHYTHMS } from '@/data/weighted_rhythms'
 
 export const useMelodyStore = defineStore('melody', {
   state: () => ({
@@ -17,9 +18,17 @@ export const useMelodyStore = defineStore('melody', {
     },
 
     async generateMelody() {
-      const rhythm = useRhythmStore()
+      const rhythmStore = useRhythmStore()
 
-      if (!rhythm.rhythm) return
+      if (!rhythmStore.rhythm) return
+
+      if (rhythmStore.useRandomRhythm) {
+        const rhythmsInCategory = WEIGHTED_RHYTHMS.filter((r) => r.category === rhythmStore.rhythmCategory)
+        if (rhythmsInCategory.length > 0) {
+          const randomRhythm = rhythmsInCategory[Math.floor(Math.random() * rhythmsInCategory.length)]
+          rhythmStore.rhythm = randomRhythm
+        }
+      }
 
       this.isGenerating = true
       this.melody = null
