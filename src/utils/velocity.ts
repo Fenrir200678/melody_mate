@@ -5,7 +5,7 @@ type VelocityOptions = {
 
 const MAX_VELOCITY = 127
 const DEFAULT_RANDOM_MIN = 0.4
-const DEFAULT_RANDOM_RANGE = 0.3
+const DEFAULT_RANDOM_RANGE = 0.2
 
 /**
  * Calculates the note velocity based on the provided options.
