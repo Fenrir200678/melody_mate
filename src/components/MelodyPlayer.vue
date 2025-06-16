@@ -45,6 +45,7 @@ onMounted(() => {
       <Select
         v-model="selectedInstrument"
         :options="instruments"
+        filter
         optionLabel="name"
         optionGroupLabel="label"
         optionGroupChildren="items"
