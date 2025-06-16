@@ -1,6 +1,21 @@
 import type { WeightedRhythm } from '@/ts/types/rhythm.types'
 
 export const WEIGHTED_RHYTHMS: WeightedRhythm[] = [
+  // Melody
+  {
+    name: 'Aggressive Arp Lead',
+    category: 'melody',
+    description: 'Short, percussive arpeggio pattern with a dissonant feel',
+    pattern: {
+      steps: ['16n', '8n', '16n', '4n', '16n', '8n', '16n', '4n'],
+      subdivision: '16n'
+    },
+    degreeWeights: {
+      '0': 2.0,
+      '2': 1.6,
+      '6': 1.8
+    }
+  },
   {
     name: 'Anxious Heartbeat',
     category: 'melody',
@@ -74,6 +89,20 @@ export const WEIGHTED_RHYTHMS: WeightedRhythm[] = [
     }
   },
   {
+    name: 'EDM Anthem Lead',
+    category: 'melody',
+    description: 'A hymn-like, catchy lead melody for an energetic EDM drop.',
+    pattern: {
+      steps: ['8n.', '16n', '8n', '8n.', '16n', '8n'],
+      subdivision: '16n'
+    },
+    degreeWeights: {
+      '0': 2.0,
+      '2': 1.8,
+      '4': 1.8
+    }
+  },
+  {
     name: 'Eighth Note Groove',
     category: 'melody',
     description: 'Smooth flowing melody',
@@ -114,6 +143,21 @@ export const WEIGHTED_RHYTHMS: WeightedRhythm[] = [
       '2': 1.8,
       '4': 2.0,
       '5': 1.5
+    }
+  },
+  {
+    name: 'House Chord Stabs',
+    category: 'melody',
+    description: 'Short, syncopated chord stabs that create the typical groove of House music.',
+    pattern: {
+      steps: ['4n', '8n.', '16n', '8n', '8n'],
+      subdivision: '16n'
+    },
+    degreeWeights: {
+      '0': 2.0,
+      '2': 1.8,
+      '4': 1.8,
+      '6': 1.5
     }
   },
   {
@@ -332,6 +376,9 @@ export const WEIGHTED_RHYTHMS: WeightedRhythm[] = [
       '5': 1.5
     }
   },
+
+  // Bass
+
   {
     name: 'Acid Line',
     category: 'bass',
@@ -376,6 +423,65 @@ export const WEIGHTED_RHYTHMS: WeightedRhythm[] = [
     degreeWeights: {
       '0': 2.0,
       '4': 1.8
+    }
+  },
+  {
+    name: 'Classic House Bass',
+    category: 'bass',
+    description: 'A typical off-beat bassline for House, creating a driving and funky groove.',
+    pattern: {
+      steps: ['8n', '4n', '8n', '4n', '8n'],
+      subdivision: '16n'
+    },
+    degreeWeights: {
+      '0': 2.0,
+      '2': 1.5,
+      '4': 1.8,
+      '6': 1.4
+    }
+  },
+  {
+    name: 'EBM Sequencer Bass',
+    category: 'bass',
+    description: 'A driving, relentless 16th-note sequencer bassline, the foundation of EBM.',
+    pattern: {
+      steps: [
+        '16n',
+        '16n',
+        '16n',
+        '16n',
+        '16n',
+        '16n',
+        '16n',
+        '16n',
+        '16n',
+        '16n',
+        '16n',
+        '16n',
+        '16n',
+        '16n',
+        '16n',
+        '16n'
+      ],
+      subdivision: '16n'
+    },
+    degreeWeights: {
+      '0': 2.0,
+      '3': 1.4,
+      '4': 1.6
+    }
+  },
+  {
+    name: 'EDM Pumping Bass',
+    category: 'bass',
+    description: 'A typical EDM bassline that creates a pumping, rhythmic pulse in the drop.',
+    pattern: {
+      steps: ['4n', '4n.', '8n'],
+      subdivision: '16n'
+    },
+    degreeWeights: {
+      '0': 3.0,
+      '4': 1.1
     }
   },
   {
