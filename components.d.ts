@@ -11,6 +11,8 @@ declare module 'vue' {
     AppSettings: typeof import('./src/components/AppSettings.vue')['default']
     BpmSelector: typeof import('./src/components/settings/composition/BpmSelector.vue')['default']
     Checkbox: typeof import('primevue/checkbox')['default']
+    ChordProgressionDisplay: typeof import('./src/components/settings/chords/ChordProgressionDisplay.vue')['default']
+    ChordProgressionSelector: typeof import('./src/components/settings/chords/ChordProgressionSelector.vue')['default']
     Divider: typeof import('primevue/divider')['default']
     EndWithRootNote: typeof import('./src/components/settings/generation/EndWithRootNote.vue')['default']
     EuclideanRhythm: typeof import('./src/components/settings/rhythm/EuclideanRhythm.vue')['default']

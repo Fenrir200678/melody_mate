@@ -36,7 +36,8 @@ export function applyMusicalWeighting(
   transitions: Map<string, number>,
   currentNote: string,
   scaleNotes: readonly string[],
-  rhythmDegreeWeights?: Record<number, number>
+  rhythmDegreeWeights?: Record<number, number>,
+  currentChordNotes?: readonly string[]
 ): { notes: string[]; weights: number[] } {
   const possibleNotes = Array.from(transitions.keys())
   const initialWeights = Array.from(transitions.values())
@@ -59,7 +60,8 @@ export function applyMusicalWeighting(
     if (interval > 2) {
       // It's a leap (greater than a 3rd). Penalize it.
       // The larger the leap, the greater the penalty.
-      weight /= interval - 1
+      //weight /= interval - 1
+      weight *= 0.6
     } else if (interval === 0) {
       // Slightly penalize staying on the same note to avoid getting stuck,
       // but not too harshly, to allow for repeated notes.
@@ -76,6 +78,17 @@ export function applyMusicalWeighting(
     } else {
       // Slightly penalize non-chord tones (2nd, 4th, 6th) to make them passing notes.
       weight *= 0.8
+    }
+
+    // Rule 3: Chord-Tone Weighting
+    if (currentChordNotes && currentChordNotes.length > 0) {
+      if (currentChordNotes.includes(nextNote)) {
+        // Strongly favor notes that are in the current chord.
+        weight *= 2.5
+      } else {
+        // Penalize notes that are not in the current chord.
+        weight *= 0.5
+      }
     }
 
     newWeights.push(Math.max(0.1, weight)) // Ensure weight is not zero.

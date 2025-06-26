@@ -18,7 +18,8 @@ export function getNextPitch(
   markovTable: MarkovTable,
   scale: AppScale,
   currentPitchForWeighting: string,
-  degreeWeights?: Record<number, number>
+  degreeWeights?: Record<number, number>,
+  currentChordNotes?: readonly string[]
 ): string {
   const transitions = getTransitions(markovTable, state)
 
@@ -31,7 +32,8 @@ export function getNextPitch(
     transitions,
     currentPitchForWeighting,
     scale.notes,
-    degreeWeights
+    degreeWeights,
+    currentChordNotes
   )
 
   return chooseWeighted(possibleNotes, weights)

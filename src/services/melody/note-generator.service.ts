@@ -6,6 +6,7 @@ import { calculateVelocity } from './velocity.service'
 import type { MelodyGenerationContext, NoteGenerationResult } from './melody.types'
 import { useGenerationStore } from '@/stores/generation.store'
 import { usePlayerStore } from '@/stores/player.store'
+import { useChordStore } from '@/stores/chord.store'
 
 /**
  * Service for generating individual notes based on Markov chains and parameters.
@@ -42,9 +43,10 @@ function initializeState(context: MelodyGenerationContext, initialPitch?: string
  * @returns Object containing generated notes and the last pitch used.
  */
 export function generateNotesForSteps(context: MelodyGenerationContext, initialPitch?: string): NoteGenerationResult {
-  const { noteSteps, totalSteps, scale, markovTable, octave, subdivision, n, rhythm } = context
+  const { noteSteps, totalSteps, scale, markovTable, minOctave, maxOctave, subdivision, n, rhythm } = context
   const { useFixedVelocity, fixedVelocity, useDynamics, selectedDynamic } = usePlayerStore()
   const { startWithRootNote, endWithRootNote, restProbability } = useGenerationStore()
+  const { chords, useChords } = useChordStore()
   const notes: AppNote[] = []
 
   if (noteSteps.length === 0) {
@@ -67,7 +69,7 @@ export function generateNotesForSteps(context: MelodyGenerationContext, initialP
         dynamics: useDynamics ? [selectedDynamic] : undefined
       })
       notes.push({
-        pitch: getPitchWithOctave(nextPitch, octave),
+        pitch: getPitchWithOctave(nextPitch, minOctave, maxOctave),
         duration,
         velocity
       })
@@ -91,7 +93,22 @@ export function generateNotesForSteps(context: MelodyGenerationContext, initialP
       } else {
         const pitchNGramContext = state.pitchContext.slice(-Math.max(1, n - 1)).filter(Boolean)
         const degreeWeights = 'degreeWeights' in rhythm ? rhythm.degreeWeights : undefined
-        nextPitch = getNextPitch(pitchNGramContext, markovTable, scale, state.lastActualPitch, degreeWeights)
+        let currentChordNotes: readonly string[] | undefined
+
+        if (useChords) {
+          const currentChordIndex = Math.floor(currentStep / (totalSteps / chords.length))
+          const currentChord = chords[currentChordIndex]
+          currentChordNotes = currentChord ? currentChord.notes : []
+        }
+
+        nextPitch = getNextPitch(
+          pitchNGramContext,
+          markovTable,
+          scale,
+          state.lastActualPitch,
+          degreeWeights,
+          currentChordNotes
+        )
       }
 
       const velocity = calculateVelocity({
@@ -101,7 +118,7 @@ export function generateNotesForSteps(context: MelodyGenerationContext, initialP
       })
 
       notes.push({
-        pitch: getPitchWithOctave(nextPitch, octave),
+        pitch: getPitchWithOctave(nextPitch, minOctave, maxOctave),
         duration,
         velocity
       })

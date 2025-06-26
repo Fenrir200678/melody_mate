@@ -22,7 +22,7 @@ function prepareGenerationContext(): MelodyGenerationContext | null {
   const generationStore = useGenerationStore()
   const rhythmStore = useRhythmStore()
 
-  const { bars, octave } = compositionStore
+  const { bars, minOctave, maxOctave } = compositionStore
   const { useNGrams, nGramLength, useMotifTrainingData, motifRepetitionPattern, useRandomMotifPattern } =
     generationStore
   const { rhythm } = rhythmStore
@@ -52,7 +52,8 @@ function prepareGenerationContext(): MelodyGenerationContext | null {
     totalSteps,
     stepsPerBar,
     noteSteps,
-    octave,
+    minOctave,
+    maxOctave,
     subdivision,
     n: markovN,
     motifRepetitionPattern,

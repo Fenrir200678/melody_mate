@@ -2,6 +2,8 @@
 import Checkbox from 'primevue/checkbox'
 import { useGenerationStore } from '@/stores/generation.store'
 
+const props = defineProps<{ disabled: boolean }>()
+
 const generationStore = useGenerationStore()
 </script>
 
@@ -19,6 +21,7 @@ const generationStore = useGenerationStore()
         :binary="true"
         inputId="end-with-root-note"
         @update:modelValue="generationStore.setEndWithRootNote"
+        :disabled="props.disabled"
       />
     </div>
   </div>

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import Divider from 'primevue/divider'
+import ToggleSwitch from 'primevue/toggleswitch'
+import { useChordStore } from '@/stores/chord.store'
 
 import KeySelector from '@/components/settings/key_scale/KeySelector.vue'
 import ScaleSelector from '@/components/settings/key_scale/ScaleSelector.vue'
@@ -14,6 +16,10 @@ import MotifRepetition from '@/components/settings/generation/MotifRepetition.vu
 import StartWithRootNote from '@/components/settings/generation/StartWithRootNote.vue'
 import EndWithRootNote from '@/components/settings/generation/EndWithRootNote.vue'
 import PredefinedMotif from '@/components/settings/generation/PredefinedMotif.vue'
+import ChordProgressionSelector from '@/components/settings/chords/ChordProgressionSelector.vue'
+import ChordProgressionDisplay from '@/components/settings/chords/ChordProgressionDisplay.vue'
+
+const chordStore = useChordStore()
 </script>
 <template>
   <div class="space-y-4 w-full max-w-full">
@@ -32,6 +38,30 @@ import PredefinedMotif from '@/components/settings/generation/PredefinedMotif.vu
     <div class="flex items-center justify-between gap-4">
       <label class="font-medium">Scale</label>
       <ScaleSelector />
+    </div>
+
+    <!-- Harmony -->
+    <div class="mt-8">
+      <h3 class="text-lg font-semibold flex items-center gap-2">
+        <i class="pi pi-sitemap text-sm"></i>
+        Harmony
+      </h3>
+      <Divider />
+      <div class="space-y-4">
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex flex-col flex-1 min-w-0">
+            <label for="use-chords-switch" class="font-medium">Use Chord Progressions</label>
+            <span class="text-xs break-words">Influence melody generation with chord progressions.</span>
+          </div>
+          <ToggleSwitch
+            :modelValue="chordStore.useChords"
+            inputId="use-chords-switch"
+            @update:modelValue="chordStore.setUseChords"
+          />
+        </div>
+        <ChordProgressionSelector :disabled="!chordStore.useChords" />
+        <ChordProgressionDisplay v-if="chordStore.useChords" />
+      </div>
     </div>
 
     <!-- Composition -->
@@ -83,8 +113,8 @@ import PredefinedMotif from '@/components/settings/generation/PredefinedMotif.vu
         <MotifRepetition />
         <NGramSelector />
         <Divider />
-        <StartWithRootNote />
-        <EndWithRootNote />
+        <StartWithRootNote :disabled="chordStore.useChords" />
+        <EndWithRootNote :disabled="chordStore.useChords" />
         <Divider />
         <PredefinedMotif />
       </div>

@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import { setMelodyOctave } from '@/utils/transpose'
 import { useMelodyStore } from './melody.store'
 
 export const useCompositionStore = defineStore('composition', {
@@ -8,7 +7,8 @@ export const useCompositionStore = defineStore('composition', {
     key: 'C',
     bars: 4,
     lastBars: 4,
-    octave: 3
+    minOctave: 3,
+    maxOctave: 5
   }),
 
   actions: {
@@ -22,16 +22,13 @@ export const useCompositionStore = defineStore('composition', {
       this.lastBars = this.bars
       this.bars = bars
     },
-    setOctave(octave: number) {
-      const melodyStore = useMelodyStore()
-      if (melodyStore.melody && melodyStore.melody.notes.length) {
-        melodyStore.setMelody({
-          ...melodyStore.melody,
-          notes: setMelodyOctave(melodyStore.melody.notes, octave)
-        })
-      }
-      this.octave = octave
-      melodyStore.generateMidiFile()
+    setMinOctave(octave: number) {
+      this.minOctave = octave
+      useMelodyStore().generateMidiFile()
+    },
+    setMaxOctave(octave: number) {
+      this.maxOctave = octave
+      useMelodyStore().generateMidiFile()
     }
   }
 })

@@ -10,10 +10,12 @@ import { Note } from 'tonal'
  * @param octave - The octave to add to the pitch.
  * @returns The pitch with the octave.
  */
-export function getPitchWithOctave(pitch: string, octave: number): string {
+export function getPitchWithOctave(pitch: string, minOctave: number, maxOctave: number): string {
   const parsed = Note.get(pitch)
   if (!parsed || !parsed.pc) {
-    return pitch.replace(/[0-9]+$/, '') + octave
+    const randomOctave = Math.floor(Math.random() * (maxOctave - minOctave + 1)) + minOctave
+    return pitch.replace(/[0-9]+$/, '') + randomOctave
   }
-  return parsed.pc + octave
+  const randomOctave = Math.floor(Math.random() * (maxOctave - minOctave + 1)) + minOctave
+  return parsed.pc + randomOctave
 }

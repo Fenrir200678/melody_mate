@@ -10,7 +10,6 @@ export type MelodyGenerationOptions = {
   scale: AppScale
   rhythm: AnyRhythm
   bars: number
-  octave: number
   useMotifRepetition: boolean
   motifRepetitionPattern: string
   useRandomMotifPattern: boolean
@@ -49,7 +48,8 @@ export type MelodyGenerationContext = {
   totalSteps: number
   stepsPerBar: number
   noteSteps: number[]
-  octave: number
+  minOctave: number
+  maxOctave: number
   subdivision: string
   n: number
   motifRepetitionPattern: string
