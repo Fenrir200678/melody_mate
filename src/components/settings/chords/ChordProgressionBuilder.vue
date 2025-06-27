@@ -71,7 +71,7 @@ watch(
   () => [compositionStore.key, compositionStore.scaleName],
   ([newKey, newScaleName], [oldKey, oldScaleName]) => {
     if (chordStore.selectedProgressionType === 'custom' && (newKey !== oldKey || newScaleName !== oldScaleName)) {
-      if (chordStore.currentProgression.length > 0) {
+      if (chordStore.currentProgression && chordStore.currentProgression.length > 0) {
         chordStore.clearProgression()
         toast.add({
           severity: 'info',

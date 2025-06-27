@@ -152,8 +152,8 @@ const generationCollapsed = ref(true)
         <Divider />
         <CallAndResponse />
         <Divider />
-        <StartWithRootNote :disabled="chordStore.useChords" />
-        <EndWithRootNote :disabled="chordStore.useChords" />
+        <StartWithRootNote :disabled="!!chordStore.useChords" />
+        <EndWithRootNote :disabled="!!chordStore.useChords" />
         <Divider />
         <PredefinedMotif />
       </div>
