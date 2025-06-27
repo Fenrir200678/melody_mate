@@ -14,6 +14,7 @@ import RestProbabilitySelector from '@/components/settings/generation/RestProbab
 import NGramSelector from '@/components/settings/generation/NGramSelector.vue'
 import MelodicContourSelector from '@/components/settings/generation/MelodicContourSelector.vue'
 import RhythmicLicksSelector from '@/components/settings/generation/RhythmicLicksSelector.vue'
+import CallAndResponse from '@/components/settings/generation/CallAndResponse.vue'
 import MotifRepetition from '@/components/settings/generation/MotifRepetition.vue'
 import StartWithRootNote from '@/components/settings/generation/StartWithRootNote.vue'
 import EndWithRootNote from '@/components/settings/generation/EndWithRootNote.vue'
@@ -123,6 +124,8 @@ const chordStore = useChordStore()
         <MelodicContourSelector />
         <Divider />
         <RhythmicLicksSelector />
+        <Divider />
+        <CallAndResponse />
         <Divider />
         <StartWithRootNote :disabled="chordStore.useChords" />
         <EndWithRootNote :disabled="chordStore.useChords" />

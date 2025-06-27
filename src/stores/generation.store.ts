@@ -14,10 +14,14 @@ export const useGenerationStore = defineStore('generation', {
     chordAdherence: 0.75,
     melodicContour: 'arc',
     useRhythmicLicks: false,
-    rhythmicLickFrequency: 0.25
+    rhythmicLickFrequency: 0.25,
+    useCallAndResponse: false
   }),
 
   actions: {
+    setUseCallAndResponse(use: boolean) {
+      this.useCallAndResponse = use
+    },
     setUseRhythmicLicks(use: boolean) {
       this.useRhythmicLicks = use
     },

@@ -7,6 +7,7 @@ import { getStepsPerBar } from './duration.service'
 import { generateNotesForSteps } from './note-generator.service'
 import { getRandomMotifPattern } from './motif.service'
 import { injectRhythmicLicks } from './rhythm-lick.service';
+import { transposeMelody, invertMelody } from './motif-transformer.service';
 import { useCompositionStore } from '@/stores/composition.store'
 import { useGenerationStore } from '@/stores/generation.store'
 import { useRhythmStore } from '@/stores/rhythm.store'
@@ -88,6 +89,7 @@ function generateStandardMelody(context: MelodyGenerationContext): Melody {
  */
 function generateMotifBasedMelody(context: MelodyGenerationContext): Melody {
   const { noteSteps, stepsPerBar } = context
+  const { useCallAndResponse } = useGenerationStore();
   const pattern = context.useRandomMotifPattern ? getRandomMotifPattern() : context.motifRepetitionPattern
   const generatedBars = new Map<string, NoteGenerationResult>()
   const melodyNotes: AppNote[] = []
@@ -97,7 +99,24 @@ function generateMotifBasedMelody(context: MelodyGenerationContext): Melody {
     const patternChar = pattern[i]
     let barResult: NoteGenerationResult | undefined = generatedBars.get(patternChar)
 
-    if (!barResult) {
+    if (barResult) {
+      // If this bar has been generated before (repetition)
+      if (useCallAndResponse) {
+        // Apply a transformation for call and response
+        // For simplicity, we'll transpose based on the motif character.
+        // A more advanced implementation could use different transformations (inversion, retrograde) or random intervals.
+        if (patternChar === 'A') {
+          barResult.notes = transposeMelody(barResult.notes, '8P'); // Transpose up an octave
+        } else if (patternChar === 'B') {
+          barResult.notes = transposeMelody(barResult.notes, '-8P'); // Transpose down an octave
+        } else if (patternChar === 'C') {
+          barResult.notes = invertMelody(barResult.notes); // Invert the melody
+        }
+        // Note: 'lastPitch' for the next bar should ideally be re-evaluated after transformation
+        // For now, we'll keep it simple and assume the transformation doesn't drastically change the melodic flow.
+      }
+    } else {
+      // If this is a new bar, generate it
       const barStartStep = i * stepsPerBar
       const barEndStep = barStartStep + stepsPerBar
       const barNoteSteps = noteSteps.filter((step) => step >= barStartStep && step < barEndStep)

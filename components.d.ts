@@ -10,6 +10,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AppSettings: typeof import('./src/components/AppSettings.vue')['default']
     BpmSelector: typeof import('./src/components/settings/composition/BpmSelector.vue')['default']
+    CallAndResponse: typeof import('./src/components/settings/generation/CallAndResponse.vue')['default']
     Checkbox: typeof import('primevue/checkbox')['default']
     ChordAdherenceSelector: typeof import('./src/components/settings/chords/ChordAdherenceSelector.vue')['default']
     ChordProgressionDisplay: typeof import('./src/components/settings/chords/ChordProgressionDisplay.vue')['default']
