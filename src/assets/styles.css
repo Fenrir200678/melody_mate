@@ -51,3 +51,7 @@ midi-visualizer {
 #app-settings .p-panel-header:hover {
   background: #303030;
 }
+
+#app-settings .p-panel-content-container {
+  padding-top: 10px;
+}

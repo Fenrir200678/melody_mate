@@ -160,22 +160,6 @@ export const WEIGHTED_RHYTHMS: WeightedRhythm[] = [
     }
   },
   {
-    name: 'House Chord Stabs',
-    category: 'melody',
-    description:
-      'Short, syncopated chord stabs that create the typical groove of House music. (Chords not implemented yet)',
-    pattern: {
-      steps: ['4n', '8n.', '16n', '8n', '8n'],
-      subdivision: '16n'
-    },
-    degreeWeights: {
-      '0': 2.0,
-      '2': 1.8,
-      '4': 1.8,
-      '6': 1.5
-    }
-  },
-  {
     name: 'Legato Waves',
     category: 'melody',
     description: 'Smooth connected notes',

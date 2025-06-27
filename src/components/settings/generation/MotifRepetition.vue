@@ -16,10 +16,10 @@ const motifPatterns = computed(() => {
   }))
 })
 const labelClass = computed(() => {
-  return generationStore.useNGrams || compositionStore.bars < 4 ? 'text-zinc-500' : ''
+  return generationStore.useNGrams || (compositionStore.bars && compositionStore.bars < 4) ? 'text-zinc-500' : ''
 })
 const isDisabled = computed(() => {
-  return generationStore.useNGrams || compositionStore.bars < 4
+  return generationStore.useNGrams || (compositionStore.bars && compositionStore.bars < 4)
 })
 </script>
 
@@ -37,7 +37,7 @@ const isDisabled = computed(() => {
         :binary="true"
         inputId="motif-repetition"
         @update:modelValue="generationStore.setUseMotifRepetition"
-        :disabled="isDisabled"
+        :disabled="isDisabled || false"
       />
     </div>
     <div class="flex items-center justify-between gap-4">

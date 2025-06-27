@@ -31,7 +31,7 @@ function handleUseNGramsChange(val: boolean) {
             class="text-emerald-400 underline hover:no-underline"
             href="https://en.wikipedia.org/wiki/N-gram"
             target="_blank"
-            >Advanced algorithm
+            >Alternative algorithm
           </a>
           for structured melodies (can't be used with Motif Repetition).
         </p>
@@ -49,12 +49,12 @@ function handleUseNGramsChange(val: boolean) {
   <div v-if="generationStore.useNGrams">
     <div class="flex items-center justify-between gap-4">
       <div class="flex flex-col flex-1 min-w-0">
-        <span class="font-medium">N-Gram Context Length</span>
+        <label for="n-gram-context-length" class="font-medium">N-Gram Context Length</label>
       </div>
       <div class="flex-shrink-0">
         <SelectButton
           :options="nGramLengthOptions"
-          :model-value="generationStore.nGramLength.toString()"
+          :model-value="generationStore.nGramLength?.toString() || '2'"
           @update:modelValue="handleNGramLengthChange"
         />
       </div>

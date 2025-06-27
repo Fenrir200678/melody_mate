@@ -7,7 +7,6 @@ import { useChordStore } from '@/stores/chord.store'
 
 import KeySelector from '@/components/settings/key_scale/KeySelector.vue'
 import ScaleSelector from '@/components/settings/key_scale/ScaleSelector.vue'
-import RhythmControl from '@/components/settings/rhythm/RhythmControl.vue'
 import LengthSelector from '@/components/settings/composition/LengthSelector.vue'
 import BpmSelector from '@/components/settings/composition/BpmSelector.vue'
 import OctaveSelector from '@/components/settings/composition/OctaveSelector.vue'
@@ -24,6 +23,7 @@ import PredefinedMotif from '@/components/settings/generation/PredefinedMotif.vu
 import ChordProgressionBuilder from '@/components/settings/chords/ChordProgressionBuilder.vue'
 import ChordProgressionDisplay from '@/components/settings/chords/ChordProgressionDisplay.vue'
 import ChordAdherenceSelector from '@/components/settings/chords/ChordAdherenceSelector.vue'
+import RhythmControl from '@/components/settings/rhythm/RhythmControl.vue'
 
 const chordStore = useChordStore()
 
@@ -31,7 +31,9 @@ const keyScaleCollapsed = ref(false)
 const harmonyCollapsed = ref(true)
 const compositionCollapsed = ref(true)
 const rhythmCollapsed = ref(true)
-const generationCollapsed = ref(true)
+const motifContourCollapsed = ref(true)
+const ngramCollapsed = ref(true)
+const startEndCollapsed = ref(true)
 </script>
 <template>
   <div id="app-settings" class="space-y-4 w-full max-w-full">
@@ -85,6 +87,21 @@ const generationCollapsed = ref(true)
       </div>
     </Panel>
 
+    <!-- Rhythm -->
+    <Panel v-model:collapsed="rhythmCollapsed">
+      <template #header>
+        <div class="flex items-center gap-2 cursor-pointer w-full" @click="rhythmCollapsed = !rhythmCollapsed">
+          <i class="pi pi-sliders-h text-sm"></i>
+          <h3 class="text-lg font-semibold">Rhythm</h3>
+          <i class="pi pi-chevron-down text-sm ml-auto" :class="{ 'rotate-180': !rhythmCollapsed }"></i>
+        </div>
+      </template>
+      <RhythmControl />
+      <RestProbabilitySelector />
+      <Divider />
+      <RhythmicLicksSelector />
+    </Panel>
+
     <!-- Composition -->
     <Panel v-model:collapsed="compositionCollapsed">
       <template #header>
@@ -108,55 +125,50 @@ const generationCollapsed = ref(true)
       </div>
     </Panel>
 
-    <!-- Rhythm -->
-    <Panel v-model:collapsed="rhythmCollapsed">
+    <!-- Motif & Contour -->
+    <Panel v-model:collapsed="motifContourCollapsed">
       <template #header>
-        <div class="flex items-center gap-2 cursor-pointer w-full" @click="rhythmCollapsed = !rhythmCollapsed">
-          <i class="pi pi-sliders-h text-sm"></i>
-          <h3 class="text-lg font-semibold">Rhythm</h3>
-          <i class="pi pi-chevron-down text-sm ml-auto" :class="{ 'rotate-180': !rhythmCollapsed }"></i>
+        <div
+          class="flex items-center gap-2 cursor-pointer w-full"
+          @click="motifContourCollapsed = !motifContourCollapsed"
+        >
+          <i class="pi pi-share-alt text-sm"></i>
+          <h3 class="text-lg font-semibold">Motif & Contour</h3>
+          <i class="pi pi-chevron-down text-sm ml-auto" :class="{ 'rotate-180': !motifContourCollapsed }"></i>
         </div>
       </template>
-      <RhythmControl />
+      <MotifRepetition />
+      <Divider />
+      <MelodicContourSelector />
+      <Divider />
+      <CallAndResponse />
+      <Divider />
+      <PredefinedMotif />
     </Panel>
 
-    <!-- Generation Options -->
-    <Panel v-model:collapsed="generationCollapsed">
+    <!-- Start/End Notes -->
+    <Panel v-model:collapsed="startEndCollapsed">
       <template #header>
-        <div class="flex items-center gap-2 cursor-pointer w-full" @click="generationCollapsed = !generationCollapsed">
-          <i class="pi pi-cog text-sm"></i>
-          <h3 class="text-lg font-semibold">Generation Options</h3>
-          <i class="pi pi-chevron-down text-sm ml-auto" :class="{ 'rotate-180': !generationCollapsed }"></i>
+        <div class="flex items-center gap-2 cursor-pointer w-full" @click="startEndCollapsed = !startEndCollapsed">
+          <i class="pi pi-step-forward text-sm"></i>
+          <h3 class="text-lg font-semibold">Start/End Notes</h3>
+          <i class="pi pi-chevron-down text-sm ml-auto" :class="{ 'rotate-180': !startEndCollapsed }"></i>
         </div>
       </template>
-      <p class="text-xs text-zinc-300 leading-relaxed mb-4">
-        These options are used to control the generation of the melody. You can change them to your liking, but the
-        default values are usually a good starting point. Melodies are generated using
-        <a
-          class="text-emerald-400 underline hover:no-underline"
-          href="https://en.wikipedia.org/wiki/Markov_chain"
-          target="_blank"
-          >Markov Chain</a
-        >
-        algorithm if you don't choose the N-Gram option.
-      </p>
-      <div class="space-y-4">
-        <RestProbabilitySelector />
-        <Divider />
-        <MotifRepetition />
-        <NGramSelector />
-        <Divider />
-        <MelodicContourSelector />
-        <Divider />
-        <RhythmicLicksSelector />
-        <Divider />
-        <CallAndResponse />
-        <Divider />
-        <StartWithRootNote :disabled="!!chordStore.useChords" />
-        <EndWithRootNote :disabled="!!chordStore.useChords" />
-        <Divider />
-        <PredefinedMotif />
-      </div>
+      <StartWithRootNote :disabled="!!chordStore.useChords" />
+      <EndWithRootNote :disabled="!!chordStore.useChords" />
+    </Panel>
+
+    <!-- N-Gram / Markov -->
+    <Panel v-model:collapsed="ngramCollapsed">
+      <template #header>
+        <div class="flex items-center gap-2 cursor-pointer w-full" @click="ngramCollapsed = !ngramCollapsed">
+          <i class="pi pi-th-large text-sm"></i>
+          <h3 class="text-lg font-semibold">N-Grams</h3>
+          <i class="pi pi-chevron-down text-sm ml-auto" :class="{ 'rotate-180': !ngramCollapsed }"></i>
+        </div>
+      </template>
+      <NGramSelector />
     </Panel>
   </div>
 </template>
