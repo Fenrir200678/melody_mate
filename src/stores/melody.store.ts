@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import type { Melody } from '@/ts/models'
 import { useCompositionStore } from './composition.store'
 import { useRhythmStore } from './rhythm.store'
-import { useChordStore } from './chord.store'
 import { WEIGHTED_RHYTHMS } from '@/data/weighted_rhythms'
 
 export const useMelodyStore = defineStore('melody', {
@@ -20,7 +19,6 @@ export const useMelodyStore = defineStore('melody', {
 
     async generateMelody() {
       const rhythmStore = useRhythmStore()
-      const chordStore = useChordStore()
 
       if (!rhythmStore.rhythm) return
 
@@ -36,28 +34,13 @@ export const useMelodyStore = defineStore('melody', {
       this.melody = null
 
       try {
-        const [{ generateScale }, { generateMelody }, { generateChordProgression }] = await Promise.all([
+        const [{ generateScale }, { generateMelody }] = await Promise.all([
           import('@/services/ScaleService'),
-          import('@/services/MelodyService'),
-          import('@/services/ChordService')
+          import('@/services/MelodyService')
         ])
 
         const scale = generateScale()
         if (!scale) return
-
-        if (chordStore.useChords) {
-          if (chordStore.selectedProgressionType === 'predefined') {
-            const predefinedChords = generateChordProgression(chordStore.selectedPredefinedProgressionName)
-            chordStore.setChords(predefinedChords)
-          } else {
-            // Custom progression is already in chordStore.currentProgression
-            chordStore.setChords(chordStore.currentProgression)
-          }
-        } else {
-          // If chords are not used, clear the chords in the store
-          chordStore.setChords([])
-        }
-
         this.melody = generateMelody()
       } catch (error) {
         console.error('Error during melody generation:', error)
@@ -90,9 +73,9 @@ export const useMelodyStore = defineStore('melody', {
 
     getFileName() {
       const composition = useCompositionStore()
-      const key = composition.key.replace(/\s+/g, '_').toLowerCase()
-      const scale = composition.scaleName.replace(/\s+/g, '_').toLowerCase().replace('scale', '')
-      const bars = composition.bars
+      const key = composition.key?.replace(/\s+/g, '_').toLowerCase()
+      const scale = composition.scaleName?.replace(/\s+/g, '_').toLowerCase().replace('scale', '')
+      const bars = composition.bars ?? 1
       const barString = bars > 1 ? `-${bars}_bars` : ''
       return `${key}-${scale}${barString}.mid`
     }

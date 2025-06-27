@@ -80,7 +80,9 @@ export const useChordStore = defineStore('chord', {
     },
     loadPredefinedProgression(progressionName: string) {
       // The generateChordProgression function already uses the composition store.
-      this.currentProgression = generateChordProgression(progressionName)
+      const newChords = generateChordProgression(progressionName)
+      this.currentProgression = newChords
+      this.chords = newChords
       saveState(LOCAL_STORAGE_KEY, this.$state)
     }
   }

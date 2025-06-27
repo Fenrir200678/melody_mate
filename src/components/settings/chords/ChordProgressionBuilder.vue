@@ -70,13 +70,23 @@ const dragEnter = (event: DragEvent) => {
 watch(
   () => [compositionStore.key, compositionStore.scaleName],
   ([newKey, newScaleName], [oldKey, oldScaleName]) => {
-    if (chordStore.selectedProgressionType === 'custom' && (newKey !== oldKey || newScaleName !== oldScaleName)) {
-      if (chordStore.currentProgression && chordStore.currentProgression.length > 0) {
-        chordStore.clearProgression()
+    if (newKey !== oldKey || newScaleName !== oldScaleName) {
+      if (chordStore.selectedProgressionType === 'custom') {
+        if (chordStore.currentProgression && chordStore.currentProgression.length > 0) {
+          chordStore.clearProgression()
+          toast.add({
+            severity: 'info',
+            summary: 'Progression Reset',
+            detail: 'Custom chord progression cleared due to key or scale change.',
+            life: 3000
+          })
+        }
+      } else if (chordStore.selectedProgressionType === 'predefined' && chordStore.selectedPredefinedProgressionName) {
+        chordStore.loadPredefinedProgression(chordStore.selectedPredefinedProgressionName)
         toast.add({
           severity: 'info',
-          summary: 'Progression Reset',
-          detail: 'Custom chord progression cleared due to key or scale change.',
+          summary: 'Progression Updated',
+          detail: 'Predefined chord progression updated to new key/scale.',
           life: 3000
         })
       }

@@ -110,7 +110,7 @@ const startEndCollapsed = ref(true)
           @click="compositionCollapsed = !compositionCollapsed"
         >
           <i class="pi pi-file-edit text-sm"></i>
-          <h3 class="text-lg font-semibold">Composition & Velocity</h3>
+          <h3 class="text-lg font-semibold">Composition, Octave & Velocity</h3>
           <i class="pi pi-chevron-down text-sm ml-auto" :class="{ 'rotate-180': !compositionCollapsed }"></i>
         </div>
       </template>
