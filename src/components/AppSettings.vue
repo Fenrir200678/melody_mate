@@ -18,6 +18,7 @@ import EndWithRootNote from '@/components/settings/generation/EndWithRootNote.vu
 import PredefinedMotif from '@/components/settings/generation/PredefinedMotif.vue'
 import ChordProgressionSelector from '@/components/settings/chords/ChordProgressionSelector.vue'
 import ChordProgressionDisplay from '@/components/settings/chords/ChordProgressionDisplay.vue'
+import ChordAdherenceSelector from '@/components/settings/chords/ChordAdherenceSelector.vue'
 
 const chordStore = useChordStore()
 </script>
@@ -61,6 +62,7 @@ const chordStore = useChordStore()
         </div>
         <ChordProgressionSelector :disabled="!chordStore.useChords" />
         <ChordProgressionDisplay v-if="chordStore.useChords" />
+        <ChordAdherenceSelector :disabled="!chordStore.useChords" />
       </div>
     </div>
 

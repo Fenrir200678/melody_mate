@@ -10,10 +10,14 @@ export const useGenerationStore = defineStore('generation', {
     startWithRootNote: false,
     endWithRootNote: false,
     restProbability: 0.05,
-    useMotifTrainingData: false
+    useMotifTrainingData: false,
+    chordAdherence: 0.75
   }),
 
   actions: {
+    setChordAdherence(adherence: number) {
+      this.chordAdherence = adherence
+    },
     setUseMotifRepetition(use: boolean) {
       this.useMotifRepetition = use
     },

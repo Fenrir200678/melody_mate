@@ -1,3 +1,5 @@
+import { useGenerationStore } from '@/stores/generation.store';
+
 /**
  * Calculates the interval between two notes within a given scale.
  * The interval is returned in "scale steps" (e.g., C to D in C-Major is 1 step).
@@ -39,6 +41,9 @@ export function applyMusicalWeighting(
   rhythmDegreeWeights?: Record<number, number>,
   currentChordNotes?: readonly string[]
 ): { notes: string[]; weights: number[] } {
+  const generationStore = useGenerationStore();
+  const { chordAdherence } = generationStore;
+
   const possibleNotes = Array.from(transitions.keys())
   const initialWeights = Array.from(transitions.values())
   const newWeights: number[] = []
@@ -82,12 +87,16 @@ export function applyMusicalWeighting(
 
     // Rule 3: Chord-Tone Weighting
     if (currentChordNotes && currentChordNotes.length > 0) {
-      if (currentChordNotes.includes(nextNote)) {
+      const isChordTone = currentChordNotes.includes(nextNote);
+      const adherenceFactor = 1 + chordAdherence * 2; // Max factor of 3
+      const penaltyFactor = 1 - chordAdherence * 0.75; // Max penalty of 0.25
+
+      if (isChordTone) {
         // Strongly favor notes that are in the current chord.
-        weight *= 2.5
+        weight *= adherenceFactor;
       } else {
         // Penalize notes that are not in the current chord.
-        weight *= 0.5
+        weight *= penaltyFactor;
       }
     }
 

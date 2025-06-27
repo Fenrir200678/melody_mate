@@ -1,8 +1,51 @@
 import { useCompositionStore } from '@/stores/composition.store'
-import { Chord, RomanNumeral, Note, Key } from 'tonal'
+import { Chord, RomanNumeral, Note, Interval } from 'tonal'
 import type { Chord as AppChord } from '@/ts/models/Chord'
 import { COMMON_CHORD_PROGRESSIONS, DARK_CHORD_PROGRESSIONS } from '@/data/chords-data'
 import { generateScale } from './ScaleService'
+
+/**
+ * Determines the chord quality based on scale intervals
+ * @param rootNote - The root note of the chord
+ * @param scaleNotes - Array of notes in the scale
+ * @returns The chord type (M, m, dim, etc.)
+ */
+function getChordQualityFromScale(rootNote: string, scaleNotes: string[]): string {
+  const rootIndex = scaleNotes.indexOf(rootNote)
+  if (rootIndex === -1) return 'M' // fallback
+
+  // Get the third and fifth intervals from the root
+  const thirdIndex = (rootIndex + 2) % scaleNotes.length
+  const fifthIndex = (rootIndex + 4) % scaleNotes.length
+
+  const third = scaleNotes[thirdIndex]
+  const fifth = scaleNotes[fifthIndex]
+
+  // Calculate intervals from root
+  const thirdInterval = Interval.distance(rootNote, third)
+  const fifthInterval = Interval.distance(rootNote, fifth)
+
+  // Determine chord quality based on intervals
+  const thirdSemitones = Interval.semitones(thirdInterval) || 0
+  const fifthSemitones = Interval.semitones(fifthInterval) || 0
+
+  // Check for diminished (minor third + diminished fifth)
+  if (thirdSemitones % 12 === 3 && fifthSemitones % 12 === 6) {
+    return 'dim'
+  }
+  // Check for augmented (major third + augmented fifth)
+  else if (thirdSemitones % 12 === 4 && fifthSemitones % 12 === 8) {
+    return 'aug'
+  }
+  // Check for minor (minor third + perfect fifth)
+  else if (thirdSemitones % 12 === 3 && fifthSemitones % 12 === 7) {
+    return 'm'
+  }
+  // Default to major (major third + perfect fifth)
+  else {
+    return 'M'
+  }
+}
 
 /**
  * Generates a chord progression based on the selected key and scale.
@@ -13,37 +56,43 @@ export function generateChordProgression(progression: string): AppChord[] {
   const compositionStore = useCompositionStore()
   const { key, scaleName } = compositionStore
   const chords = progression.split('-').map((roman) => {
-    const romanData = RomanNumeral.get(roman)
-    if (romanData.empty) {
-      console.warn(`Invalid Roman numeral: ${roman}`)
-      return { name: '', notes: [] } as AppChord
-    }
-
     const scale = generateScale()
     if (!scale) {
       console.warn(`Could not generate scale for ${key} ${scaleName}`)
       return { name: '', notes: [] } as AppChord
     }
 
-    const isMinorScale = scaleName.toLowerCase().includes('minor')
-    const keyInfo = isMinorScale ? Key.minorKey(key) : Key.majorKey(key)
+    const scaleNotes = scale.notes.map(Note.pitchClass)
 
-    if (!keyInfo || keyInfo.empty || !keyInfo.chords) {
-      console.warn(`Could not get key info or chords for ${key} ${scaleName}`)
+    const romanData = RomanNumeral.get(roman)
+    if (romanData.empty) {
+      console.warn(`Invalid Roman numeral: ${roman}`)
       return { name: '', notes: [] } as AppChord
     }
 
-    const chordIndex = romanData.step
-    if (chordIndex >= keyInfo.chords.length) {
-      console.warn(`Roman numeral step ${chordIndex} out of bounds for key chords: ${key} ${scaleName}`)
+    const rootIndex = romanData.step
+    if (rootIndex >= scaleNotes.length) {
+      console.warn(`Roman numeral step ${rootIndex} out of bounds for scale: ${key} ${scaleName}`)
       return { name: '', notes: [] } as AppChord
     }
 
-    const diatonicChordName = keyInfo.chords[chordIndex]
-    const chord = Chord.get(diatonicChordName)
+    let rootNote = scaleNotes[rootIndex]
+
+    if (romanData.acc) {
+      rootNote = Note.transpose(rootNote, romanData.acc + '1')
+    }
+
+    // Determine chord type based on the scale, not just Roman numeral case
+    let chordType = romanData.chordType || ''
+    if (!chordType) {
+      chordType = getChordQualityFromScale(rootNote, scaleNotes)
+    }
+
+    const fullChordName = rootNote + chordType
+    const chord = Chord.get(fullChordName)
 
     if (chord.empty) {
-      console.warn(`Could not get chord for ${diatonicChordName}`)
+      console.warn(`Could not get chord for ${fullChordName}`)
       return { name: '', notes: [] } as AppChord
     }
 
