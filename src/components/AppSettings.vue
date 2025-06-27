@@ -26,7 +26,6 @@ import ChordProgressionBuilder from '@/components/settings/chords/ChordProgressi
 import ChordProgressionDisplay from '@/components/settings/chords/ChordProgressionDisplay.vue'
 import ChordAdherenceSelector from '@/components/settings/chords/ChordAdherenceSelector.vue'
 import RhythmControl from '@/components/settings/rhythm/RhythmControl.vue'
-import RhythmSequencer from '@/components/settings/rhythm/RhythmSequencer.vue'
 
 const chordStore = useChordStore()
 const rhythmStore = useRhythmStore()
@@ -101,7 +100,7 @@ const startEndCollapsed = ref(true)
           <i class="pi pi-chevron-down text-sm ml-auto" :class="{ 'rotate-180': !rhythmCollapsed }"></i>
         </div>
       </template>
-      <RhythmSequencer />
+
       <RhythmControl :disabled="useCustomRhythm" />
       <RestProbabilitySelector :disabled="useCustomRhythm" />
       <Divider />
