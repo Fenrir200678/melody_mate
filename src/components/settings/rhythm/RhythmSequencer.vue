@@ -2,8 +2,10 @@
 import { ref, computed } from 'vue'
 import { useRhythmSelection } from '@/composables/useRhythmSelection'
 import { NOTE_DURATIONS } from '@/ts/consts'
-import Button from 'primevue/button'
-import ToggleSwitch from 'primevue/toggleswitch'
+import RhythmSequencerControls from './RhythmSequencerControls.vue'
+import RhythmNotePalette from './RhythmNotePalette.vue'
+import RhythmSequencerGrid from './RhythmSequencerGrid.vue'
+import RhythmSequencerHelp from './RhythmSequencerHelp.vue'
 
 const { customRhythmSequence, useCustomRhythm, setStepDuration, clearCustomRhythm, toggleCustomRhythm } =
   useRhythmSelection()
@@ -180,154 +182,37 @@ function handleTrashDrop(event: DragEvent) {
 
 <template>
   <div class="flex flex-col gap-6 w-full">
-    <!-- Header Controls -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <label for="useCustomRhythm" class="text-sm font-medium">Custom Rhythm</label>
-        <ToggleSwitch
-          v-model="useCustomRhythm"
-          inputId="useCustomRhythm"
-          @update:modelValue="handleToggleCustomRhythm"
-          class="align-middle"
-        />
-      </div>
-
-      <div class="flex items-center gap-3 sm:gap-2">
-        <!-- Trash Zone -->
-        <div
-          class="flex items-center justify-center w-10 h-10 rounded-lg border-2 border-dashed border-red-400 text-red-400 hover:bg-red-400/10 transition-colors"
-          @dragover="handleTrashDragOver"
-          @drop="handleTrashDrop"
-          title="Drag notes here to delete"
-        >
-          <i class="pi pi-trash text-sm"></i>
-        </div>
-
-        <Button
-          label="Clear All"
-          icon="pi pi-replay"
-          class="p-button-text p-button-sm"
-          @click="handleClearCustomRhythm"
-        />
-      </div>
-    </div>
-
-    <!-- Note Value Palette -->
-    <div class="flex flex-col gap-3">
-      <label class="text-sm font-medium">Note Values</label>
-      <div class="flex gap-3 flex-wrap">
-        <div
-          v-for="noteValue in noteValues"
-          :key="noteValue.name"
-          :class="[
-            'group relative px-4 py-3 rounded-lg cursor-grab active:cursor-grabbing transition-all duration-200 border-2 shadow-sm',
-            selectedNoteValue.duration === noteValue.duration
-              ? `${noteValue.color} border-white text-white shadow-lg scale-105`
-              : `bg-zinc-700 border-zinc-600 text-zinc-300 hover:bg-zinc-600 hover:border-zinc-500 hover:scale-102`
-          ]"
-          draggable="true"
-          @dragstart="handlePaletteDragStart($event, noteValue)"
-          @dragend="handleDragEnd"
-          @click="selectNoteValue(noteValue)"
-        >
-          <div class="flex flex-col items-center gap-1">
-            <span class="text-sm font-bold">{{ noteValue.name }}</span>
-            <div class="text-xs opacity-75">Note</div>
-          </div>
-
-          <!-- Drag indicator -->
-          <div class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <i class="pi pi-arrows-alt text-xs"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Sequencer Grid -->
-    <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium">Rhythm Sequence (16 steps)</label>
-      <div class="bg-zinc-800 rounded-lg p-4 shadow-inner">
-        <!-- Responsive grid: Mobile stacked, Tablet/Desktop with wrap -->
-        <div class="flex flex-col sm:flex-row sm:flex-wrap gap-4 sm:gap-2">
-          <!-- Mobile: Group by 4 beats, Tablet+: Individual beats that can wrap -->
-          <div
-            v-for="(group, groupIndex) in groupedSteps"
-            :key="groupIndex"
-            class="flex flex-col gap-2 sm:flex-row sm:gap-1"
-          >
-            <!-- Beat indicator (only on mobile) -->
-            <div class="flex sm:hidden items-center justify-center text-xs text-zinc-400 font-mono mb-1">
-              Beat {{ groupIndex + 1 }}
-            </div>
-
-            <!-- Steps and numbers container -->
-            <div class="flex flex-col gap-1 sm:contents">
-              <!-- Steps in this beat -->
-              <div class="flex gap-1 justify-between sm:contents">
-                <div
-                  v-for="(step, stepInGroup) in group"
-                  :key="stepInGroup"
-                  class="relative flex flex-col items-center gap-1"
-                >
-                  <!-- Step box -->
-                  <div
-                    :class="[
-                      'relative flex items-center justify-center rounded-lg cursor-pointer border-2 transition-all duration-200 shadow-sm',
-                      'w-12 h-12 sm:w-10 sm:h-10 lg:w-12 lg:h-12',
-                      getStepColor(step, groupIndex * 4 + stepInGroup),
-                      step > 0 && step !== -1 ? 'cursor-grab active:cursor-grabbing' : ''
-                    ]"
-                    :draggable="step > 0 && step !== -1"
-                    @click="handleStepClick(groupIndex * 4 + stepInGroup)"
-                    @dragstart="handleStepDragStart($event, groupIndex * 4 + stepInGroup)"
-                    @dragover="handleStepDragOver($event, groupIndex * 4 + stepInGroup)"
-                    @dragleave="handleStepDragLeave"
-                    @drop="handleStepDrop($event, groupIndex * 4 + stepInGroup)"
-                    @dragend="handleDragEnd"
-                  >
-                    <span class="text-xs font-bold text-white/90 pointer-events-none select-none">
-                      {{ getStepLabel(step) }}
-                    </span>
-
-                    <!-- Beat separator line (large desktop only) -->
-                    <div
-                      v-if="stepInGroup === 3 && groupIndex < 3"
-                      class="hidden xl:block absolute -right-2 top-1/2 transform -translate-y-1/2 w-0.5 h-6 bg-zinc-600"
-                    ></div>
-
-                    <!-- Drag handle for active steps -->
-                    <div
-                      v-if="step > 0 && step !== -1"
-                      class="absolute top-0.5 right-0.5 opacity-0 hover:opacity-100 transition-opacity"
-                    >
-                      <i class="pi pi-arrows-alt text-xs text-white/60"></i>
-                    </div>
-                  </div>
-
-                  <!-- Step number (directly below each step) -->
-                  <div class="text-xs text-zinc-500 font-mono">
-                    {{ (groupIndex * 4 + stepInGroup + 1).toString().padStart(2, '0') }}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Help Text -->
-    <div class="text-xs text-zinc-400 bg-zinc-800/50 rounded-lg p-3 border border-zinc-700">
-      <div class="flex items-start gap-2">
-        <i class="pi pi-info-circle text-sm text-blue-400 mt-0.5 flex-shrink-0"></i>
-        <div class="space-y-1">
-          <p>
-            <strong>Drag & Drop:</strong> Drag note values from the palette to the grid, or move notes within the grid.
-          </p>
-          <p><strong>Click:</strong> Select a note value and click on grid steps to place notes.</p>
-          <p><strong>Delete:</strong> Drag notes to the trash icon or click on placed notes to remove them.</p>
-        </div>
-      </div>
-    </div>
+    <!-- Header Controls ausgelagert -->
+    <RhythmSequencerControls
+      :useCustomRhythm="useCustomRhythm"
+      :handleToggleCustomRhythm="handleToggleCustomRhythm"
+      :handleClearCustomRhythm="handleClearCustomRhythm"
+      :handleTrashDragOver="handleTrashDragOver"
+      :handleTrashDrop="handleTrashDrop"
+    />
+    <!-- Note Value Palette ausgelagert -->
+    <RhythmNotePalette
+      :noteValues="noteValues"
+      :selectedNoteValue="selectedNoteValue"
+      :selectNoteValue="selectNoteValue"
+      :handlePaletteDragStart="handlePaletteDragStart"
+      :handleDragEnd="handleDragEnd"
+    />
+    <!-- Sequencer Grid ausgelagert -->
+    <RhythmSequencerGrid
+      :groupedSteps="groupedSteps"
+      :getStepColor="getStepColor"
+      :getStepLabel="getStepLabel"
+      :dropTargetIndex="dropTargetIndex"
+      :draggedItem="draggedItem"
+      :handleStepClick="handleStepClick"
+      :handleStepDragStart="handleStepDragStart"
+      :handleStepDragOver="handleStepDragOver"
+      :handleStepDragLeave="handleStepDragLeave"
+      :handleStepDrop="handleStepDrop"
+      :handleDragEnd="handleDragEnd"
+    />
+    <!-- Help Text ausgelagert -->
+    <RhythmSequencerHelp />
   </div>
 </template>
