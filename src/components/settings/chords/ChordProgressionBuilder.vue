@@ -1,89 +1,88 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue';
-import { useChordStore } from '@/stores/chord.store';
-import { useCompositionStore } from '@/stores/composition.store';
-import Button from 'primevue/button';
-import SelectButton from 'primevue/selectbutton';
-import Select from 'primevue/select';
-import DiatonicChordPalette from './DiatonicChordPalette.vue';
-import { getAvailableChordProgressions } from '@/services/ChordService';
-import { useToast } from 'primevue/usetoast';
+import { computed, watch } from 'vue'
+import { useChordStore } from '@/stores/chord.store'
+import { useCompositionStore } from '@/stores/composition.store'
+import Button from 'primevue/button'
+import SelectButton from 'primevue/selectbutton'
+import Select from 'primevue/select'
+import DiatonicChordPalette from './DiatonicChordPalette.vue'
+import { getAvailableChordProgressions } from '@/services/ChordService'
+import { useToast } from 'primevue/usetoast'
 
-const props = defineProps<{ disabled: boolean }>();
+const props = defineProps<{ disabled: boolean }>()
 
-const chordStore = useChordStore();
-const compositionStore = useCompositionStore();
-const toast = useToast();
+const chordStore = useChordStore()
+const compositionStore = useCompositionStore()
+const toast = useToast()
 
-const currentProgression = computed(() => chordStore.currentProgression);
+const currentProgression = computed(() => chordStore.currentProgression)
 const selectedProgressionType = computed({
   get: () => chordStore.selectedProgressionType,
-  set: (value: 'custom' | 'predefined') => chordStore.setSelectedProgressionType(value),
-});
+  set: (value: 'custom' | 'predefined') => chordStore.setSelectedProgressionType(value)
+})
 const selectedPredefinedProgressionName = computed({
   get: () => chordStore.selectedPredefinedProgressionName,
-  set: (value: string) => chordStore.setSelectedPredefinedProgressionName(value),
-});
+  set: (value: string) => chordStore.setSelectedPredefinedProgressionName(value)
+})
 
 const progressionTypeOptions = [
   { label: 'Custom', value: 'custom' },
-  { label: 'Predefined', value: 'predefined' },
-];
+  { label: 'Predefined', value: 'predefined' }
+]
 
-const availablePredefinedProgressions = getAvailableChordProgressions();
+const availablePredefinedProgressions = getAvailableChordProgressions()
 
 function removeChord(index: number) {
-  chordStore.removeChordFromProgression(index);
+  chordStore.removeChordFromProgression(index)
 }
 
 function clearAllChords() {
-  chordStore.clearProgression();
+  chordStore.clearProgression()
 }
 
 // Drag and Drop functionality
 const dragStart = (event: DragEvent, index: number) => {
   if (event.dataTransfer) {
-    event.dataTransfer.setData('text/plain', index.toString());
-    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', index.toString())
+    event.dataTransfer.effectAllowed = 'move'
   }
-};
+}
 
 const dragOver = (event: DragEvent) => {
-  event.preventDefault();
+  event.preventDefault()
   if (event.dataTransfer) {
-    event.dataTransfer.dropEffect = 'move';
+    event.dataTransfer.dropEffect = 'move'
   }
-};
+}
 
 const drop = (event: DragEvent, newIndex: number) => {
-  event.preventDefault();
-  const oldIndex = parseInt(event.dataTransfer?.getData('text/plain') || '-1', 10);
+  event.preventDefault()
+  const oldIndex = parseInt(event.dataTransfer?.getData('text/plain') || '-1', 10)
   if (oldIndex !== -1 && oldIndex !== newIndex) {
-    chordStore.reorderProgression(oldIndex, newIndex);
+    chordStore.reorderProgression(oldIndex, newIndex)
   }
-};
+}
 
 const dragEnter = (event: DragEvent) => {
-  event.preventDefault();
-};
+  event.preventDefault()
+}
 
 watch(
   () => [compositionStore.key, compositionStore.scaleName],
   ([newKey, newScaleName], [oldKey, oldScaleName]) => {
     if (chordStore.selectedProgressionType === 'custom' && (newKey !== oldKey || newScaleName !== oldScaleName)) {
       if (chordStore.currentProgression.length > 0) {
-        chordStore.clearProgression();
+        chordStore.clearProgression()
         toast.add({
           severity: 'info',
           summary: 'Progression Reset',
           detail: 'Custom chord progression cleared due to key or scale change.',
-          life: 3000,
-        });
+          life: 3000
+        })
       }
     }
   }
-);
-
+)
 </script>
 
 <template>

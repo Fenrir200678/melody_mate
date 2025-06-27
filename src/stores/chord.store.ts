@@ -1,56 +1,56 @@
-import { defineStore } from 'pinia';
-import type { Chord } from '@/ts/models/Chord';
-import { generateChordProgression } from '@/services/ChordService';
+import { defineStore } from 'pinia'
+import type { Chord } from '@/ts/models/Chord'
+import { generateChordProgression } from '@/services/ChordService'
 
 export const useChordStore = defineStore('chord', {
   state: () => ({
     currentProgression: [] as Chord[],
     chords: [] as Chord[],
     useChords: false,
-    selectedProgressionType: 'custom' as 'custom' | 'predefined',
-    selectedPredefinedProgressionName: 'I-V-vi-IV',
+    selectedProgressionType: 'predefined' as 'custom' | 'predefined',
+    selectedPredefinedProgressionName: 'I-V-vi-IV'
   }),
 
   actions: {
     addChordToProgression(chord: Chord) {
       if (this.currentProgression.length < 8) {
-        this.currentProgression.push(chord);
+        this.currentProgression.push(chord)
       } else {
-        console.warn("Maximum of 8 chords reached in progression.");
+        console.warn('Maximum of 8 chords reached in progression.')
       }
     },
     removeChordFromProgression(index: number) {
-      this.currentProgression.splice(index, 1);
+      this.currentProgression.splice(index, 1)
     },
     reorderProgression(oldIndex: number, newIndex: number) {
-      const [removed] = this.currentProgression.splice(oldIndex, 1);
-      this.currentProgression.splice(newIndex, 0, removed);
+      const [removed] = this.currentProgression.splice(oldIndex, 1)
+      this.currentProgression.splice(newIndex, 0, removed)
     },
     clearProgression() {
-      this.currentProgression = [];
+      this.currentProgression = []
     },
     setChords(chords: Chord[]) {
-      this.chords = chords;
+      this.chords = chords
     },
     setUseChords(use: boolean) {
-      this.useChords = use;
+      this.useChords = use
       if (use && this.selectedProgressionType === 'predefined') {
-        this.loadPredefinedProgression(this.selectedPredefinedProgressionName);
+        this.loadPredefinedProgression(this.selectedPredefinedProgressionName)
       }
     },
     setSelectedProgressionType(type: 'custom' | 'predefined') {
-      this.selectedProgressionType = type;
+      this.selectedProgressionType = type
       if (type === 'predefined') {
-        this.loadPredefinedProgression(this.selectedPredefinedProgressionName);
+        this.loadPredefinedProgression(this.selectedPredefinedProgressionName)
       }
     },
     setSelectedPredefinedProgressionName(name: string) {
-      this.selectedPredefinedProgressionName = name;
-      this.loadPredefinedProgression(name);
+      this.selectedPredefinedProgressionName = name
+      this.loadPredefinedProgression(name)
     },
     loadPredefinedProgression(progressionName: string) {
       // The generateChordProgression function already uses the composition store.
-      this.currentProgression = generateChordProgression(progressionName);
-    },
-  },
-});
+      this.currentProgression = generateChordProgression(progressionName)
+    }
+  }
+})
