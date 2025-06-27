@@ -25,3 +25,6 @@ dist-ssr
 .vercel
 _backup
 .cursor
+.gemini
+HISTORY.MD
+GEMINI.md
