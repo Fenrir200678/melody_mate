@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import Divider from 'primevue/divider'
 import ToggleSwitch from 'primevue/toggleswitch'
+import Panel from 'primevue/panel'
 import { useChordStore } from '@/stores/chord.store'
 
 import KeySelector from '@/components/settings/key_scale/KeySelector.vue'
@@ -19,38 +21,48 @@ import MotifRepetition from '@/components/settings/generation/MotifRepetition.vu
 import StartWithRootNote from '@/components/settings/generation/StartWithRootNote.vue'
 import EndWithRootNote from '@/components/settings/generation/EndWithRootNote.vue'
 import PredefinedMotif from '@/components/settings/generation/PredefinedMotif.vue'
-import ChordProgressionSelector from '@/components/settings/chords/ChordProgressionSelector.vue'
+import ChordProgressionBuilder from '@/components/settings/chords/ChordProgressionBuilder.vue'
 import ChordProgressionDisplay from '@/components/settings/chords/ChordProgressionDisplay.vue'
 import ChordAdherenceSelector from '@/components/settings/chords/ChordAdherenceSelector.vue'
 
 const chordStore = useChordStore()
+
+const keyScaleCollapsed = ref(false)
+const harmonyCollapsed = ref(true)
+const compositionCollapsed = ref(true)
+const rhythmCollapsed = ref(true)
+const generationCollapsed = ref(true)
+
 </script>
 <template>
   <div class="space-y-4 w-full max-w-full">
     <!-- Key & Scale -->
-    <h3 class="text-lg font-semibold flex items-center gap-2">
-      <i class="pi pi-headphones text-sm"></i>
-      Key & Scale
-    </h3>
-    <Divider />
+    <Panel v-model:collapsed="keyScaleCollapsed">
+      <template #header>
+        <div class="flex items-center gap-2 cursor-pointer w-full" @click="keyScaleCollapsed = !keyScaleCollapsed">
+          <i class="pi pi-headphones text-sm"></i>
+          <h3 class="text-lg font-semibold">Key & Scale</h3>
+        </div>
+      </template>
+      <div class="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+        <label class="font-medium block md:w-1/4 text-center md:text-left w-full">Key</label>
+        <KeySelector />
+      </div>
 
-    <div class="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-      <label class="font-medium block md:w-1/4 text-center md:text-left w-full">Key</label>
-      <KeySelector />
-    </div>
-
-    <div class="flex items-center justify-between gap-4">
-      <label class="font-medium">Scale</label>
-      <ScaleSelector />
-    </div>
+      <div class="flex items-center justify-between gap-4">
+        <label class="font-medium">Scale</label>
+        <ScaleSelector />
+      </div>
+    </Panel>
 
     <!-- Harmony -->
-    <div class="mt-8">
-      <h3 class="text-lg font-semibold flex items-center gap-2">
-        <i class="pi pi-sitemap text-sm"></i>
-        Harmony
-      </h3>
-      <Divider />
+    <Panel v-model:collapsed="harmonyCollapsed">
+      <template #header>
+        <div class="flex items-center gap-2 cursor-pointer w-full" @click="harmonyCollapsed = !harmonyCollapsed">
+          <i class="pi pi-sitemap text-sm"></i>
+          <h3 class="text-lg font-semibold">Harmony</h3>
+        </div>
+      </template>
       <div class="space-y-4">
         <div class="flex items-center justify-between gap-4">
           <div class="flex flex-col flex-1 min-w-0">
@@ -66,19 +78,20 @@ const chordStore = useChordStore()
             @update:modelValue="chordStore.setUseChords"
           />
         </div>
-        <ChordProgressionSelector :disabled="!chordStore.useChords" />
+        <ChordProgressionBuilder :disabled="!chordStore.useChords" />
         <ChordProgressionDisplay v-if="chordStore.useChords" />
         <ChordAdherenceSelector :disabled="!chordStore.useChords" />
       </div>
-    </div>
+    </Panel>
 
     <!-- Composition -->
-    <div class="mt-8">
-      <h3 class="text-lg font-semibold flex items-center gap-2">
-        <i class="pi pi-file-edit text-sm"></i>
-        Composition
-      </h3>
-      <Divider />
+    <Panel v-model:collapsed="compositionCollapsed">
+      <template #header>
+        <div class="flex items-center gap-2 cursor-pointer w-full" @click="compositionCollapsed = !compositionCollapsed">
+          <i class="pi pi-file-edit text-sm"></i>
+          <h3 class="text-lg font-semibold">Composition</h3>
+        </div>
+      </template>
       <div class="space-y-4">
         <LengthSelector />
         <!-- BPM and Octave -->
@@ -88,21 +101,27 @@ const chordStore = useChordStore()
         </div>
         <VelocitySelector />
       </div>
-    </div>
+    </Panel>
 
     <!-- Rhythm -->
-    <div class="mt-8">
+    <Panel v-model:collapsed="rhythmCollapsed">
+      <template #header>
+        <div class="flex items-center gap-2 cursor-pointer w-full" @click="rhythmCollapsed = !rhythmCollapsed">
+          <i class="pi pi-sliders-h text-sm"></i>
+          <h3 class="text-lg font-semibold">Rhythm</h3>
+        </div>
+      </template>
       <RhythmControl />
-    </div>
-
-    <Divider />
+    </Panel>
 
     <!-- Generation Options -->
-    <div class="mt-4">
-      <h3 class="text-lg font-semibold flex items-center gap-2 mb-2">
-        <i class="pi pi-cog text-sm"></i>
-        Generation Options
-      </h3>
+    <Panel v-model:collapsed="generationCollapsed">
+      <template #header>
+        <div class="flex items-center gap-2 cursor-pointer w-full" @click="generationCollapsed = !generationCollapsed">
+          <i class="pi pi-cog text-sm"></i>
+          <h3 class="text-lg font-semibold">Generation Options</h3>
+        </div>
+      </template>
       <p class="text-xs text-zinc-300 leading-relaxed mb-4">
         These options are used to control the generation of the melody. You can change them to your liking, but the
         default values are usually a good starting point. Melodies are generated using
@@ -114,7 +133,6 @@ const chordStore = useChordStore()
         >
         algorithm if you don't choose the N-Gram option.
       </p>
-      <Divider />
       <div class="space-y-4">
         <RestProbabilitySelector />
         <Divider />
@@ -132,6 +150,6 @@ const chordStore = useChordStore()
         <Divider />
         <PredefinedMotif />
       </div>
-    </div>
+    </Panel>
   </div>
 </template>

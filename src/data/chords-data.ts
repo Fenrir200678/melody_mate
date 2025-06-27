@@ -1,5 +1,3 @@
-
-
 export const COMMON_CHORD_PROGRESSIONS: Record<string, string[]> = {
   'I-V-vi-IV': ['I', 'V', 'vi', 'IV'],
   'I-IV-V-I': ['I', 'IV', 'V', 'I'],
