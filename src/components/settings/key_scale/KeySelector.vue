@@ -6,7 +6,7 @@ import Button from 'primevue/button'
 
 const compositionStore = useCompositionStore()
 const availableKeys = ref<{ name: string; value: string }[]>(getAvailableKeys())
-const selectedKey = ref<string | null>(compositionStore.key)
+const selectedKey = ref<string | null>(compositionStore.key ?? null)
 
 function onKeyChange(value: string) {
   if (value) {

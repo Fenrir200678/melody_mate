@@ -15,5 +15,13 @@ export default defineConfigWithVueTs(
 
   pluginVue.configs['flat/essential'],
   vueTsConfigs.recommended,
-  skipFormatting
+  skipFormatting,
+
+  {
+    name: 'app/type-safety-rules',
+    rules: {
+      // Allow any types for external libraries that are not properly typed (e.g., midi-writer-js)
+      '@typescript-eslint/no-explicit-any': 'off'
+    }
+  }
 )

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
-import { useMelodyStore } from '@/stores/melody.store'
+import { useMelodyGeneration } from '@/composables/useMelodyGeneration'
 import { usePlayerStore } from '@/stores/player.store'
 import { generalMidiInstruments, type GeneralMidiInstrument } from '@/data/general-midi-instruments'
 
@@ -14,17 +14,16 @@ onMounted(async () => {
   await import('html-midi-player')
 })
 
-const melodyStore = useMelodyStore()
+const { melody, midiUrl, generateMidiFile, downloadMidiFile } = useMelodyGeneration()
 const playerStore = usePlayerStore()
 
 const instruments = ref<GeneralMidiInstrument[]>(generalMidiInstruments)
 const selectedInstrument = ref<GeneralMidiInstrument['items'][number] | null>(null)
-const canPlay = computed(() => melodyStore.melody?.notes && melodyStore.melody.notes.length > 0)
-const midiUrl = computed(() => melodyStore.midiUrl)
+const canPlay = computed(() => melody.value?.notes && melody.value.notes.length > 0)
 
 async function changeInstrument(event: SelectChangeEvent) {
   playerStore.setSelectedInstrument(event.value.value as number)
-  await melodyStore.generateMidiFile()
+  await generateMidiFile()
 }
 
 onMounted(() => {
@@ -66,7 +65,7 @@ onMounted(() => {
         class="w-full midi-player"
         :src="midiUrl"
         sound-font
-        loop
+        :loop="playerStore.loop"
         @start="playerStore.setIsPlaying(true)"
         @stop="playerStore.setIsPlaying(false)"
       />
@@ -82,7 +81,7 @@ onMounted(() => {
         label="Download MIDI"
         icon="pi pi-download"
         :disabled="!canPlay"
-        @click="melodyStore.downloadMidiFile()"
+        @click="downloadMidiFile()"
         class="w-full"
         severity="success"
         size="large"

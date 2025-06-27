@@ -77,7 +77,7 @@ function handleDynamicChange(value: string) {
 
     <div class="flex items-center gap-4 w-full md:w-1/2">
       <Select
-        :modelValue="playerStore.selectedDynamic.name"
+        :modelValue="playerStore.selectedDynamic?.name ?? ''"
         :options="dynamics"
         class="w-full"
         fluid

@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import type { Chord } from '@/ts/models/Chord'
-import { generateChordProgression } from '@/services/ChordService'
 import { saveState, loadState } from '@/utils/localStorage'
 
 const LOCAL_STORAGE_KEY = 'chordStore'
@@ -21,29 +20,47 @@ const defaultState: ChordStoreState = {
   selectedPredefinedProgressionName: 'I-V-vi-IV'
 }
 
+/**
+ * Pure State Management Store for Chords
+ * Business Logic is handled in useChordProgression composable
+ */
 export const useChordStore = defineStore('chord', {
   state: (): ChordStoreState => ({
     ...((loadState(LOCAL_STORAGE_KEY) as ChordStoreState) || defaultState)
   }),
 
   actions: {
+    /**
+     * Set the current chord progression
+     */
+    setCurrentProgression(progression: Chord[]) {
+      this.currentProgression = progression
+      saveState(LOCAL_STORAGE_KEY, this.$state)
+    },
+
+    /**
+     * Add chord to progression
+     */
     addChordToProgression(chord: Chord) {
-      // Ensure currentProgression is defined before accessing it
-      if (this.currentProgression && this.currentProgression.length < 8) {
+      if (this.currentProgression) {
         this.currentProgression.push(chord)
         saveState(LOCAL_STORAGE_KEY, this.$state)
-      } else if (this.currentProgression) {
-        console.warn('Maximum of 8 chords reached in progression.')
-      } else {
-        console.error('currentProgression is undefined.')
       }
     },
+
+    /**
+     * Remove chord from progression by index
+     */
     removeChordFromProgression(index: number) {
       if (this.currentProgression) {
         this.currentProgression.splice(index, 1)
         saveState(LOCAL_STORAGE_KEY, this.$state)
       }
     },
+
+    /**
+     * Reorder progression chords
+     */
     reorderProgression(oldIndex: number, newIndex: number) {
       if (this.currentProgression) {
         const [removed] = this.currentProgression.splice(oldIndex, 1)
@@ -51,38 +68,44 @@ export const useChordStore = defineStore('chord', {
         saveState(LOCAL_STORAGE_KEY, this.$state)
       }
     },
+
+    /**
+     * Clear progression
+     */
     clearProgression() {
       this.currentProgression = []
       saveState(LOCAL_STORAGE_KEY, this.$state)
     },
+
+    /**
+     * Set available chords
+     */
     setChords(chords: Chord[]) {
       this.chords = chords
       saveState(LOCAL_STORAGE_KEY, this.$state)
     },
+
+    /**
+     * Set use chords flag
+     */
     setUseChords(use: boolean) {
       this.useChords = use
-      if (use && this.selectedProgressionType === 'predefined' && this.selectedPredefinedProgressionName) {
-        this.loadPredefinedProgression(this.selectedPredefinedProgressionName)
-      }
       saveState(LOCAL_STORAGE_KEY, this.$state)
     },
+
+    /**
+     * Set selected progression type
+     */
     setSelectedProgressionType(type: 'custom' | 'predefined') {
       this.selectedProgressionType = type
-      if (type === 'predefined' && this.selectedPredefinedProgressionName) {
-        this.loadPredefinedProgression(this.selectedPredefinedProgressionName)
-      }
       saveState(LOCAL_STORAGE_KEY, this.$state)
     },
+
+    /**
+     * Set selected predefined progression name
+     */
     setSelectedPredefinedProgressionName(name: string) {
       this.selectedPredefinedProgressionName = name
-      this.loadPredefinedProgression(name)
-      saveState(LOCAL_STORAGE_KEY, this.$state)
-    },
-    loadPredefinedProgression(progressionName: string) {
-      // The generateChordProgression function already uses the composition store.
-      const newChords = generateChordProgression(progressionName)
-      this.currentProgression = newChords
-      this.chords = newChords
       saveState(LOCAL_STORAGE_KEY, this.$state)
     }
   }

@@ -1,19 +1,21 @@
 import { defineStore } from 'pinia'
-import { useMelodyStore } from './melody.store'
 import { saveState, loadState } from '@/utils/localStorage'
 
 const LOCAL_STORAGE_KEY = 'compositionStore'
 
+/**
+ * Pure State Management Store for Composition Settings
+ */
 export const useCompositionStore = defineStore('composition', {
   state: () => ({
-    ...loadState(LOCAL_STORAGE_KEY) || {
+    ...(loadState(LOCAL_STORAGE_KEY) || {
       scaleName: 'minor',
       key: 'A',
       bars: 4,
       lastBars: 4,
       minOctave: 3,
       maxOctave: 4
-    }
+    })
   }),
 
   actions: {
@@ -32,13 +34,13 @@ export const useCompositionStore = defineStore('composition', {
     },
     setMinOctave(octave: number) {
       this.minOctave = octave
-      useMelodyStore().generateMidiFile()
       saveState(LOCAL_STORAGE_KEY, this.$state)
+      // Note: MIDI regeneration should be handled in components via composables
     },
     setMaxOctave(octave: number) {
       this.maxOctave = octave
-      useMelodyStore().generateMidiFile()
       saveState(LOCAL_STORAGE_KEY, this.$state)
+      // Note: MIDI regeneration should be handled in components via composables
     }
   }
 })

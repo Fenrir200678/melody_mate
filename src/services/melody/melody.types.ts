@@ -1,40 +1,6 @@
 import type { AppScale, AppNote } from '@/ts/models'
 import type { MarkovTable } from '@/utils/markov'
-import type { AnyRhythm } from '@/ts/types/rhythm.types'
-
-/**
- * Options for generating a melody.
- * These are the primary settings provided by the user/client.
- */
-export type MelodyGenerationOptions = {
-  scale: AppScale
-  rhythm: AnyRhythm
-  bars: number
-  useMotifRepetition: boolean
-  motifRepetitionPattern: string
-  useRandomMotifPattern: boolean
-  useNGrams: boolean
-  useFixedVelocity: boolean
-  fixedVelocity: number
-  startWithRootNote?: boolean
-  endWithRootNote?: boolean
-  restProbability?: number
-  n?: number
-  useMotifTrainingData?: boolean
-}
-
-/**
- * Options specifically for the note generation step.
- * This is a subset of the main generation options.
- */
-export type NoteGenerationOptions = {
-  useFixedVelocity: boolean
-  fixedVelocity: number
-  startWithRootNote?: boolean
-  endWithRootNote?: boolean
-  restProbability?: number
-  n?: number
-}
+import type { UnifiedRhythm } from '@/ts/types/rhythm.types'
 
 /**
  * The internal context object for melody generation.
@@ -43,11 +9,10 @@ export type NoteGenerationOptions = {
  */
 export type MelodyGenerationContext = {
   scale: AppScale
-  rhythm: AnyRhythm
   markovTable: MarkovTable
   totalSteps: number
   stepsPerBar: number
-  noteSteps: number[]
+  unifiedRhythm: UnifiedRhythm
   minOctave: number
   maxOctave: number
   subdivision: string

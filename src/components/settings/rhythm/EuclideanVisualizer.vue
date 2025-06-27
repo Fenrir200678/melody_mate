@@ -10,10 +10,10 @@ const pulses = computed(() => {
   return isEuclideanRhythm(rhythm.value) ? rhythm.value.pulses : 0
 })
 const steps = computed(() => {
-  return isEuclideanRhythm(rhythm.value) ? (rhythm.value.pattern.pattern?.length ?? 0) : 0
+  return isEuclideanRhythm(rhythm.value) ? (rhythm.value.pattern.length ?? 0) : 0
 })
 const euclideanPattern = computed(() => {
-  return isEuclideanRhythm(rhythm.value) ? (rhythm.value.pattern.pattern ?? []) : []
+  return isEuclideanRhythm(rhythm.value) ? (rhythm.value.pattern ?? []) : []
 })
 
 // Canvas reference

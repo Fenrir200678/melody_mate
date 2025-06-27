@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import { computed, watch, onMounted } from 'vue'
 import { useRhythmStore } from '@/stores/rhythm.store'
-import { useCompositionStore } from '@/stores/composition.store'
+
 import { WEIGHTED_RHYTHMS } from '@/data/weighted_rhythms'
 import { RHYTHM_CATEGORIES } from '@/ts/consts'
 import type { WeightedRhythm, RhythmCategory } from '@/ts/types/rhythm.types'
+import { useRhythmSelection } from '@/composables/useRhythmSelection'
 
 import Listbox from 'primevue/listbox'
 import Button from 'primevue/button'
+import Checkbox from 'primevue/checkbox'
 
 const props = defineProps<{ rhythmTabSelected: boolean }>()
 const rhythmStore = useRhythmStore()
-const compositionStore = useCompositionStore()
+
+const { setDefaultRhythm, setRhythmCategory, setUseRandomRhythm } = useRhythmSelection()
 
 const categoryOptions = Object.entries(RHYTHM_CATEGORIES).map(([value, label]) => ({
   value: value as RhythmCategory,
@@ -23,7 +26,7 @@ const filteredRhythms = computed(() =>
 )
 
 function handleCategoryChange(category: RhythmCategory) {
-  rhythmStore.setRhythmCategory(category)
+  setRhythmCategory(category)
 }
 
 function handleRhythmChange(rhythm: WeightedRhythm) {
@@ -32,22 +35,26 @@ function handleRhythmChange(rhythm: WeightedRhythm) {
 }
 
 function handleUseRandomRhythmChange(use: boolean) {
-  rhythmStore.setUseRandomRhythm(use)
+  setUseRandomRhythm(use)
+}
+
+function restoreLastBars() {
+  // Set default rhythm for current category
+  setDefaultRhythm(rhythmStore.rhythmCategory)
 }
 
 watch(
   () => props.rhythmTabSelected,
   (rhythmTabSelected, prevRhythmTabSelected) => {
     if (rhythmTabSelected && !prevRhythmTabSelected && !rhythmStore.rhythm) {
-      rhythmStore.setDefaultRhythm()
-      compositionStore.setBars(compositionStore.lastBars)
+      restoreLastBars()
     }
   }
 )
 
 onMounted(() => {
   if (props.rhythmTabSelected) {
-    rhythmStore.setDefaultRhythm()
+    restoreLastBars()
   }
 })
 </script>

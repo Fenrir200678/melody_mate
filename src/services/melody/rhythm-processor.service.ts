@@ -1,4 +1,3 @@
-import type { RhythmPattern } from '@/ts/models'
 import { STEPS_PER_16N, STEPS_PER_32N, STEPS_PER_4N, STEPS_PER_8N } from '@/ts/consts'
 
 /**
@@ -10,7 +9,7 @@ import { STEPS_PER_16N, STEPS_PER_32N, STEPS_PER_4N, STEPS_PER_8N } from '@/ts/c
  * @param rhythm - The rhythm pattern to normalize.
  * @returns The normalized rhythm pattern.
  */
-export function normalizeRhythm(rhythm: RhythmPattern): RhythmPattern {
+export function normalizeRhythm(rhythm: any): any {
   if (rhythm.pattern && rhythm.pattern.length > 0) {
     return { ...rhythm, subdivision: rhythm.subdivision || '16n' }
   }

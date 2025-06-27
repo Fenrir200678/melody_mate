@@ -21,7 +21,7 @@ const value = computed({
     </div>
     <div class="flex items-center gap-4 w-full mt-2">
       <Slider id="rest-probability-slider" class="w-full" v-model="value" :min="0" :max="0.75" :step="0.05" />
-      <span class="w-10 text-right text-xs tabular-nums">{{ (value * 100).toFixed(0) }}%</span>
+      <span class="w-10 text-right text-xs tabular-nums">{{ ((value ?? 0) * 100).toFixed(0) }}%</span>
     </div>
   </div>
 </template>

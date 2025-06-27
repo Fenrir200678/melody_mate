@@ -4,6 +4,8 @@ import Divider from 'primevue/divider'
 import ToggleSwitch from 'primevue/toggleswitch'
 import Panel from 'primevue/panel'
 import { useChordStore } from '@/stores/chord.store'
+import { useRhythmStore } from '@/stores/rhythm.store'
+import { storeToRefs } from 'pinia'
 
 import KeySelector from '@/components/settings/key_scale/KeySelector.vue'
 import ScaleSelector from '@/components/settings/key_scale/ScaleSelector.vue'
@@ -24,8 +26,11 @@ import ChordProgressionBuilder from '@/components/settings/chords/ChordProgressi
 import ChordProgressionDisplay from '@/components/settings/chords/ChordProgressionDisplay.vue'
 import ChordAdherenceSelector from '@/components/settings/chords/ChordAdherenceSelector.vue'
 import RhythmControl from '@/components/settings/rhythm/RhythmControl.vue'
+import RhythmSequencer from '@/components/settings/rhythm/RhythmSequencer.vue'
 
 const chordStore = useChordStore()
+const rhythmStore = useRhythmStore()
+const { useCustomRhythm } = storeToRefs(rhythmStore)
 
 const keyScaleCollapsed = ref(false)
 const harmonyCollapsed = ref(true)
@@ -96,10 +101,11 @@ const startEndCollapsed = ref(true)
           <i class="pi pi-chevron-down text-sm ml-auto" :class="{ 'rotate-180': !rhythmCollapsed }"></i>
         </div>
       </template>
-      <RhythmControl />
-      <RestProbabilitySelector />
+      <RhythmSequencer />
+      <RhythmControl :disabled="useCustomRhythm" />
+      <RestProbabilitySelector :disabled="useCustomRhythm" />
       <Divider />
-      <RhythmicLicksSelector />
+      <RhythmicLicksSelector :disabled="useCustomRhythm" />
     </Panel>
 
     <!-- Composition -->

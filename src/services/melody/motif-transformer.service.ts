@@ -1,5 +1,5 @@
-import type { AppNote } from '@/ts/models';
-import { Note } from 'tonal';
+import type { AppNote } from '@/ts/models'
+import { Note } from 'tonal'
 
 /**
  * Transposes a given melody by a specified interval.
@@ -8,18 +8,18 @@ import { Note } from 'tonal';
  * @returns A new array of AppNote objects with transposed pitches.
  */
 export function transposeMelody(notes: AppNote[], interval: string): AppNote[] {
-  return notes.map(note => {
+  return notes.map((note) => {
     if (note.pitch === null) {
-      return note; // Rests remain rests
+      return note // Rests remain rests
     }
     try {
-      const transposedPitch = Note.transpose(note.pitch, interval);
-      return { ...note, pitch: transposedPitch };
+      const transposedPitch = Note.transpose(note.pitch, interval)
+      return { ...note, pitch: transposedPitch }
     } catch (error) {
-      console.warn(`Could not transpose note ${note.pitch} by interval ${interval}:`, error);
-      return note; // Return original note if transposition fails
+      console.warn(`Could not transpose note ${note.pitch} by interval ${interval}:`, error)
+      return note // Return original note if transposition fails
     }
-  });
+  })
 }
 
 /**
@@ -31,56 +31,56 @@ export function transposeMelody(notes: AppNote[], interval: string): AppNote[] {
  */
 export function transposeMelodyDiatonically(notes: AppNote[], scaleNotes: readonly string[], steps: number): AppNote[] {
   if (scaleNotes.length === 0) {
-    console.warn('Cannot transpose diatonically with an empty scale.');
-    return notes;
+    console.warn('Cannot transpose diatonically with an empty scale.')
+    return notes
   }
 
-  const scaleMidiValues = scaleNotes.map(pc => Note.midi(`${pc}4`)); // Use a reference octave (e.g., 4) for pitch classes
+  const scaleMidiValues = scaleNotes.map((pc) => Note.midi(`${pc}4`)) // Use a reference octave (e.g., 4) for pitch classes
 
-  return notes.map(note => {
+  return notes.map((note) => {
     if (note.pitch === null) {
-      return note; // Rests remain rests
+      return note // Rests remain rests
     }
 
-    const currentMidi = Note.midi(note.pitch);
+    const currentMidi = Note.midi(note.pitch)
     if (currentMidi === null) {
-      console.warn(`Invalid note pitch for MIDI conversion: ${note.pitch}. Cannot transpose diatonically.`);
-      return note; // Return original note if MIDI conversion fails
+      console.warn(`Invalid note pitch for MIDI conversion: ${note.pitch}. Cannot transpose diatonically.`)
+      return note // Return original note if MIDI conversion fails
     }
 
-    const pitchClass = Note.pitchClass(note.pitch);
-    const currentOctave = Note.octave(note.pitch);
+    const pitchClass = Note.pitchClass(note.pitch)
+    const currentOctave = Note.octave(note.pitch)
 
-    const baseScaleIndex = scaleNotes.indexOf(pitchClass);
+    const baseScaleIndex = scaleNotes.indexOf(pitchClass)
     if (baseScaleIndex === -1) {
-      console.warn(`Note ${pitchClass} not found in scale. Cannot transpose diatonically.`);
-      return note; // Return original note if not in scale
+      console.warn(`Note ${pitchClass} not found in scale. Cannot transpose diatonically.`)
+      return note // Return original note if not in scale
     }
 
     // Calculate the target index in the scale, considering wrapping
-    let targetScaleIndex = baseScaleIndex + steps;
-    let octaveShift = 0;
+    let targetScaleIndex = baseScaleIndex + steps
+    let octaveShift = 0
 
     while (targetScaleIndex >= scaleNotes.length) {
-      targetScaleIndex -= scaleNotes.length;
-      octaveShift++;
+      targetScaleIndex -= scaleNotes.length
+      octaveShift++
     }
     while (targetScaleIndex < 0) {
-      targetScaleIndex += scaleNotes.length;
-      octaveShift--;
+      targetScaleIndex += scaleNotes.length
+      octaveShift--
     }
 
     // Get the MIDI value of the new pitch class in the reference octave
-    const newPitchClassMidi = scaleMidiValues[targetScaleIndex];
-
+    const newPitchClassMidi = scaleMidiValues[targetScaleIndex]
+    if (newPitchClassMidi == null || currentOctave == null) {
+      return note
+    }
     // Calculate the new MIDI value by adjusting for the octave shift
-    const transposedMidi = newPitchClassMidi + (octaveShift * 12) + (currentOctave - 4) * 12; // Adjust for original octave
-
+    const transposedMidi = newPitchClassMidi + octaveShift * 12 + (currentOctave - 4) * 12 // Adjust for original octave
     // Ensure the transposed MIDI note is within a reasonable range (e.g., MIDI 0-127)
-    const clampedMidi = Math.max(0, Math.min(127, transposedMidi));
-
-    return { ...note, pitch: Note.fromMidi(clampedMidi) };
-  });
+    const clampedMidi = Math.max(0, Math.min(127, transposedMidi))
+    return { ...note, pitch: Note.fromMidi(clampedMidi) }
+  })
 }
 
 /**
@@ -90,41 +90,41 @@ export function transposeMelodyDiatonically(notes: AppNote[], scaleNotes: readon
  */
 export function invertMelody(notes: AppNote[]): AppNote[] {
   if (notes.length === 0 || notes[0].pitch === null) {
-    return notes; // Cannot invert an empty melody or a melody starting with a rest
+    return notes // Cannot invert an empty melody or a melody starting with a rest
   }
 
-  const firstNoteMidi = Note.midi(notes[0].pitch as string);
+  const firstNoteMidi = Note.midi(notes[0].pitch as string)
   if (firstNoteMidi === null) {
-    return notes; // Cannot invert if the first note is invalid
+    return notes // Cannot invert if the first note is invalid
   }
 
-  const invertedNotes: AppNote[] = [];
-  notes.forEach(note => {
+  const invertedNotes: AppNote[] = []
+  notes.forEach((note) => {
     if (note.pitch === null) {
-      invertedNotes.push(note);
-      return;
+      invertedNotes.push(note)
+      return
     }
 
-    const currentNoteMidi = Note.midi(note.pitch);
+    const currentNoteMidi = Note.midi(note.pitch)
     if (currentNoteMidi === null) {
-      invertedNotes.push(note);
-      return;
+      invertedNotes.push(note)
+      return
     }
 
     // Calculate the interval from the first note to the current note
-    const intervalSemitones = currentNoteMidi - firstNoteMidi;
+    const intervalSemitones = currentNoteMidi - firstNoteMidi
 
     // Invert the interval (e.g., +5 becomes -5)
-    const invertedSemitones = -intervalSemitones;
+    const invertedSemitones = -intervalSemitones
 
     // Apply the inverted interval to the first note
-    const invertedMidi = firstNoteMidi + invertedSemitones;
+    const invertedMidi = firstNoteMidi + invertedSemitones
 
     // Ensure the inverted MIDI note is within a reasonable range (e.g., MIDI 0-127)
-    const clampedMidi = Math.max(0, Math.min(127, invertedMidi));
+    const clampedMidi = Math.max(0, Math.min(127, invertedMidi))
 
-    invertedNotes.push({ ...note, pitch: Note.fromMidi(clampedMidi) });
-  });
+    invertedNotes.push({ ...note, pitch: Note.fromMidi(clampedMidi) })
+  })
 
-  return invertedNotes;
+  return invertedNotes
 }

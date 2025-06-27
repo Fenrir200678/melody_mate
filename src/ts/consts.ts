@@ -1,5 +1,15 @@
 import type { ScaleIntervals } from '@/ts/types/scale.types'
 
+export const SEQUENCER_STEPS_PER_BAR = 16
+
+export const NOTE_DURATIONS = {
+  WHOLE: 1,
+  HALF: 0.5,
+  QUARTER: 0.25,
+  EIGHTH: 0.125,
+  SIXTEENTH: 0.0625
+} as const
+
 export const instrumentOptions = {
   default: 'Klassischer Synth',
   fm: 'FM Synth',

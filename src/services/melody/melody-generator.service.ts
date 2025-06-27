@@ -1,185 +1,31 @@
-import type { Melody, AppNote } from '@/ts/models'
-import { buildMarkovTable } from '@/utils/markov'
-import type { MelodyGenerationContext, NoteGenerationResult } from './melody.types'
-import { createTrainingData } from './training-data.service'
-import { normalizeRhythm, extractNoteSteps } from './rhythm-processor.service'
-import { getStepsPerBar } from './duration.service'
-import { generateNotesForSteps } from './note-generator.service'
-import { getRandomMotifPattern } from './motif.service'
-import { injectRhythmicLicks } from './rhythm-lick.service';
-import { transposeMelody, invertMelody, transposeMelodyDiatonically } from './motif-transformer.service';
-import { mapMelodyToScale } from '@/utils/scales';
-import { useCompositionStore } from '@/stores/composition.store'
-import { useGenerationStore } from '@/stores/generation.store'
-import { useRhythmStore } from '@/stores/rhythm.store'
+import type { Melody } from '@/ts/models'
+import { MelodyOrchestrator } from './core/MelodyOrchestrator.service'
 
-import { generateScale } from '../ScaleService'
-import type { AnyRhythm } from '@/ts/types/rhythm.types'
+// Create singleton instance of MelodyOrchestrator
+const melodyOrchestrator = new MelodyOrchestrator()
 
 /**
- * Prepares the generation context object from the current store state.
- * @returns The fully populated melody generation context, or null if essential data is missing.
- */
-function prepareGenerationContext(): MelodyGenerationContext | null {
-  const compositionStore = useCompositionStore()
-  const generationStore = useGenerationStore()
-  const rhythmStore = useRhythmStore()
-
-  const { bars, minOctave, maxOctave } = compositionStore
-  const { useNGrams, nGramLength, useMotifTrainingData, motifRepetitionPattern, useRandomMotifPattern, useRhythmicLicks, rhythmicLickFrequency } =
-    generationStore
-  const { rhythm } = rhythmStore
-
-  if (!rhythm) return null
-
-  const scale = generateScale()
-  if (!scale) return null
-
-  // Normalize the rhythm pattern while preserving the other rhythm properties.
-  const normalizedPattern = normalizeRhythm(rhythm.pattern)
-  const normalizedRhythm = { ...rhythm, pattern: normalizedPattern } as AnyRhythm
-
-  const trainingData = createTrainingData(scale, useMotifTrainingData)
-  const markovN = useNGrams ? nGramLength : 1
-  const markovTable = buildMarkovTable(trainingData, markovN)
-
-  const subdivision = normalizedRhythm.pattern.subdivision!
-  const stepsPerBar = getStepsPerBar(subdivision)
-  const totalSteps = bars * stepsPerBar
-  let noteSteps = extractNoteSteps(normalizedRhythm.pattern.pattern!, totalSteps)
-
-  if (useRhythmicLicks) {
-    noteSteps = injectRhythmicLicks(noteSteps, totalSteps, rhythmicLickFrequency);
-  }
-
-  return {
-    scale,
-    rhythm: normalizedRhythm,
-    markovTable,
-    totalSteps,
-    stepsPerBar,
-    noteSteps,
-    minOctave,
-    maxOctave,
-    subdivision,
-    n: markovN,
-    motifRepetitionPattern,
-    useRandomMotifPattern
-  }
-}
-
-/**
- * Generates a standard melody without motif repetition.
- * @param context - The melody generation context.
+ * Main service for generating complete melodies using the new modular architecture.
+ * This function replaces the old monolithic melody generation logic.
  * @returns The generated melody.
  */
-function generateStandardMelody(context: MelodyGenerationContext): Melody {
-  if (context.noteSteps.length === 0) return { notes: [] }
-
-  const result = generateNotesForSteps(context)
-  return {
-    notes: result.notes
+export async function _generateMelody(): Promise<Melody> {
+  const result = await melodyOrchestrator.generateMelody()
+  if (result.success) {
+    return result.data
   }
+  throw new Error('Failed to generate melody')
 }
 
 /**
- * Generates a melody based on a randomly selected 4-bar motif pattern.
- * The pattern (e.g., 'ABAB', 'AABC') determines the repetition structure.
- * @param context - The melody generation context.
- * @returns The generated melody.
+ * Legacy wrapper for the new melody generation system
+ * @deprecated Use MelodyOrchestrator directly for better async support
  */
-function generateMotifBasedMelody(context: MelodyGenerationContext): Melody {
-  const { noteSteps, stepsPerBar, scale } = context
-  const { useCallAndResponse } = useGenerationStore();
-  const pattern = context.useRandomMotifPattern ? getRandomMotifPattern() : context.motifRepetitionPattern
-  const generatedBars = new Map<string, NoteGenerationResult>()
-  const melodyNotes: AppNote[] = []
-  let lastPitch: string | undefined
-
-  for (let i = 0; i < 4; i++) {
-    const patternChar = pattern[i]
-    let barResult: NoteGenerationResult | undefined = generatedBars.get(patternChar)
-
-    if (barResult) {
-      // If this bar has been generated before (repetition)
-      if (useCallAndResponse) {
-        // Apply a transformation for call and response
-        let transformedNotes = barResult.notes;
-        const newLastPitch = barResult.lastPitch;
-
-        // Choose a random transformation type and interval
-        const transformationType = Math.random();
-
-        if (transformationType < 0.5) { // Diatonic Transposition
-          const steps = Math.floor(Math.random() * 5) - 2; // -2, -1, 0, 1, 2 scale steps
-          transformedNotes = transposeMelodyDiatonically(transformedNotes, scale.notes, steps);
-        } else if (transformationType < 0.75) { // Chromatic Transposition (minor 2nd, major 2nd, etc.)
-          const intervals = ['2m', '2M', '3m', '3M', '-2m', '-2M', '-3m', '-3M'];
-          const randomInterval = intervals[Math.floor(Math.random() * intervals.length)];
-          transformedNotes = transposeMelody(transformedNotes, randomInterval);
-        } else { // Inversion
-          transformedNotes = invertMelody(transformedNotes);
-        }
-
-        // Ensure transformed notes are within the current scale
-        transformedNotes = mapMelodyToScale(transformedNotes, scale.notes);
-
-        // Update barResult with transformed notes and re-evaluate lastPitch
-        barResult = { notes: transformedNotes, lastPitch: newLastPitch };
-      }
-    } else {
-      // If this is a new bar, generate it
-      const barStartStep = i * stepsPerBar
-      const barEndStep = barStartStep + stepsPerBar
-      const barNoteSteps = noteSteps.filter((step) => step >= barStartStep && step < barEndStep)
-
-      // Only generate notes if there are steps in the bar
-      if (barNoteSteps.length > 0) {
-        const barContext: MelodyGenerationContext = {
-          ...context,
-          noteSteps: barNoteSteps,
-          totalSteps: barEndStep
-        }
-        barResult = generateNotesForSteps(barContext, lastPitch)
-      } else {
-        // Create an empty result for empty bars to cache them
-        barResult = { notes: [], lastPitch: lastPitch || context.scale.notes[0] }
-      }
-      generatedBars.set(patternChar, barResult)
-    }
-
-    if (barResult && barResult.notes.length > 0) {
-      melodyNotes.push(...barResult.notes)
-      lastPitch = barResult.lastPitch
-    }
-  }
-
-  return { notes: melodyNotes }
+export async function generateMelodyAsync(): Promise<Melody> {
+  return melodyOrchestrator.generateMelodyLegacy()
 }
 
 /**
- * Main service for generating complete melodies using all melody generation components.
+ * Export the orchestrator for direct use in components
  */
-
-/**
- * Generates a melody based on the given scale, rhythm, and parameters.
- * @returns The generated melody.
- */
-export function _generateMelody(): Melody {
-  const context = prepareGenerationContext()
-  if (!context) return { notes: [] }
-
-  const { scale, rhythm } = context
-  const { bars } = useCompositionStore()
-  const { useMotifRepetition } = useGenerationStore()
-
-  if (!scale.notes.length || !rhythm.pattern.pattern || !rhythm.pattern.pattern.length) {
-    return { notes: [] }
-  }
-
-  if (useMotifRepetition && bars >= 4) {
-    return generateMotifBasedMelody(context)
-  }
-
-  return generateStandardMelody(context)
-}
+export { MelodyOrchestrator }

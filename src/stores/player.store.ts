@@ -1,16 +1,16 @@
 import { defineStore } from 'pinia'
-import { useMelodyStore } from './melody.store'
 import { dynamics } from '@/data/dynamics-data'
 import type { Dynamic } from '@/ts/types/dynamics.types'
 import { saveState, loadState } from '@/utils/localStorage'
 
 const LOCAL_STORAGE_KEY = 'playerStore'
 
-const melodyStore = useMelodyStore()
-
+/**
+ * Pure State Management Store for Player Settings
+ */
 export const usePlayerStore = defineStore('player', {
   state: () => ({
-    ...loadState(LOCAL_STORAGE_KEY) || {
+    ...(loadState(LOCAL_STORAGE_KEY) || {
       isPlaying: false,
       loop: true,
       selectedInstrument: 99,
@@ -19,7 +19,7 @@ export const usePlayerStore = defineStore('player', {
       useDynamics: true,
       selectedDynamic: dynamics[4] as Dynamic,
       bpm: 120
-    }
+    })
   }),
 
   actions: {
@@ -30,6 +30,7 @@ export const usePlayerStore = defineStore('player', {
     setLoop(loop: boolean) {
       this.loop = loop
 
+      // DOM manipulation should ideally be handled in components
       const player = document.getElementById('player')
       if (player?.hasAttribute('loop')) {
         player?.removeAttribute('loop')
@@ -48,8 +49,8 @@ export const usePlayerStore = defineStore('player', {
       if (use) {
         this.useDynamics = false
       }
-      melodyStore.generateMidiFile()
       saveState(LOCAL_STORAGE_KEY, this.$state)
+      // Note: MIDI regeneration should be handled in components via composables
     },
     setFixedVelocity(velocity: number) {
       this.fixedVelocity = velocity
@@ -57,8 +58,8 @@ export const usePlayerStore = defineStore('player', {
       if (this.useDynamics) {
         this.useDynamics = false
       }
-      melodyStore.generateMidiFile()
       saveState(LOCAL_STORAGE_KEY, this.$state)
+      // Note: MIDI regeneration should be handled in components via composables
     },
     setUseDynamics(use: boolean) {
       this.useDynamics = use
@@ -67,18 +68,18 @@ export const usePlayerStore = defineStore('player', {
         this.useFixedVelocity = false
       }
 
-      melodyStore.generateMidiFile()
       saveState(LOCAL_STORAGE_KEY, this.$state)
+      // Note: MIDI regeneration should be handled in components via composables
     },
     setSelectedDynamic(dynamic: Dynamic) {
       this.selectedDynamic = dynamic
-      melodyStore.generateMidiFile()
       saveState(LOCAL_STORAGE_KEY, this.$state)
+      // Note: MIDI regeneration should be handled in components via composables
     },
     setBpm(bpm: number) {
       this.bpm = bpm
-      melodyStore.generateMidiFile()
       saveState(LOCAL_STORAGE_KEY, this.$state)
+      // Note: MIDI regeneration should be handled in components via composables
     }
   }
 })

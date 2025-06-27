@@ -8,33 +8,43 @@ import { usePlayerStore } from '@/stores/player.store'
  * @param fileName - The desired name for the MIDI file.
  */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function generateMidiFile(melody: Melody, track: any): string {
   if (!melody.notes.length) {
     console.warn('Cannot save an empty melody.')
     return ''
   }
+
   const playerStore = usePlayerStore()
   const { bpm, selectedInstrument: instrument } = playerStore
 
-  track.addEvent(new MidiWriter.ProgramChangeEvent({ instrument }))
-  track.setTempo(bpm, 0)
+  track.addEvent(new MidiWriter.ProgramChangeEvent({ instrument: instrument || 0 }))
+  track.setTempo(bpm || 120, 0)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // Entferne alle abschließenden Pausen am Ende der Notenliste
+  const notes = [...melody.notes]
+  while (notes.length > 0 && notes[notes.length - 1].pitch === null) {
+    notes.pop()
+  }
+
   const noteEvents: any[] = []
   let pendingWaitTicks = 0
 
-  melody.notes.forEach((note) => {
-    if (note.pitch) {
+  notes.forEach((note) => {
+    if (typeof note.pitch === 'string' && note.pitch.length > 0) {
       // regular note
+      if (note.pitch === '0') {
+        console.warn('Skipping invalid pitch 0 in note:', note)
+        return
+      }
       const event = new MidiWriter.NoteEvent({
         pitch: [note.pitch],
         duration: note.duration,
         wait: `T${pendingWaitTicks}`,
         velocity: _getVelocity(note)
       })
+      // Reset wait time AFTER applying it to the current note
+      pendingWaitTicks = 0
       noteEvents.push(event)
-      pendingWaitTicks = 0 // Reset wait time after applying it to a note
     } else {
       // rest
       const restTicks = parseInt(note.duration.substring(1)) || 0
@@ -42,13 +52,22 @@ export function generateMidiFile(melody: Melody, track: any): string {
     }
   })
 
-  track.addEvent(noteEvents)
+  // Am Ende: KEIN NoteEvent für übrig gebliebene Wartezeit erzeugen!
+  if (pendingWaitTicks > 0) {
+    // Do nothing: do NOT create a NoteEvent for this!
+    pendingWaitTicks = 0
+  }
+
+  // Entferne alle leeren NoteEvents (z.B. mit leerem Pitch-Array)
+  const filteredNoteEvents = noteEvents.filter((e) => (Array.isArray(e.pitch) ? e.pitch.length > 0 : true))
+
+  track.addEvent(filteredNoteEvents)
   const writer = new MidiWriter.Writer([track])
   const dataUri = writer.dataUri()
+
   return dataUri
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function downloadMidiFile(dataUri: string, fileName: string, track: any): void {
   track.removeEventsByName('ProgramChangeEvent')
 
@@ -68,7 +87,7 @@ function _getVelocity(note: AppNote) {
     return fixedVelocity
   }
 
-  if (useDynamics) {
+  if (useDynamics && selectedDynamic) {
     return Math.round(selectedDynamic.range[0] + note.velocity * (selectedDynamic.range[1] - selectedDynamic.range[0]))
   }
 

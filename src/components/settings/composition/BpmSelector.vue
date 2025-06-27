@@ -4,7 +4,7 @@ import InputNumber from 'primevue/inputnumber'
 import { usePlayerStore } from '@/stores/player.store'
 
 const playerStore = usePlayerStore()
-const bpm = ref<number>(playerStore.bpm)
+const bpm = ref<number>(playerStore.bpm ?? 120)
 
 async function updateBpm(value: string) {
   playerStore.setBpm(parseInt(value))

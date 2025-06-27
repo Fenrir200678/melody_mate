@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue';
-import { useCompositionStore } from '@/stores/composition.store';
-import { useChordStore } from '@/stores/chord.store';
-import { getDiatonicTriads } from '@/services/ChordService';
-import Button from 'primevue/button';
-import type { Chord } from '@/ts/models/Chord';
+import { computed, watch } from 'vue'
+import { useCompositionStore } from '@/stores/composition.store'
+import { useChordStore } from '@/stores/chord.store'
+import { getDiatonicTriads } from '@/services/ChordService'
+import Button from 'primevue/button'
+import type { Chord } from '@/ts/models/Chord'
 
-const compositionStore = useCompositionStore();
-const chordStore = useChordStore();
+const compositionStore = useCompositionStore()
+const chordStore = useChordStore()
 
 const diatonicChords = computed<Chord[]>(() => {
-  const chords = getDiatonicTriads(compositionStore.key, compositionStore.scaleName);
-  return chords;
-});
+  const chords = getDiatonicTriads(compositionStore.key || '', compositionStore.scaleName || '')
+  return chords
+})
 
 function addChord(chord: Chord) {
-  chordStore.addChordToProgression(chord);
+  chordStore.addChordToProgression(chord)
 }
 
 // Update chords when key or scale changes
@@ -26,7 +26,7 @@ watch(
     // For now, we'll just ensure the palette updates.
   },
   { immediate: true }
-);
+)
 </script>
 
 <template>

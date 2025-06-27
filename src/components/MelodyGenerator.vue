@@ -1,28 +1,21 @@
 <script setup lang="ts">
+import { useMelodyGeneration } from '@/composables/useMelodyGeneration'
 import Button from 'primevue/button'
-import { useMelodyStore } from '@/stores/melody.store'
-import { useCompositionStore } from '@/stores/composition.store'
-import { useRhythmStore } from '@/stores/rhythm.store'
-import { computed } from 'vue'
 
-const melodyStore = useMelodyStore()
-const compositionStore = useCompositionStore()
-const rhythmStore = useRhythmStore()
-
-const isGenerationDisabled = computed(() => {
-  return !compositionStore.scaleName || !rhythmStore.rhythm || melodyStore.isGenerating
-})
+const { generateMelody, isGenerating } = useMelodyGeneration()
 </script>
 
 <template>
-  <Button
-    label="Generate Melody"
-    severity="success"
-    size="large"
-    icon="pi pi-sparkles"
-    :loading="melodyStore.isGenerating"
-    :disabled="isGenerationDisabled"
-    @click="melodyStore.generateMelody()"
-    class="w-full"
-  />
+  <div class="flex flex-col gap-4 w-full">
+    <div class="flex justify-center w-full">
+      <Button
+        @click="generateMelody()"
+        :loading="isGenerating"
+        label="Generate Melody"
+        icon="pi pi-play"
+        size="large"
+        class="bg-primary-500 border-primary-500 hover:bg-primary-600 w-full"
+      />
+    </div>
+  </div>
 </template>

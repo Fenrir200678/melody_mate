@@ -15,22 +15,19 @@ export function generateEuclideanPattern(
   subdivision: string = '16n',
   rotation: number = 0
 ): EuclideanRhythm {
-  const emptyPattern = {
+  const emptyPattern: EuclideanRhythm = {
     name: 'Empty',
     pulses: 0,
     category: 'euclidean' as const,
-    pattern: {
-      steps: [],
-      pattern: new Array(steps).fill(0),
-      subdivision
-    }
+    pattern: new Array(steps).fill(0),
+    subdivision
   }
 
   if (pulses > steps || pulses < 0 || steps <= 0) {
     return emptyPattern
   }
   if (pulses === 0) {
-    return { ...emptyPattern, pattern: { ...emptyPattern.pattern, pattern: new Array(steps).fill(0) } }
+    return { ...emptyPattern, pattern: new Array(steps).fill(0) }
   }
 
   const unrotatedBinaryPattern = _generateEuclideanBinaryPattern(pulses, steps)
@@ -40,11 +37,8 @@ export function generateEuclideanPattern(
     name: `Euclidean ${pulses}/${steps}`,
     pulses,
     category: 'euclidean',
-    pattern: {
-      steps: [], // Euclidean rhythms don't use note names like '4n'
-      pattern: binaryPattern,
-      subdivision
-    }
+    pattern: binaryPattern,
+    subdivision
   }
 }
 

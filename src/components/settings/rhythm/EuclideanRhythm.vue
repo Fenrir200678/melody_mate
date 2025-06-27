@@ -46,8 +46,8 @@ watch(
   (currentRhythm) => {
     if (currentRhythm?.category === 'euclidean') {
       pulses.value = currentRhythm.pulses
-      steps.value = currentRhythm.pattern.pattern?.length || 16
-      subdivision.value = currentRhythm.pattern.subdivision || '16n'
+      steps.value = currentRhythm.pattern.length || 16
+      subdivision.value = currentRhythm.subdivision || '16n'
     }
   },
   { immediate: true, deep: true }
@@ -79,8 +79,8 @@ onMounted(() => {
 
   if (currentRhythm?.category === 'euclidean') {
     pulses.value = currentRhythm.pulses
-    steps.value = currentRhythm.pattern.pattern?.length || 16
-    subdivision.value = currentRhythm.pattern.subdivision || '16n'
+    steps.value = currentRhythm.pattern.length || 16
+    subdivision.value = currentRhythm.subdivision || '16n'
   }
 })
 

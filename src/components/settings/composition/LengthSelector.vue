@@ -15,7 +15,7 @@ function handleBarsChange(val: string) {
   compositionStore.setBars(Number(val))
 }
 
-const selectedBars = computed(() => compositionStore.bars.toString())
+const selectedBars = computed(() => (compositionStore.bars ?? 4).toString())
 </script>
 
 <template>

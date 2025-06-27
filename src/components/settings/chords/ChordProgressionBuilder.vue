@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
 import { useChordStore } from '@/stores/chord.store'
+import { useChordProgression } from '@/composables/useChordProgression'
 import { useCompositionStore } from '@/stores/composition.store'
 import Button from 'primevue/button'
 import SelectButton from 'primevue/selectbutton'
@@ -12,6 +13,7 @@ import { useToast } from 'primevue/usetoast'
 const props = defineProps<{ disabled: boolean }>()
 
 const chordStore = useChordStore()
+const { loadPredefinedProgression } = useChordProgression()
 const compositionStore = useCompositionStore()
 const toast = useToast()
 
@@ -82,7 +84,7 @@ watch(
           })
         }
       } else if (chordStore.selectedProgressionType === 'predefined' && chordStore.selectedPredefinedProgressionName) {
-        chordStore.loadPredefinedProgression(chordStore.selectedPredefinedProgressionName)
+        loadPredefinedProgression(chordStore.selectedPredefinedProgressionName)
         toast.add({
           severity: 'info',
           summary: 'Progression Updated',

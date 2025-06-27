@@ -30,7 +30,7 @@ const value = computed({
         :step="0.05"
         :disabled="props.disabled"
       />
-      <span class="w-10 text-right text-xs tabular-nums">{{ (value * 100).toFixed(0) }}%</span>
+      <span class="w-10 text-right text-xs tabular-nums">{{ ((value ?? 0) * 100).toFixed(0) }}%</span>
     </div>
   </div>
 </template>
