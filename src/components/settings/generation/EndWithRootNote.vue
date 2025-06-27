@@ -8,7 +8,7 @@ const generationStore = useGenerationStore()
 </script>
 
 <template>
-  <div class="flex items-center justify-between gap-4">
+  <div class="flex items-center justify-between gap-4 mt-4">
     <div class="flex flex-col flex-1 min-w-0">
       <label for="end-with-root-note" class="font-medium leading-tight">
         End with root note<br />

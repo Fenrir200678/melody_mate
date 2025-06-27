@@ -3,7 +3,6 @@ import { ref } from 'vue'
 import { useGenerationStore } from '@/stores/generation.store'
 import SelectButton from 'primevue/selectbutton'
 import Checkbox from 'primevue/checkbox'
-import Divider from 'primevue/divider'
 
 const nGramLengthOptions = ref(['1', '2', '3', '4'])
 
@@ -21,7 +20,6 @@ function handleUseNGramsChange(val: boolean) {
 }
 </script>
 <template>
-  <Divider />
   <div class="flex items-center justify-between">
     <div class="flex flex-col flex-1 min-w-0">
       <label for="n-grams" class="font-medium">

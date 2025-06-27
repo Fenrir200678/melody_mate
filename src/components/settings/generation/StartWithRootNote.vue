@@ -15,6 +15,7 @@ const generationStore = useGenerationStore()
         <span class="text-xs break-words"> Start the melody with the root note of the scale</span>
       </label>
     </div>
+
     <div class="flex-shrink-0 mt-1">
       <Checkbox
         v-model="generationStore.startWithRootNote"
