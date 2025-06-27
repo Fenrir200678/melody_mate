@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { useChordStore } from '@/stores/chord.store';
+import { useCompositionStore } from '@/stores/composition.store';
 import Button from 'primevue/button';
 import SelectButton from 'primevue/selectbutton';
 import Select from 'primevue/select';
 import DiatonicChordPalette from './DiatonicChordPalette.vue';
 import { getAvailableChordProgressions } from '@/services/ChordService';
+import { useToast } from 'primevue/usetoast';
 
 const props = defineProps<{ disabled: boolean }>();
 
 const chordStore = useChordStore();
+const compositionStore = useCompositionStore();
+const toast = useToast();
 
 const currentProgression = computed(() => chordStore.currentProgression);
 const selectedProgressionType = computed({
@@ -62,6 +66,23 @@ const drop = (event: DragEvent, newIndex: number) => {
 const dragEnter = (event: DragEvent) => {
   event.preventDefault();
 };
+
+watch(
+  () => [compositionStore.key, compositionStore.scaleName],
+  ([newKey, newScaleName], [oldKey, oldScaleName]) => {
+    if (chordStore.selectedProgressionType === 'custom' && (newKey !== oldKey || newScaleName !== oldScaleName)) {
+      if (chordStore.currentProgression.length > 0) {
+        chordStore.clearProgression();
+        toast.add({
+          severity: 'info',
+          summary: 'Progression Reset',
+          detail: 'Custom chord progression cleared due to key or scale change.',
+          life: 3000,
+        });
+      }
+    }
+  }
+);
 
 </script>
 

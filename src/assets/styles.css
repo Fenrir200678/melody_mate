@@ -43,3 +43,11 @@ midi-visualizer {
   padding: 10px 5px;
   overflow: auto;
 }
+
+#app-settings .p-panel-header {
+  cursor: pointer;
+}
+
+#app-settings .p-panel-header:hover {
+  background: #303030;
+}

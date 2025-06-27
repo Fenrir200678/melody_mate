@@ -13,7 +13,11 @@ export const useChordStore = defineStore('chord', {
 
   actions: {
     addChordToProgression(chord: Chord) {
-      this.currentProgression.push(chord);
+      if (this.currentProgression.length < 8) {
+        this.currentProgression.push(chord);
+      } else {
+        console.warn("Maximum of 8 chords reached in progression.");
+      }
     },
     removeChordFromProgression(index: number) {
       this.currentProgression.splice(index, 1);

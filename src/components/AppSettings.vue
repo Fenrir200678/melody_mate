@@ -32,10 +32,9 @@ const harmonyCollapsed = ref(true)
 const compositionCollapsed = ref(true)
 const rhythmCollapsed = ref(true)
 const generationCollapsed = ref(true)
-
 </script>
 <template>
-  <div class="space-y-4 w-full max-w-full">
+  <div id="app-settings" class="space-y-4 w-full max-w-full">
     <!-- Key & Scale -->
     <Panel v-model:collapsed="keyScaleCollapsed">
       <template #header>
@@ -87,7 +86,10 @@ const generationCollapsed = ref(true)
     <!-- Composition -->
     <Panel v-model:collapsed="compositionCollapsed">
       <template #header>
-        <div class="flex items-center gap-2 cursor-pointer w-full" @click="compositionCollapsed = !compositionCollapsed">
+        <div
+          class="flex items-center gap-2 cursor-pointer w-full"
+          @click="compositionCollapsed = !compositionCollapsed"
+        >
           <i class="pi pi-file-edit text-sm"></i>
           <h3 class="text-lg font-semibold">Composition</h3>
         </div>
