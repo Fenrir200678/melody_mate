@@ -11,10 +11,14 @@ export const useGenerationStore = defineStore('generation', {
     endWithRootNote: false,
     restProbability: 0.05,
     useMotifTrainingData: false,
-    chordAdherence: 0.75
+    chordAdherence: 0.75,
+    melodicContour: 'arc'
   }),
 
   actions: {
+    setMelodicContour(contour: string) {
+      this.melodicContour = contour
+    },
     setChordAdherence(adherence: number) {
       this.chordAdherence = adherence
     },

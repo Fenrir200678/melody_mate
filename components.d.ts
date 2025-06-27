@@ -21,6 +21,7 @@ declare module 'vue' {
     KeySelector: typeof import('./src/components/settings/key_scale/KeySelector.vue')['default']
     LengthSelector: typeof import('./src/components/settings/composition/LengthSelector.vue')['default']
     LoadingSpinner: typeof import('./src/components/common/LoadingSpinner.vue')['default']
+    MelodicContourSelector: typeof import('./src/components/settings/generation/MelodicContourSelector.vue')['default']
     MelodyGenerator: typeof import('./src/components/MelodyGenerator.vue')['default']
     MelodyPlayer: typeof import('./src/components/MelodyPlayer.vue')['default']
     MelodyVisualizer: typeof import('./src/components/MelodyVisualizer.vue')['default']

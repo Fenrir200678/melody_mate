@@ -101,13 +101,16 @@ export function generateNotesForSteps(context: MelodyGenerationContext, initialP
           currentChordNotes = currentChord ? currentChord.notes : []
         }
 
+        const melodyProgress = currentStep / totalSteps;
+
         nextPitch = getNextPitch(
           pitchNGramContext,
           markovTable,
           scale,
           state.lastActualPitch,
           degreeWeights,
-          currentChordNotes
+          currentChordNotes,
+          melodyProgress
         )
       }
 

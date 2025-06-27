@@ -39,10 +39,11 @@ export function applyMusicalWeighting(
   currentNote: string,
   scaleNotes: readonly string[],
   rhythmDegreeWeights?: Record<number, number>,
-  currentChordNotes?: readonly string[]
+  currentChordNotes?: readonly string[],
+  melodyProgress?: number
 ): { notes: string[]; weights: number[] } {
   const generationStore = useGenerationStore();
-  const { chordAdherence } = generationStore;
+  const { chordAdherence, melodicContour } = generationStore;
 
   const possibleNotes = Array.from(transitions.keys())
   const initialWeights = Array.from(transitions.values())
@@ -98,6 +99,35 @@ export function applyMusicalWeighting(
         // Penalize notes that are not in the current chord.
         weight *= penaltyFactor;
       }
+    }
+
+    // Rule 4: Melodic Contour Weighting
+    if (melodicContour !== 'random' && melodyProgress !== undefined) {
+      const intervalDirection = scaleNotes.indexOf(nextNote) - scaleNotes.indexOf(currentNote);
+
+      let contourFactor = 1.0;
+      switch (melodicContour) {
+        case 'ascending':
+          if (intervalDirection > 0) contourFactor = 1 + melodyProgress * 0.5;
+          else if (intervalDirection < 0) contourFactor = 1 - melodyProgress * 0.5;
+          break;
+        case 'descending':
+          if (intervalDirection < 0) contourFactor = 1 + melodyProgress * 0.5;
+          else if (intervalDirection > 0) contourFactor = 1 - melodyProgress * 0.5;
+          break;
+        case 'arc':
+          const peak = 0.5; // Peak of the arc is at 50% progress
+          const arcProgress = 1 - Math.abs(melodyProgress - peak) / peak;
+          if (melodyProgress < peak) { // Ascending part of the arc
+            if (intervalDirection > 0) contourFactor = 1 + arcProgress * 0.5;
+            else if (intervalDirection < 0) contourFactor = 1 - arcProgress * 0.5;
+          } else { // Descending part of the arc
+            if (intervalDirection < 0) contourFactor = 1 + arcProgress * 0.5;
+            else if (intervalDirection > 0) contourFactor = 1 - arcProgress * 0.5;
+          }
+          break;
+      }
+      weight *= contourFactor;
     }
 
     newWeights.push(Math.max(0.1, weight)) // Ensure weight is not zero.

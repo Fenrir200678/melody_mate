@@ -12,6 +12,7 @@ import OctaveSelector from '@/components/settings/composition/OctaveSelector.vue
 import VelocitySelector from '@/components/settings/composition/VelocitySelector.vue'
 import RestProbabilitySelector from '@/components/settings/generation/RestProbabilitySelector.vue'
 import NGramSelector from '@/components/settings/generation/NGramSelector.vue'
+import MelodicContourSelector from '@/components/settings/generation/MelodicContourSelector.vue'
 import MotifRepetition from '@/components/settings/generation/MotifRepetition.vue'
 import StartWithRootNote from '@/components/settings/generation/StartWithRootNote.vue'
 import EndWithRootNote from '@/components/settings/generation/EndWithRootNote.vue'
@@ -52,7 +53,10 @@ const chordStore = useChordStore()
         <div class="flex items-center justify-between gap-4">
           <div class="flex flex-col flex-1 min-w-0">
             <label for="use-chords-switch" class="font-medium">Use Chord Progressions</label>
-            <span class="text-xs break-words">Influence melody generation with chord progressions.</span>
+            <span class="text-xs break-words">
+              Influence melody generation with chord progressions. Chords are not actually played / generated, but the
+              melody is generated based on the imaginary chord progression.
+            </span>
           </div>
           <ToggleSwitch
             :modelValue="chordStore.useChords"
@@ -114,6 +118,8 @@ const chordStore = useChordStore()
         <Divider />
         <MotifRepetition />
         <NGramSelector />
+        <Divider />
+        <MelodicContourSelector />
         <Divider />
         <StartWithRootNote :disabled="chordStore.useChords" />
         <EndWithRootNote :disabled="chordStore.useChords" />
