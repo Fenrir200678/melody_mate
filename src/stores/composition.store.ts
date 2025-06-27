@@ -4,11 +4,11 @@ import { useMelodyStore } from './melody.store'
 export const useCompositionStore = defineStore('composition', {
   state: () => ({
     scaleName: 'minor',
-    key: 'C',
+    key: 'A',
     bars: 4,
     lastBars: 4,
     minOctave: 3,
-    maxOctave: 5
+    maxOctave: 4
   }),
 
   actions: {

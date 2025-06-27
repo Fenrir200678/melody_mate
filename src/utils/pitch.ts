@@ -20,7 +20,9 @@ export function getNextPitch(
   currentPitchForWeighting: string,
   degreeWeights?: Record<number, number>,
   currentChordNotes?: readonly string[],
-  melodyProgress?: number
+  melodyProgress?: number,
+  currentStep?: number,
+  subdivision?: string
 ): string {
   const transitions = getTransitions(markovTable, state)
 
@@ -35,7 +37,9 @@ export function getNextPitch(
     scale.notes,
     degreeWeights,
     currentChordNotes,
-    melodyProgress
+    melodyProgress,
+    currentStep,
+    subdivision
   )
 
   return chooseWeighted(possibleNotes, weights)

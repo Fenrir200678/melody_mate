@@ -110,7 +110,9 @@ export function generateNotesForSteps(context: MelodyGenerationContext, initialP
           state.lastActualPitch,
           degreeWeights,
           currentChordNotes,
-          melodyProgress
+          melodyProgress,
+          currentStep,
+          subdivision
         )
       }
 

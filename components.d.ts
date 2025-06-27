@@ -33,6 +33,7 @@ declare module 'vue' {
     PredefinedMotif: typeof import('./src/components/settings/generation/PredefinedMotif.vue')['default']
     RestProbabilitySelector: typeof import('./src/components/settings/generation/RestProbabilitySelector.vue')['default']
     RhythmControl: typeof import('./src/components/settings/rhythm/RhythmControl.vue')['default']
+    RhythmicLicksSelector: typeof import('./src/components/settings/generation/RhythmicLicksSelector.vue')['default']
     RhythmPresets: typeof import('./src/components/settings/rhythm/RhythmPresets.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

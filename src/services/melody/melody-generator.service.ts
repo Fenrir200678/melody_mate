@@ -6,6 +6,7 @@ import { normalizeRhythm, extractNoteSteps } from './rhythm-processor.service'
 import { getStepsPerBar } from './duration.service'
 import { generateNotesForSteps } from './note-generator.service'
 import { getRandomMotifPattern } from './motif.service'
+import { injectRhythmicLicks } from './rhythm-lick.service';
 import { useCompositionStore } from '@/stores/composition.store'
 import { useGenerationStore } from '@/stores/generation.store'
 import { useRhythmStore } from '@/stores/rhythm.store'
@@ -23,7 +24,7 @@ function prepareGenerationContext(): MelodyGenerationContext | null {
   const rhythmStore = useRhythmStore()
 
   const { bars, minOctave, maxOctave } = compositionStore
-  const { useNGrams, nGramLength, useMotifTrainingData, motifRepetitionPattern, useRandomMotifPattern } =
+  const { useNGrams, nGramLength, useMotifTrainingData, motifRepetitionPattern, useRandomMotifPattern, useRhythmicLicks, rhythmicLickFrequency } =
     generationStore
   const { rhythm } = rhythmStore
 
@@ -43,7 +44,11 @@ function prepareGenerationContext(): MelodyGenerationContext | null {
   const subdivision = normalizedRhythm.pattern.subdivision!
   const stepsPerBar = getStepsPerBar(subdivision)
   const totalSteps = bars * stepsPerBar
-  const noteSteps = extractNoteSteps(normalizedRhythm.pattern.pattern!, totalSteps)
+  let noteSteps = extractNoteSteps(normalizedRhythm.pattern.pattern!, totalSteps)
+
+  if (useRhythmicLicks) {
+    noteSteps = injectRhythmicLicks(noteSteps, totalSteps, rhythmicLickFrequency);
+  }
 
   return {
     scale,

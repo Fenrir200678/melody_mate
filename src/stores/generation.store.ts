@@ -12,10 +12,18 @@ export const useGenerationStore = defineStore('generation', {
     restProbability: 0.05,
     useMotifTrainingData: false,
     chordAdherence: 0.75,
-    melodicContour: 'arc'
+    melodicContour: 'arc',
+    useRhythmicLicks: false,
+    rhythmicLickFrequency: 0.25
   }),
 
   actions: {
+    setUseRhythmicLicks(use: boolean) {
+      this.useRhythmicLicks = use
+    },
+    setRhythmicLickFrequency(frequency: number) {
+      this.rhythmicLickFrequency = frequency
+    },
     setMelodicContour(contour: string) {
       this.melodicContour = contour
     },

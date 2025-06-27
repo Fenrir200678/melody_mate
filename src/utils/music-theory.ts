@@ -40,7 +40,9 @@ export function applyMusicalWeighting(
   scaleNotes: readonly string[],
   rhythmDegreeWeights?: Record<number, number>,
   currentChordNotes?: readonly string[],
-  melodyProgress?: number
+  melodyProgress?: number,
+  currentStep?: number,
+  subdivision?: string
 ): { notes: string[]; weights: number[] } {
   const generationStore = useGenerationStore();
   const { chordAdherence, melodicContour } = generationStore;
@@ -56,6 +58,18 @@ export function applyMusicalWeighting(
     2: 1.8, // 3rd (Mediant)
     6: 1.5 // 7th (Leading Tone)
   }
+
+  // Helper to determine if a step is on a strong beat
+  const isStrongBeat = (step: number, sub: string): boolean => {
+    if (sub === '16n') {
+      return step % 4 === 0; // Every quarter note beat (0, 4, 8, 12)
+    } else if (sub === '8n') {
+      return step % 2 === 0; // Every quarter note beat (0, 2, 4, 6)
+    } else if (sub === '4n') {
+      return step % 1 === 0; // Every beat (0, 1, 2, 3)
+    }
+    return false;
+  };
 
   for (let i = 0; i < possibleNotes.length; i++) {
     const nextNote = possibleNotes[i]
@@ -128,6 +142,23 @@ export function applyMusicalWeighting(
           break;
       }
       weight *= contourFactor;
+    }
+
+    // Rule 5: Beat Strength Weighting
+    if (currentStep !== undefined && subdivision) {
+      if (isStrongBeat(currentStep, subdivision)) {
+        // On strong beats, favor chord tones and stable scale degrees more
+        if (currentChordNotes && currentChordNotes.includes(nextNote)) {
+          weight *= 1.2; // Further boost for chord tones on strong beats
+        } else if (scaleNotes.indexOf(nextNote) === 0 || scaleNotes.indexOf(nextNote) === 4) { // Tonic or Dominant
+          weight *= 1.1; // Boost for stable scale degrees on strong beats
+        }
+      } else {
+        // On weak beats, allow more melodic freedom (less penalty for non-chord tones/leaps)
+        if (currentChordNotes && !currentChordNotes.includes(nextNote)) {
+          weight *= 1.1; // Slightly reduce penalty for non-chord tones on weak beats
+        }
+      }
     }
 
     newWeights.push(Math.max(0.1, weight)) // Ensure weight is not zero.

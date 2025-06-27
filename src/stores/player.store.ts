@@ -9,7 +9,7 @@ export const usePlayerStore = defineStore('player', {
   state: () => ({
     isPlaying: false,
     loop: true,
-    selectedInstrument: 0,
+    selectedInstrument: 99,
     useFixedVelocity: false,
     fixedVelocity: 100,
     useDynamics: true,
