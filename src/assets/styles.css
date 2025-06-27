@@ -9,6 +9,7 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --text-xs: 0.85rem;
 }
 
 body {
@@ -19,6 +20,7 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   color: #fff;
+  font-family: var(--font-sans);
 }
 
 #app {
