@@ -42,5 +42,21 @@ export function getNextPitch(
     subdivision
   )
 
-  return chooseWeighted(possibleNotes, weights)
+  // Filter out notes that are not in the current scale
+  const filteredNotes: string[] = [];
+  const filteredWeights: number[] = [];
+
+  for (let i = 0; i < possibleNotes.length; i++) {
+    if (scale.notes.includes(possibleNotes[i])) {
+      filteredNotes.push(possibleNotes[i]);
+      filteredWeights.push(weights[i]);
+    }
+  }
+
+  if (filteredNotes.length === 0) {
+    // Fallback: if no valid notes remain after filtering, choose randomly from the scale
+    return choose(scale.notes);
+  }
+
+  return chooseWeighted(filteredNotes, filteredWeights)
 }

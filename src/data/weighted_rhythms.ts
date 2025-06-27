@@ -3,6 +3,20 @@ import type { WeightedRhythm } from '@/ts/types/rhythm.types'
 export const WEIGHTED_RHYTHMS: WeightedRhythm[] = [
   // Melody
   {
+    name: 'A Melancholic Synth Lead',
+    category: 'melody',
+    description: 'A classic syncopated lead for emotional synth-pop anthems',
+    pattern: {
+      steps: ['8n.', '16n', '4n', '8n', '4n.'],
+      subdivision: '16n'
+    },
+    degreeWeights: {
+      '0': 2.0,
+      '4': 1.8,
+      '2': 1.6
+    }
+  },
+  {
     name: 'Aggressive Arp Lead',
     category: 'melody',
     description: 'Short, percussive arpeggio pattern with a dissonant feel',
@@ -167,20 +181,6 @@ export const WEIGHTED_RHYTHMS: WeightedRhythm[] = [
     description: 'Smooth connected notes',
     pattern: {
       steps: ['4n.', '4n.', '4n'],
-      subdivision: '16n'
-    },
-    degreeWeights: {
-      '0': 2.0,
-      '4': 1.8,
-      '2': 1.6
-    }
-  },
-  {
-    name: 'Melancholic Synth Lead',
-    category: 'melody',
-    description: 'A classic syncopated lead for emotional synth-pop anthems',
-    pattern: {
-      steps: ['8n.', '16n', '4n', '8n', '4n.'],
       subdivision: '16n'
     },
     degreeWeights: {

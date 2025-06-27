@@ -60,6 +60,7 @@ export function generateScale(): AppScale | undefined {
   const { scaleName, key } = compositionStore
   const scale = Scale.get(`${key} ${scaleName}`)
   if (!scale.notes.length) return undefined
+
   return {
     name: `${key} ${scaleName}`,
     notes: scale.notes

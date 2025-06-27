@@ -29,7 +29,8 @@ export function mapMelodyToScale(melody: AppNote[], targetScaleNotes: string[]):
     return scaleMidis.reduce((prev, curr) => (Math.abs(curr - midi) < Math.abs(prev - midi) ? curr : prev))
   }
 
-  const targetScaleMidis = targetScaleNotes.map(noteNameToMidi)
+  const targetScaleNotesWithOctave = targetScaleNotes.map(note => `${note}4`); // Add default octave
+  const targetScaleMidis = targetScaleNotesWithOctave.map(noteNameToMidi)
   const originalMidis = melody.map((n) => noteNameToMidi(n.pitch))
   const intervals = originalMidis.slice(1).map((midi, i) => midi - originalMidis[i])
   const startMidi = targetScaleMidis[0]

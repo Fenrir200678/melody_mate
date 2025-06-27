@@ -9,7 +9,7 @@ export const useGenerationStore = defineStore('generation', {
     nGramLength: 2,
     startWithRootNote: false,
     endWithRootNote: false,
-    restProbability: 0.05,
+    restProbability: 0,
     useMotifTrainingData: false,
     chordAdherence: 0.75,
     melodicContour: 'arc',

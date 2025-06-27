@@ -7,7 +7,8 @@ import { getStepsPerBar } from './duration.service'
 import { generateNotesForSteps } from './note-generator.service'
 import { getRandomMotifPattern } from './motif.service'
 import { injectRhythmicLicks } from './rhythm-lick.service';
-import { transposeMelody, invertMelody } from './motif-transformer.service';
+import { transposeMelody, invertMelody, transposeMelodyDiatonically } from './motif-transformer.service';
+import { mapMelodyToScale } from '@/utils/scales';
 import { useCompositionStore } from '@/stores/composition.store'
 import { useGenerationStore } from '@/stores/generation.store'
 import { useRhythmStore } from '@/stores/rhythm.store'
@@ -88,7 +89,7 @@ function generateStandardMelody(context: MelodyGenerationContext): Melody {
  * @returns The generated melody.
  */
 function generateMotifBasedMelody(context: MelodyGenerationContext): Melody {
-  const { noteSteps, stepsPerBar } = context
+  const { noteSteps, stepsPerBar, scale } = context
   const { useCallAndResponse } = useGenerationStore();
   const pattern = context.useRandomMotifPattern ? getRandomMotifPattern() : context.motifRepetitionPattern
   const generatedBars = new Map<string, NoteGenerationResult>()
@@ -103,17 +104,28 @@ function generateMotifBasedMelody(context: MelodyGenerationContext): Melody {
       // If this bar has been generated before (repetition)
       if (useCallAndResponse) {
         // Apply a transformation for call and response
-        // For simplicity, we'll transpose based on the motif character.
-        // A more advanced implementation could use different transformations (inversion, retrograde) or random intervals.
-        if (patternChar === 'A') {
-          barResult.notes = transposeMelody(barResult.notes, '8P'); // Transpose up an octave
-        } else if (patternChar === 'B') {
-          barResult.notes = transposeMelody(barResult.notes, '-8P'); // Transpose down an octave
-        } else if (patternChar === 'C') {
-          barResult.notes = invertMelody(barResult.notes); // Invert the melody
+        let transformedNotes = barResult.notes;
+        const newLastPitch = barResult.lastPitch;
+
+        // Choose a random transformation type and interval
+        const transformationType = Math.random();
+
+        if (transformationType < 0.5) { // Diatonic Transposition
+          const steps = Math.floor(Math.random() * 5) - 2; // -2, -1, 0, 1, 2 scale steps
+          transformedNotes = transposeMelodyDiatonically(transformedNotes, scale.notes, steps);
+        } else if (transformationType < 0.75) { // Chromatic Transposition (minor 2nd, major 2nd, etc.)
+          const intervals = ['2m', '2M', '3m', '3M', '-2m', '-2M', '-3m', '-3M'];
+          const randomInterval = intervals[Math.floor(Math.random() * intervals.length)];
+          transformedNotes = transposeMelody(transformedNotes, randomInterval);
+        } else { // Inversion
+          transformedNotes = invertMelody(transformedNotes);
         }
-        // Note: 'lastPitch' for the next bar should ideally be re-evaluated after transformation
-        // For now, we'll keep it simple and assume the transformation doesn't drastically change the melodic flow.
+
+        // Ensure transformed notes are within the current scale
+        transformedNotes = mapMelodyToScale(transformedNotes, scale.notes);
+
+        // Update barResult with transformed notes and re-evaluate lastPitch
+        barResult = { notes: transformedNotes, lastPitch: newLastPitch };
       }
     } else {
       // If this is a new bar, generate it
