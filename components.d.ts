@@ -12,6 +12,7 @@ declare module 'vue' {
     BpmSelector: typeof import('./src/components/settings/composition/BpmSelector.vue')['default']
     CallAndResponse: typeof import('./src/components/settings/generation/CallAndResponse.vue')['default']
     ChordAdherenceSelector: typeof import('./src/components/settings/chords/ChordAdherenceSelector.vue')['default']
+    ChordCard: typeof import('./src/components/settings/chords/ChordCard.vue')['default']
     ChordProgressionBuilder: typeof import('./src/components/settings/chords/ChordProgressionBuilder.vue')['default']
     ChordProgressionDisplay: typeof import('./src/components/settings/chords/ChordProgressionDisplay.vue')['default']
     DiatonicChordPalette: typeof import('./src/components/settings/chords/DiatonicChordPalette.vue')['default']

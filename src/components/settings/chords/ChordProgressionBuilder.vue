@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, watch, onMounted, onUnmounted } from 'vue'
 import { useChordStore } from '@/stores/chord.store'
 import { useChordProgression } from '@/composables/useChordProgression'
 import { useCompositionStore } from '@/stores/composition.store'
+import { useDropZone, templateRef } from '@vueuse/core'
+// @ts-expect-error - Sortable.js types
+import Sortable from 'sortablejs'
 import Button from 'primevue/button'
 import SelectButton from 'primevue/selectbutton'
 import Select from 'primevue/select'
 import DiatonicChordPalette from './DiatonicChordPalette.vue'
+import ChordCard from './ChordCard.vue'
 import { getAvailableChordProgressions } from '@/services/ChordService'
 import { useToast } from 'primevue/usetoast'
 
@@ -42,32 +46,62 @@ function clearAllChords() {
   chordStore.clearProgression()
 }
 
-// Drag and Drop functionality
-const dragStart = (event: DragEvent, index: number) => {
-  if (event.dataTransfer) {
-    event.dataTransfer.setData('text/plain', index.toString())
-    event.dataTransfer.effectAllowed = 'move'
-  }
-}
+// Direct Sortable.js Integration
+const sortableContainer = templateRef<HTMLElement>('sortableContainer')
+const dropZone = templateRef<HTMLElement>('dropZone')
+let sortableInstance: Sortable | null = null
 
-const dragOver = (event: DragEvent) => {
-  event.preventDefault()
-  if (event.dataTransfer) {
-    event.dataTransfer.dropEffect = 'move'
+// Initialize Sortable.js on mount
+onMounted(() => {
+  if (sortableContainer.value) {
+    sortableInstance = Sortable.create(sortableContainer.value, {
+      animation: 200,
+      ghostClass: 'chord-ghost',
+      chosenClass: 'chord-chosen',
+      dragClass: 'chord-drag',
+      disabled: props.disabled,
+      onEnd: (evt: any) => {
+        const oldIndex = evt.oldIndex!
+        const newIndex = evt.newIndex!
+        if (oldIndex !== newIndex) {
+          chordStore.reorderProgression(oldIndex, newIndex)
+        }
+      }
+    })
   }
-}
+})
 
-const drop = (event: DragEvent, newIndex: number) => {
-  event.preventDefault()
-  const oldIndex = parseInt(event.dataTransfer?.getData('text/plain') || '-1', 10)
-  if (oldIndex !== -1 && oldIndex !== newIndex) {
-    chordStore.reorderProgression(oldIndex, newIndex)
+// Cleanup on unmount
+onUnmounted(() => {
+  if (sortableInstance) {
+    sortableInstance.destroy()
   }
-}
+})
 
-const dragEnter = (event: DragEvent) => {
-  event.preventDefault()
-}
+// Drop zone for adding new chords from palette
+const { isOverDropZone } = useDropZone(dropZone, {
+  // @ts-expect-error - DropZone types
+  onDrop(files, event) {
+    // Handle dropped chord data
+    const chordDataStr = event.dataTransfer?.getData('application/chord-data')
+    if (chordDataStr) {
+      try {
+        const chordData = JSON.parse(chordDataStr)
+        if (chordData.name && chordData.notes) {
+          chordStore.addChordToProgression(chordData)
+          toast.add({
+            severity: 'success',
+            summary: 'Chord Added',
+            detail: `${chordData.name} added to progression`,
+            life: 2000
+          })
+        }
+      } catch (error) {
+        console.warn('Failed to parse chord data:', error)
+      }
+    }
+  }
+})
 
 watch(
   () => [compositionStore.key, compositionStore.scaleName],
@@ -98,9 +132,10 @@ watch(
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-6">
+    <!-- Progression Type Selector -->
     <div class="flex items-center justify-between">
-      <label class="font-medium">Chord Progression Type</label>
+      <label class="font-medium text-gray-200">Chord Progression Type</label>
       <SelectButton
         v-model="selectedProgressionType"
         :options="progressionTypeOptions"
@@ -110,12 +145,13 @@ watch(
       />
     </div>
 
+    <!-- Custom Progression Builder -->
     <div v-if="selectedProgressionType === 'custom'" :class="{ 'opacity-50 pointer-events-none': props.disabled }">
       <div class="flex items-center justify-between mb-4">
-        <label class="font-medium">Build Your Progression</label>
+        <label class="font-medium text-gray-200">Build Your Progression</label>
         <Button
           label="Clear All"
-          icon="pi pi-times"
+          icon="pi pi-trash"
           severity="danger"
           size="small"
           outlined
@@ -124,52 +160,103 @@ watch(
         />
       </div>
 
+      <!-- Drop Zone for Chord Progression with VueUse -->
       <div
-        class="flex flex-wrap gap-2 p-4 border border-zinc-700 rounded-lg bg-zinc-800 min-h-[60px]"
-        @dragover="dragOver"
-        @drop="(e) => drop(e, currentProgression.length)"
-        @dragenter="dragEnter"
+        ref="dropZone"
+        class="min-h-[140px] p-6 border-2 border-dashed rounded-lg transition-all duration-300"
+        :class="{
+          'border-zinc-600 bg-zinc-900': !isOverDropZone,
+          'border-blue-400 bg-blue-900/40': isOverDropZone,
+          'border-emerald-500 bg-emerald-900/20': currentProgression.length > 0 && !isOverDropZone
+        }"
       >
-        <div
-          v-for="(chord, index) in currentProgression"
-          :key="index"
-          class="p-2 bg-emerald-700 rounded-md flex items-center gap-2 cursor-grab"
-          draggable="true"
-          @dragstart="(e) => dragStart(e, index)"
-          @dragover="dragOver"
-          @drop="(e) => drop(e, index)"
-          @dragenter="dragEnter"
-        >
-          <span class="text-sm font-semibold">{{ chord.name }}</span>
-          <Button
-            icon="pi pi-times"
-            severity="secondary"
-            text
-            rounded
-            size="small"
-            @click="removeChord(index)"
-            :disabled="props.disabled"
+        <!-- Sortable Container -->
+        <div v-if="currentProgression.length > 0" ref="sortableContainer" class="flex flex-wrap gap-3">
+          <ChordCard
+            v-for="(chord, index) in currentProgression"
+            :key="`${chord.name}-${index}`"
+            :chord="chord"
+            :index="index"
+            size="medium"
+            :show-remove-button="true"
+            :show-roman-numeral="true"
+            class="chord-in-progression cursor-grab"
+            @remove="removeChord"
           />
         </div>
-        <span v-if="currentProgression.length === 0" class="text-zinc-500 text-sm italic"
-          >Drag chords here or click them below to add.</span
-        >
+
+        <!-- Empty State -->
+        <div v-else class="flex items-center justify-center text-zinc-500 text-sm italic py-8">
+          <div class="text-center">
+            <i class="pi pi-arrow-down text-3xl mb-3 block text-zinc-600"></i>
+            <p class="mb-1">Your chord progression will appear here</p>
+            <p class="text-xs text-zinc-600">Drag chords from below to add them</p>
+          </div>
+        </div>
       </div>
 
-      <DiatonicChordPalette :disabled="props.disabled" />
+      <!-- Chord Palette -->
+      <div class="mt-6">
+        <DiatonicChordPalette :disabled="props.disabled" />
+      </div>
     </div>
 
+    <!-- Predefined Progression Selector -->
     <div v-else :class="{ 'opacity-50 pointer-events-none': props.disabled }">
-      <div class="flex items-center justify-between gap-4">
-        <label class="font-medium">Select Predefined Progression</label>
+      <div class="flex items-center justify-between gap-4 mb-4">
+        <label class="font-medium text-gray-200">Select Predefined Progression</label>
         <Select
           v-model="selectedPredefinedProgressionName"
           :options="availablePredefinedProgressions"
-          placeholder="Select a Progression"
+          placeholder="Choose a progression..."
           class="w-full md:w-1/2"
           :disabled="props.disabled"
+        />
+      </div>
+
+      <!-- Preview of Selected Progression -->
+      <div
+        v-if="selectedPredefinedProgressionName && currentProgression.length > 0"
+        class="flex flex-wrap gap-3 p-4 border border-zinc-700 rounded-lg bg-zinc-800"
+      >
+        <ChordCard
+          v-for="(chord, index) in currentProgression"
+          :key="`${chord.name}-${index}`"
+          :chord="chord"
+          :index="index"
+          size="small"
+          :show-roman-numeral="true"
+          class="pointer-events-none"
         />
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Sortable.js animation classes */
+.chord-ghost {
+  transform: scale(0.95);
+  opacity: 0.4;
+}
+
+.chord-chosen {
+  transform: scale(1.05);
+  z-index: 1000;
+}
+
+.chord-drag {
+  transform: rotate(5deg);
+  opacity: 0.8;
+}
+
+.chord-in-progression:active {
+  cursor: grabbing;
+}
+
+/* Enhanced drop zone styling */
+.drop-zone-hover {
+  border-color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.1);
+}
+</style>

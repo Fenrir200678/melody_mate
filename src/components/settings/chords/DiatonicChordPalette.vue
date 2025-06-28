@@ -3,8 +3,10 @@ import { computed, watch } from 'vue'
 import { useCompositionStore } from '@/stores/composition.store'
 import { useChordStore } from '@/stores/chord.store'
 import { getDiatonicTriads } from '@/services/ChordService'
-import Button from 'primevue/button'
+import ChordCard from './ChordCard.vue'
 import type { Chord } from '@/ts/models/Chord'
+
+defineProps<{ disabled: boolean }>()
 
 const compositionStore = useCompositionStore()
 const chordStore = useChordStore()
@@ -16,6 +18,14 @@ const diatonicChords = computed<Chord[]>(() => {
 
 function addChord(chord: Chord) {
   chordStore.addChordToProgression(chord)
+}
+
+// Drag and Drop functionality for adding chords from palette
+function handleDragStart(event: DragEvent, chord: Chord) {
+  if (event.dataTransfer) {
+    event.dataTransfer.setData('application/chord-data', JSON.stringify(chord))
+    event.dataTransfer.effectAllowed = 'copy'
+  }
 }
 
 // Update chords when key or scale changes
@@ -30,16 +40,34 @@ watch(
 </script>
 
 <template>
-  <div class="flex flex-wrap gap-2 p-4 border border-zinc-700 rounded-lg bg-zinc-800">
-    <span class="text-sm text-zinc-400 w-full mb-2">Available Diatonic Triads:</span>
-    <Button
-      v-for="chord in diatonicChords"
-      :key="chord.name"
-      :label="chord.name"
-      size="small"
-      severity="secondary"
-      outlined
-      @click="addChord(chord)"
-    />
+  <div class="space-y-4">
+    <div class="text-sm text-zinc-400 font-medium">Available Diatonic Triads:</div>
+
+    <div
+      class="flex flex-wrap gap-3 p-4 border border-zinc-700 rounded-lg bg-zinc-800 min-h-[120px] items-start"
+      :class="{ 'opacity-50 pointer-events-none': disabled }"
+    >
+      <ChordCard
+        v-for="chord in diatonicChords"
+        :key="chord.name"
+        :chord="chord"
+        size="small"
+        :draggable="!disabled"
+        :show-roman-numeral="true"
+        class="transition-transform hover:scale-110"
+        @click="addChord"
+        @dragstart="(event: DragEvent) => handleDragStart(event, chord)"
+      />
+
+      <div
+        v-if="diatonicChords.length === 0"
+        class="w-full flex items-center justify-center text-zinc-500 text-sm italic py-8"
+      >
+        <div class="text-center">
+          <i class="pi pi-music-note text-2xl mb-2 block"></i>
+          <p>Select a key and scale to see available chords</p>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

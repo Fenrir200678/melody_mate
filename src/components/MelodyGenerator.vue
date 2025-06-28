@@ -12,7 +12,7 @@ const { generateMelody, isGenerating } = useMelodyGeneration()
         @click="generateMelody()"
         :loading="isGenerating"
         label="Generate Melody"
-        icon="pi pi-play"
+        icon="pi pi-sparkles"
         size="large"
         class="bg-primary-500 border-primary-500 hover:bg-primary-600 w-full"
       />
