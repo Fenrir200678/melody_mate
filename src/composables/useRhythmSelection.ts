@@ -30,55 +30,64 @@ export function useRhythmSelection() {
    */
   const setStepDuration = (index: number, duration: number): void => {
     const stepDuration = 1 / SEQUENCER_STEPS_PER_BAR
-    const stepsToOccupy = duration > 0 ? Math.round(duration / stepDuration) : 1
 
-    // Validation logic
+    // Clear the area where the new note will be placed or the old note was
+    const newSequence = [...rhythmStore.customRhythmSequence]
+    const currentValue = newSequence[index]
+
+    if (currentValue > 0) {
+      // It's a note start, clear the old note
+      const oldNoteDurationInSteps = currentValue / stepDuration
+      const oldStepsToOccupy = Math.round(oldNoteDurationInSteps)
+      for (let i = 0; i < oldStepsToOccupy; i++) {
+        if (index + i < newSequence.length) {
+          newSequence[index + i] = 0
+        }
+      }
+    } else if (currentValue === -1) {
+      // It's part of a note, we need to find the start and clear it
+      let startIndex = index
+      while (startIndex > 0 && newSequence[startIndex] === -1) {
+        startIndex--
+      }
+      if (newSequence[startIndex] > 0) {
+        const oldNoteDurationInSteps = newSequence[startIndex] / stepDuration
+        const oldStepsToOccupy = Math.round(oldNoteDurationInSteps)
+        for (let i = 0; i < oldStepsToOccupy; i++) {
+          if (startIndex + i < newSequence.length) {
+            newSequence[startIndex + i] = 0
+          }
+        }
+      }
+    }
+
+    // Now, if a new duration is provided, place the new note
     if (duration > 0) {
-      if (index + stepsToOccupy > SEQUENCER_STEPS_PER_BAR) {
-        console.error('Note duration exceeds bar length.')
+      const newStepsToOccupy = Math.round(duration / stepDuration)
+
+      // Check for space
+      if (index + newStepsToOccupy > SEQUENCER_STEPS_PER_BAR) {
+        console.warn('Note duration exceeds available space.')
+        rhythmStore.setCustomRhythmSequence(newSequence) // Commit the clearing part
         return
       }
-
-      // Update sequence via store
-      const newSequence = [...rhythmStore.customRhythmSequence]
-
-      const currentValue = newSequence[index]
-      if (currentValue > 0) {
-        // This step has a note - clear it and all its occupied steps
-        const currentNoteLength = Math.round(currentValue / stepDuration)
-        for (let i = 0; i < currentNoteLength; i++) {
-          if (index + i < newSequence.length) {
-            newSequence[index + i] = 0
-          }
+      for (let i = 1; i < newStepsToOccupy; i++) {
+        if (index + i < newSequence.length && newSequence[index + i] > 0) {
+          console.warn('Note collides with another note.')
+          rhythmStore.setCustomRhythmSequence(newSequence) // Commit the clearing part
+          return
         }
       }
 
-      // Now set the new note
       newSequence[index] = duration
-
-      for (let i = 1; i < stepsToOccupy; i++) {
-        newSequence[index + i] = -1
-      }
-
-      rhythmStore.setCustomRhythmSequence(newSequence)
-    } else {
-      // Set to rest and free all occupied steps by this note
-      const newSequence = [...rhythmStore.customRhythmSequence]
-      const currentValue = newSequence[index]
-      if (currentValue > 0) {
-        // Note start: finde Länge und räume alle belegten Steps frei
-        const noteLength = Math.round(currentValue / stepDuration)
-        for (let i = 0; i < noteLength; i++) {
-          if (index + i < newSequence.length && (newSequence[index + i] === -1 || i === 0)) {
-            newSequence[index + i] = 0
-          }
+      for (let i = 1; i < newStepsToOccupy; i++) {
+        if (index + i < newSequence.length) {
+          newSequence[index + i] = -1
         }
-      } else {
-        // Falls auf einen einzelnen belegten Step (-1) geklickt wird, einfach auf 0 setzen
-        newSequence[index] = 0
       }
-      rhythmStore.setCustomRhythmSequence(newSequence)
     }
+
+    rhythmStore.setCustomRhythmSequence(newSequence)
   }
 
   /**

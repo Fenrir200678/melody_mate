@@ -152,52 +152,63 @@ export function convertCustomSequencerToUnifiedRhythm(
   subdivision: '4n' | '8n' | '16n' = '16n'
 ): UnifiedRhythm {
   const totalSteps = SUBDIVISION_TO_STEPS_PER_BAR[subdivision]
+  const ticksPerStep = getTicksPerStep(subdivision)
+  const totalTicksPerBar = totalSteps * ticksPerStep
 
   const events: RhythmEvent[] = []
-  let currentStep = 0
-
   let i = 0
-  while (i < sequence.length && currentStep < totalSteps) {
+  while (i < sequence.length) {
     const durationValue = sequence[i]
-
     if (durationValue > 0) {
-      const durationInSteps = Math.round(durationValue * totalSteps)
-      if (durationInSteps > 0) {
+      const noteDurationInTicks = durationValue * totalTicksPerBar
+      const durationInSteps = noteDurationInTicks / ticksPerStep
+      const stepsToOccupy = Math.round(durationInSteps) || 1
+
+      // Current position in steps
+      const currentStep = i
+
+      if (currentStep < totalSteps) {
         events.push({
           step: currentStep,
-          durationInSteps,
+          durationInSteps: durationInSteps,
           isRest: false
         })
-        currentStep += durationInSteps
-        // Skip ahead in the sequence by the duration of the note created
-        i += durationInSteps
-      } else {
-        i++ // Should not happen with values > 0, but as a safeguard.
       }
+      i += stepsToOccupy
     } else {
-      // This is a rest for one step
+      // It's a rest (0) or an occupied step (-1), just advance
       i++
-      currentStep++
     }
   }
 
-  // Post-process to fill gaps with rests
+  // Post-process to fill gaps with rests and clamp durations
   const finalEvents: RhythmEvent[] = []
   let stepTracker = 0
+
   for (const event of events) {
+    // Ensure we don't process events starting beyond the bar
+    if (event.step >= totalSteps) continue
+
+    // Add a rest if there's a gap
     if (event.step > stepTracker) {
-      // There's a gap, so insert a rest
       finalEvents.push({
         step: stepTracker,
         durationInSteps: event.step - stepTracker,
         isRest: true
       })
     }
-    finalEvents.push(event)
-    stepTracker = event.step + event.durationInSteps
+
+    // Clamp the duration of the current event to not exceed the bar length
+    const remainingSteps = totalSteps - event.step
+    const clampedDuration = Math.min(event.durationInSteps, remainingSteps)
+
+    if (clampedDuration > 0) {
+      finalEvents.push({ ...event, durationInSteps: clampedDuration })
+      stepTracker = event.step + clampedDuration
+    }
   }
 
-  // Add a final rest if the bar is not full
+  // Add a final rest if the bar is not completely filled
   if (stepTracker < totalSteps) {
     finalEvents.push({
       step: stepTracker,
