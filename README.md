@@ -1,6 +1,6 @@
 # Melody Mate v2.0.0 beta
 
-Melody Mate is a powerful, user-friendly web tool for generating, customizing, and exporting MIDI melodies—no musical background required. Create unique melodies or basslines, shape nearly every detail, and hopfully get inspired by the generated melodies to create your own music.
+Melody Mate is a powerful, user-friendly web tool for generating, customizing, and exporting MIDI melodies—no musical background required. Create unique melodies or basslines, shape nearly every detail, and hopefully get inspired by the generated melodies to create your own music.
 
 ---
 
