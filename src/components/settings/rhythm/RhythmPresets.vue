@@ -46,7 +46,8 @@ function restoreLastBars() {
 watch(
   () => props.rhythmTabSelected,
   (rhythmTabSelected, prevRhythmTabSelected) => {
-    rhythmStore.toggleCustomRhythm(false)
+    rhythmStore.setCustomRhythm(false)
+    rhythmStore.setUseRandomRhythm(false)
     if (rhythmTabSelected && !prevRhythmTabSelected) {
       restoreLastBars()
     }

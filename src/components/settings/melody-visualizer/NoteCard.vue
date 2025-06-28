@@ -6,14 +6,18 @@ import type { AppNote } from '@/ts/models/AppNote'
 interface Props {
   note: AppNote
   index: number
+  isActive?: boolean
 }
 
-defineProps<Props>()
+withDefaults(defineProps<Props>(), {
+  isActive: false
+})
 </script>
 
 <template>
   <div
     class="note-display flex flex-col items-center gap-1 transition-all duration-200 hover:scale-110 cursor-default"
+    :class="{ 'playing-animation': isActive }"
     :style="{
       opacity: note.pitch ? getVelocityOpacity(note.velocity) : 0.7
     }"
@@ -21,8 +25,11 @@ defineProps<Props>()
   >
     <!-- Music Symbol -->
     <div
-      class="music-symbol flex items-center justify-center gap-1 w-14 h-14 rounded-lg shadow-lg border text-white font-bold"
-      :class="[note.pitch ? getOctaveColor(getOctave(note.pitch)) : 'bg-gray-600 border-dashed border-gray-400']"
+      class="music-symbol flex items-baseline justify-center gap-1 w-14 h-14 rounded-lg shadow-lg border text-white font-bold transition-all duration-300"
+      :class="[
+        note.pitch ? getOctaveColor(getOctave(note.pitch)) : 'bg-gray-600 border-dashed border-gray-400',
+        { 'playing-pulse': isActive, 'playing-glow': isActive }
+      ]"
     >
       <span class="text-2xl music-font">
         {{ note.pitch ? getMusicSymbol(note.duration).symbol : '𝄽' }}
@@ -40,6 +47,9 @@ defineProps<Props>()
         {{ convertTicksToNotation(note.duration) }}
       </div>
     </div>
+
+    <!-- Active indicator -->
+    <div v-if="isActive" class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
   </div>
 </template>
 
@@ -69,5 +79,48 @@ defineProps<Props>()
 
 .note-display:hover {
   transform: scale(1.05);
+}
+
+/* Playing animations */
+.playing-animation {
+  z-index: 10;
+}
+
+.playing-pulse {
+  transform: scale(1.1);
+  z-index: 10;
+  animation: playingPulse 0.6s ease-in-out infinite alternate;
+}
+
+.playing-glow {
+  box-shadow:
+    0 0 20px rgba(255, 255, 255, 0.8),
+    0 0 40px rgba(255, 255, 255, 0.6),
+    0 0 60px rgba(255, 255, 255, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+@keyframes playingPulse {
+  0% {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+  }
+  100% {
+    transform: scale(1.15);
+    filter: brightness(1.4);
+  }
+}
+
+/* Ping animation for active indicator */
+@keyframes ping {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 </style>

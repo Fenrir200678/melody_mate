@@ -70,6 +70,14 @@ export const useRhythmStore = defineStore('rhythm', {
     toggleCustomRhythm(enable: boolean) {
       this.useCustomRhythm = enable
       saveState(LOCAL_STORAGE_KEY, this.$state)
+    },
+
+    /**
+     * Set custom rhythm
+     */
+    setCustomRhythm(value: boolean) {
+      this.useCustomRhythm = value
+      saveState(LOCAL_STORAGE_KEY, this.$state)
     }
   }
 })
