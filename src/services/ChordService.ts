@@ -3,6 +3,7 @@ import { Chord, RomanNumeral, Note, Interval, Scale } from 'tonal'
 import type { Chord as AppChord } from '@/ts/models/Chord'
 import { COMMON_CHORD_PROGRESSIONS, DARK_CHORD_PROGRESSIONS } from '@/data/chords-data'
 import { generateScale } from './ScaleService'
+import { useChordVisualization } from '@/composables/useChordVisualization'
 
 /**
  * Determines the chord quality based on scale intervals
@@ -55,6 +56,8 @@ function getChordQualityFromScale(rootNote: string, scaleNotes: string[]): strin
 export function generateChordProgression(progression: string): AppChord[] {
   const compositionStore = useCompositionStore()
   const { key, scaleName } = compositionStore
+  const { getCompactChordName } = useChordVisualization()
+
   const chords = progression.split('-').map((roman) => {
     const scale = generateScale()
     if (!scale) {
@@ -97,7 +100,7 @@ export function generateChordProgression(progression: string): AppChord[] {
     }
 
     return {
-      name: chord.name,
+      name: getCompactChordName(chord.name),
       notes: chord.notes.map(Note.pitchClass)
     } as AppChord
   })
@@ -111,32 +114,33 @@ export function generateChordProgression(progression: string): AppChord[] {
  * @returns An array of AppChord objects representing the diatonic triads.
  */
 export function getDiatonicTriads(key: string, scaleName: string): AppChord[] {
-  const scale = Scale.get(`${key} ${scaleName}`);
+  const { getCompactChordName } = useChordVisualization()
+  const scale = Scale.get(`${key} ${scaleName}`)
   if (scale.empty || !scale.notes.length) {
-    console.warn(`Could not generate scale for diatonic triads: ${key} ${scaleName}`);
-    return [];
+    console.warn(`Could not generate scale for diatonic triads: ${key} ${scaleName}`)
+    return []
   }
 
-  const scaleNotes = scale.notes.map(Note.pitchClass);
-  const diatonicChords: AppChord[] = [];
+  const scaleNotes = scale.notes.map(Note.pitchClass)
+  const diatonicChords: AppChord[] = []
 
   for (let i = 0; i < scaleNotes.length; i++) {
-    const rootNote = scaleNotes[i];
-    const chordType = getChordQualityFromScale(rootNote, scaleNotes);
-    const fullChordName = rootNote + chordType;
-    const chord = Chord.get(fullChordName);
+    const rootNote = scaleNotes[i]
+    const chordType = getChordQualityFromScale(rootNote, scaleNotes)
+    const fullChordName = rootNote + chordType
+    const chord = Chord.get(fullChordName)
 
     if (!chord.empty) {
       diatonicChords.push({
-        name: chord.name,
+        name: getCompactChordName(chord.name),
         notes: chord.notes.map(Note.pitchClass)
-      });
+      })
     } else {
-      console.warn(`Could not get chord for diatonic triad: ${fullChordName}`);
+      console.warn(`Could not get chord for diatonic triad: ${fullChordName}`)
     }
   }
 
-  return diatonicChords;
+  return diatonicChords
 }
 
 /**

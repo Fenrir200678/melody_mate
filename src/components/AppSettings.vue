@@ -23,7 +23,6 @@ import StartWithRootNote from '@/components/settings/generation/StartWithRootNot
 import EndWithRootNote from '@/components/settings/generation/EndWithRootNote.vue'
 import PredefinedMotif from '@/components/settings/generation/PredefinedMotif.vue'
 import ChordProgressionBuilder from '@/components/settings/chords/ChordProgressionBuilder.vue'
-import ChordProgressionDisplay from '@/components/settings/chords/ChordProgressionDisplay.vue'
 import ChordAdherenceSelector from '@/components/settings/chords/ChordAdherenceSelector.vue'
 import RhythmControl from '@/components/settings/rhythm/RhythmControl.vue'
 
@@ -86,7 +85,6 @@ const startEndCollapsed = ref(true)
           />
         </div>
         <ChordProgressionBuilder :disabled="!chordStore.useChords" />
-        <ChordProgressionDisplay v-if="chordStore.useChords" />
         <ChordAdherenceSelector :disabled="!chordStore.useChords" />
       </div>
     </Panel>

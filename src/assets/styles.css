@@ -57,3 +57,100 @@ midi-visualizer {
 #app-settings .p-panel-content-container {
   padding-top: 10px;
 }
+
+/* ===== CHORD COMPONENTS STYLES ===== */
+
+/* Chord Card Styles */
+.chord-display {
+  position: relative;
+}
+
+.chord-symbol {
+  backdrop-filter: blur(4px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.chord-display:hover .chord-symbol {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+}
+
+.chord-display:hover {
+  transform: scale(1.05);
+}
+
+/* Playing animations */
+.playing-animation {
+  z-index: 10;
+}
+
+.playing-pulse {
+  transform: scale(1.1);
+  z-index: 10;
+  animation: playingPulse 0.8s ease-in-out infinite alternate;
+}
+
+.playing-glow {
+  box-shadow:
+    0 0 20px rgba(255, 255, 255, 0.8),
+    0 0 40px rgba(255, 255, 255, 0.6),
+    0 0 60px rgba(255, 255, 255, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+@keyframes playingPulse {
+  0% {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+  }
+  100% {
+    transform: scale(1.15);
+    filter: brightness(1.4);
+  }
+}
+
+/* Drag cursor when draggable */
+.cursor-grab:active {
+  cursor: grabbing;
+}
+
+/* Ping animation for active indicator */
+@keyframes ping {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Chord Progression Builder Styles */
+
+/* Sortable.js animation classes */
+.chord-ghost {
+  transform: scale(0.95);
+  opacity: 0.4;
+}
+
+.chord-chosen {
+  transform: scale(1.05);
+  z-index: 1000;
+}
+
+.chord-drag {
+  transform: rotate(5deg);
+  opacity: 0.8;
+}
+
+.chord-in-progression:active {
+  cursor: grabbing;
+}
+
+/* Enhanced drop zone styling */
+.drop-zone-hover {
+  border-color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.1);
+}

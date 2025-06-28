@@ -48,12 +48,14 @@ watch(
       :class="{ 'opacity-50 pointer-events-none': disabled }"
     >
       <ChordCard
-        v-for="chord in diatonicChords"
+        v-for="(chord, index) in diatonicChords"
         :key="chord.name"
         :chord="chord"
+        :index="index"
         size="small"
         :draggable="!disabled"
         :show-roman-numeral="true"
+        :show-position-numeral="true"
         class="transition-transform hover:scale-110"
         @click="addChord"
         @dragstart="(event: DragEvent) => handleDragStart(event, chord)"

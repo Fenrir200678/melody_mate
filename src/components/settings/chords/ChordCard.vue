@@ -1,15 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import {
-  getChordQuality,
-  getChordRoot,
-  getChordQualityColor,
-  getChordSymbol,
-  getRomanNumeral,
-  getChordTooltipInfo
-} from './useChordVisualization'
+import { useChordVisualization } from '@/composables/useChordVisualization'
 import type { Chord } from '@/ts/models/Chord'
 import Button from 'primevue/button'
+import { useCompositionStore } from '@/stores/composition.store'
+import { useChordStore } from '@/stores/chord.store'
 
 interface Props {
   chord: Chord
@@ -17,6 +12,7 @@ interface Props {
   isActive?: boolean
   showRemoveButton?: boolean
   showRomanNumeral?: boolean
+  showPositionNumeral?: boolean
   draggable?: boolean
   size?: 'small' | 'medium' | 'large'
 }
@@ -25,6 +21,7 @@ const props = withDefaults(defineProps<Props>(), {
   isActive: false,
   showRemoveButton: false,
   showRomanNumeral: true,
+  showPositionNumeral: false,
   draggable: false,
   size: 'medium'
 })
@@ -38,13 +35,41 @@ const emit = defineEmits<{
   dragenter: [event: DragEvent]
 }>()
 
+const compositionStore = useCompositionStore()
+const chordStore = useChordStore()
+
+const {
+  getChordQuality,
+  getChordRoot,
+  getChordQualityColor,
+  getChordSymbol,
+  getRomanNumeral,
+  getChordTooltipInfo,
+  getCompactChordName
+} = useChordVisualization()
+
+/**
+ * Gets the simple roman numeral from the progression (I, V, vi, IV)
+ */
+function getProgressionRomanNumeral(index: number): string {
+  if (chordStore.selectedProgressionType === 'predefined' && chordStore.selectedPredefinedProgressionName) {
+    const progressionParts = chordStore.selectedPredefinedProgressionName.split('-')
+    return progressionParts[index] || '?'
+  } else {
+    // For custom progressions, use position-based numerals
+    const numerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII']
+    return numerals[index] || '?'
+  }
+}
+
 const chordData = computed(() => {
   const quality = getChordQuality(props.chord.name)
   const root = getChordRoot(props.chord.name)
   const symbol = getChordSymbol(quality)
   const colorClass = getChordQualityColor(quality)
-  const romanNumeral = getRomanNumeral(props.chord.name)
+  const romanNumeral = getRomanNumeral(props.chord.name, compositionStore.key)
   const tooltip = getChordTooltipInfo(props.chord)
+  const compactName = getCompactChordName(props.chord.name)
 
   return {
     quality,
@@ -52,7 +77,8 @@ const chordData = computed(() => {
     symbol,
     colorClass,
     romanNumeral,
-    tooltip
+    tooltip,
+    compactName
   }
 })
 
@@ -89,7 +115,6 @@ function handleClick() {
   emit('click', props.chord)
 }
 
-// Drag & Drop event handlers
 function handleDragStart(event: DragEvent) {
   if (props.draggable) {
     emit('dragstart', event)
@@ -145,19 +170,19 @@ function handleDragEnter(event: DragEvent) {
         {{ chordData.symbol }}
       </div>
 
-      <!-- Roman Numeral (small overlay) -->
+      <!-- Compact chord name (small overlay) -->
       <div
         v-if="showRomanNumeral"
         class="absolute -top-1 -right-1 bg-black bg-opacity-70 text-white text-xs px-1 rounded-sm font-mono"
       >
-        {{ chordData.romanNumeral }}
+        {{ chordData.compactName }}
       </div>
 
       <!-- Active indicator -->
       <div v-if="isActive" class="absolute -top-1 -left-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
     </div>
 
-    <!-- Remove Button (außerhalb der Card) -->
+    <!-- Remove Button -->
     <Button
       v-if="showRemoveButton"
       icon="pi pi-times"
@@ -172,7 +197,7 @@ function handleDragEnter(event: DragEvent) {
     <!-- Chord Information -->
     <div class="text-center">
       <div class="font-mono font-bold text-gray-200" :class="sizeClasses.text">
-        {{ chord.name }}
+        {{ chordData.compactName }}
       </div>
       <div v-if="size !== 'small'" class="text-xs text-gray-500">
         {{
@@ -187,74 +212,10 @@ function handleDragEnter(event: DragEvent) {
                   : chordData.quality
         }}
       </div>
+      <!-- Progression Roman Numeral -->
+      <div v-if="showPositionNumeral && index !== undefined" class="text-xs text-amber-400 font-mono mt-1">
+        {{ getProgressionRomanNumeral(index) }}
+      </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.chord-display {
-  position: relative;
-}
-
-.chord-symbol {
-  backdrop-filter: blur(4px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-.chord-display:hover .chord-symbol {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
-}
-
-.chord-display:hover {
-  transform: scale(1.05);
-}
-
-/* Playing animations */
-.playing-animation {
-  z-index: 10;
-}
-
-.playing-pulse {
-  transform: scale(1.1);
-  z-index: 10;
-  animation: playingPulse 0.8s ease-in-out infinite alternate;
-}
-
-.playing-glow {
-  box-shadow:
-    0 0 20px rgba(255, 255, 255, 0.8),
-    0 0 40px rgba(255, 255, 255, 0.6),
-    0 0 60px rgba(255, 255, 255, 0.4) !important;
-  border-color: rgba(255, 255, 255, 0.8) !important;
-}
-
-@keyframes playingPulse {
-  0% {
-    transform: scale(1.1);
-    filter: brightness(1.2);
-  }
-  100% {
-    transform: scale(1.15);
-    filter: brightness(1.4);
-  }
-}
-
-/* Drag cursor when draggable */
-.cursor-grab:active {
-  cursor: grabbing;
-}
-
-/* Ping animation for active indicator */
-@keyframes ping {
-  75%,
-  100% {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
-
-.animate-ping {
-  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-</style>
