@@ -19,6 +19,7 @@ export type MelodyGenerationContext = {
   n: number
   motifRepetitionPattern: string
   useRandomMotifPattern: boolean
+  melodicContour: string
 }
 
 /**

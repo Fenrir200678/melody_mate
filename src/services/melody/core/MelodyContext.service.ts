@@ -73,7 +73,8 @@ export class MelodyContextService {
       subdivision,
       n: markovN,
       motifRepetitionPattern: motifRepetitionPattern ?? 'AABB',
-      useRandomMotifPattern: useRandomMotifPattern ?? false
+      useRandomMotifPattern: useRandomMotifPattern ?? false,
+      melodicContour: generationStore.melodicContour ?? 'random'
     }
   }
 }

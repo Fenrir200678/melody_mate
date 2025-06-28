@@ -21,7 +21,7 @@ function handleContourChange(value: string) {
     <div class="flex flex-col flex-1 min-w-0">
       <label class="font-medium">Melodic Contour</label>
       <span class="text-xs break-words mb-2">
-        Guides the overall shape of the melody over its full duration.
+        Softly tries to guide the overall shape of the melody over its full duration.
       </span>
     </div>
     <SelectButton

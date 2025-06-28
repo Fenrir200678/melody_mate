@@ -42,9 +42,14 @@ function initializeState(context: MelodyGenerationContext, initialPitch?: string
  * Generates notes for the given steps using Markov chain logic.
  * @param context - The melody generation context.
  * @param initialPitch - Optional initial pitch to start with.
+ * @param melodicContour - Optional melodic contour to use.
  * @returns Object containing generated notes and the last pitch used.
  */
-export function generateNotesForSteps(context: MelodyGenerationContext, initialPitch?: string): NoteGenerationResult {
+export function generateNotesForSteps(
+  context: MelodyGenerationContext,
+  initialPitch?: string,
+  melodicContour?: string
+): NoteGenerationResult {
   const { unifiedRhythm, totalSteps, scale, markovTable, minOctave, maxOctave, subdivision, n } = context
   const { useFixedVelocity, fixedVelocity, useDynamics, selectedDynamic } = usePlayerStore()
   const { startWithRootNote, endWithRootNote, useRhythmicLicks, rhythmicLickFrequency } = useGenerationStore()
@@ -119,7 +124,8 @@ export function generateNotesForSteps(context: MelodyGenerationContext, initialP
         currentChordNotes,
         melodyProgress,
         event.step,
-        subdivision
+        subdivision,
+        melodicContour
       )
     }
 

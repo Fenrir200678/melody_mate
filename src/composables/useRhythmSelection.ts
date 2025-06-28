@@ -41,6 +41,19 @@ export function useRhythmSelection() {
 
       // Update sequence via store
       const newSequence = [...rhythmStore.customRhythmSequence]
+
+      const currentValue = newSequence[index]
+      if (currentValue > 0) {
+        // This step has a note - clear it and all its occupied steps
+        const currentNoteLength = Math.round(currentValue / stepDuration)
+        for (let i = 0; i < currentNoteLength; i++) {
+          if (index + i < newSequence.length) {
+            newSequence[index + i] = 0
+          }
+        }
+      }
+
+      // Now set the new note
       newSequence[index] = duration
 
       for (let i = 1; i < stepsToOccupy; i++) {
@@ -49,9 +62,21 @@ export function useRhythmSelection() {
 
       rhythmStore.setCustomRhythmSequence(newSequence)
     } else {
-      // Set to rest
+      // Set to rest and free all occupied steps by this note
       const newSequence = [...rhythmStore.customRhythmSequence]
-      newSequence[index] = 0
+      const currentValue = newSequence[index]
+      if (currentValue > 0) {
+        // Note start: finde Länge und räume alle belegten Steps frei
+        const noteLength = Math.round(currentValue / stepDuration)
+        for (let i = 0; i < noteLength; i++) {
+          if (index + i < newSequence.length && (newSequence[index + i] === -1 || i === 0)) {
+            newSequence[index + i] = 0
+          }
+        }
+      } else {
+        // Falls auf einen einzelnen belegten Step (-1) geklickt wird, einfach auf 0 setzen
+        newSequence[index] = 0
+      }
       rhythmStore.setCustomRhythmSequence(newSequence)
     }
   }

@@ -3,8 +3,7 @@
  * Provides consistent patterns and interfaces for all services
  */
 
-import type { Melody, Motif } from '@/ts/models'
-import type { AnyRhythm } from './rhythm.types'
+import type { Melody } from '@/ts/models'
 
 /**
  * Base service interface that all services should implement
@@ -23,44 +22,19 @@ export interface BaseService<TInput, TOutput> {
 }
 
 /**
- * Configuration interface for melody generation context
- */
-export interface MelodyGenerationContext {
-  rhythm: AnyRhythm
-  key: string
-  scale: string
-  bpm: number
-  useCustomRhythm: boolean
-  useMotifRepetition: boolean
-  startWithRootNote: boolean
-  endWithRootNote: boolean
-  rhythmicLicks: any[]
-  melodyLength: number
-  octave: number
-  velocity: number
-  restProbability: number
-  motifRepetition: number
-  callAndResponse: boolean
-  predefinedMotif: Motif | null
-  melodicContour: string
-  chordAdherence: number
-  nGramSize: number
-}
-
-/**
  * Melody Generator Service interface
  * All melody generators must implement this contract
  */
-export interface MelodyGenerator extends BaseService<MelodyGenerationContext, Melody> {
+export interface MelodyGenerator extends BaseService<any, Melody> {
   /**
    * Generate a melody based on the provided context
    */
-  generate(context: MelodyGenerationContext): Promise<Melody>
+  generate(context: any): Promise<Melody>
 
   /**
    * Validate melody generation context
    */
-  validateContext(context: unknown): context is MelodyGenerationContext
+  validateContext(context: unknown): boolean
 }
 
 /**

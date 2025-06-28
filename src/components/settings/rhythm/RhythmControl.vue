@@ -27,7 +27,7 @@ const activeTab = ref(0)
         <EuclideanRhythm :euclidean-tab-selected="activeTab === 1" />
       </TabPanel>
       <TabPanel :value="2">
-        <RhythmSequencer />
+        <RhythmSequencer :rhythm-tab-selected="activeTab === 2" />
       </TabPanel>
     </TabPanels>
   </Tabs>

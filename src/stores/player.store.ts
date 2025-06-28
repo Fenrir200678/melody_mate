@@ -12,7 +12,6 @@ export const usePlayerStore = defineStore('player', {
   state: () => ({
     ...(loadState(LOCAL_STORAGE_KEY) || {
       isPlaying: false,
-      loop: true,
       selectedInstrument: 99,
       useFixedVelocity: false,
       fixedVelocity: 100,
@@ -27,18 +26,7 @@ export const usePlayerStore = defineStore('player', {
       this.isPlaying = playing
       saveState(LOCAL_STORAGE_KEY, this.$state)
     },
-    setLoop(loop: boolean) {
-      this.loop = loop
 
-      // DOM manipulation should ideally be handled in components
-      const player = document.getElementById('player')
-      if (player?.hasAttribute('loop')) {
-        player?.removeAttribute('loop')
-      } else {
-        player?.setAttribute('loop', 'true')
-      }
-      saveState(LOCAL_STORAGE_KEY, this.$state)
-    },
     setSelectedInstrument(instrument: number) {
       this.selectedInstrument = instrument
       saveState(LOCAL_STORAGE_KEY, this.$state)

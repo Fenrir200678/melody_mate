@@ -11,7 +11,7 @@ const generationStore = useGenerationStore()
       <label for="use-call-and-response" class="font-medium leading-tight">
         Use Call and Response<br />
         <span class="text-xs break-words">
-          When using motif repetition, the repeated motifs will be transformed (e.g., transposed).
+          When using motif repetition, the repeated motifs will be "spiced up" with transposition and inversion.
         </span>
       </label>
     </div>

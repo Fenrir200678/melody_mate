@@ -7,15 +7,43 @@ import RhythmNotePalette from './RhythmNotePalette.vue'
 import RhythmSequencerGrid from './RhythmSequencerGrid.vue'
 import RhythmSequencerHelp from './RhythmSequencerHelp.vue'
 
+const props = defineProps<{
+  rhythmTabSelected: boolean
+}>()
+
 const { customRhythmSequence, useCustomRhythm, setStepDuration, clearCustomRhythm, toggleCustomRhythm } =
   useRhythmSelection()
 
 // Available note values for the palette
 const noteValues = [
   { name: '1/16', duration: NOTE_DURATIONS.SIXTEENTH, color: 'bg-blue-500', hoverColor: 'hover:bg-blue-400' },
+  {
+    name: '1/16.',
+    duration: NOTE_DURATIONS.DOTTED_SIXTEENTH,
+    color: 'bg-blue-700',
+    hoverColor: 'hover:bg-blue-600'
+  },
   { name: '1/8', duration: NOTE_DURATIONS.EIGHTH, color: 'bg-green-500', hoverColor: 'hover:bg-green-400' },
+  {
+    name: '1/8.',
+    duration: NOTE_DURATIONS.DOTTED_EIGHTH,
+    color: 'bg-green-700',
+    hoverColor: 'hover:bg-green-600'
+  },
   { name: '1/4', duration: NOTE_DURATIONS.QUARTER, color: 'bg-yellow-500', hoverColor: 'hover:bg-yellow-400' },
+  {
+    name: '1/4.',
+    duration: NOTE_DURATIONS.DOTTED_QUARTER,
+    color: 'bg-yellow-700',
+    hoverColor: 'hover:bg-yellow-600'
+  },
   { name: '1/2', duration: NOTE_DURATIONS.HALF, color: 'bg-orange-500', hoverColor: 'hover:bg-orange-400' },
+  {
+    name: '1/2.',
+    duration: NOTE_DURATIONS.DOTTED_HALF,
+    color: 'bg-orange-700',
+    hoverColor: 'hover:bg-orange-600'
+  },
   { name: '1/1', duration: NOTE_DURATIONS.WHOLE, color: 'bg-red-500', hoverColor: 'hover:bg-red-400' }
 ]
 
@@ -178,6 +206,15 @@ function handleTrashDrop(event: DragEvent) {
   }
   draggedItem.value = null
 }
+
+watch(
+  () => props.rhythmTabSelected,
+  (newVal) => {
+    if (newVal) {
+      toggleCustomRhythm(true)
+    }
+  }
+)
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useMelodyGeneration } from '@/composables/useMelodyGeneration'
 import { usePlayerStore } from '@/stores/player.store'
 import { generalMidiInstruments, type GeneralMidiInstrument } from '@/data/general-midi-instruments'
@@ -10,13 +10,10 @@ import Select from 'primevue/select'
 import ToggleSwitch from 'primevue/toggleswitch'
 import type { SelectChangeEvent } from 'primevue/select'
 
-onMounted(async () => {
-  await import('html-midi-player')
-})
-
 const { melody, midiUrl, generateMidiFile, downloadMidiFile } = useMelodyGeneration()
 const playerStore = usePlayerStore()
 
+const loop = ref(false)
 const instruments = ref<GeneralMidiInstrument[]>(generalMidiInstruments)
 const selectedInstrument = ref<GeneralMidiInstrument['items'][number] | null>(null)
 const canPlay = computed(() => melody.value?.notes && melody.value.notes.length > 0)
@@ -26,13 +23,35 @@ async function changeInstrument(event: SelectChangeEvent) {
   await generateMidiFile()
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await import('html-midi-player')
+
   const instrument = instruments.value.find((group) =>
     group.items.find((item) => item.value === playerStore.selectedInstrument)
   )
 
   if (instrument) {
     selectedInstrument.value = instrument.items.find((item) => item.value === playerStore.selectedInstrument) || null
+  }
+
+  const player = document.getElementById('midi-player') as HTMLElement
+  if (player) {
+    if (loop.value) {
+      player.setAttribute('loop', 'true')
+    } else {
+      player.removeAttribute('loop')
+    }
+  }
+})
+
+watch(loop, (newVal) => {
+  const player = document.getElementById('midi-player') as HTMLElement
+  if (player) {
+    if (newVal) {
+      player.setAttribute('loop', 'true')
+    } else {
+      player.removeAttribute('loop')
+    }
   }
 })
 </script>
@@ -61,17 +80,16 @@ onMounted(() => {
 
     <div class="flex items-start justify-center gap-4 w-full">
       <midi-player
-        id="player"
+        id="midi-player"
         class="w-full midi-player"
         :src="midiUrl"
         sound-font
-        :loop="playerStore.loop"
         @start="playerStore.setIsPlaying(true)"
         @stop="playerStore.setIsPlaying(false)"
       />
       <div class="flex flex-col items-center justify-center gap-2">
         <label for="loop" class="text-zinc-400">Loop:</label>
-        <ToggleSwitch :modelValue="playerStore.loop" inputId="loop" @update:modelValue="playerStore.setLoop" />
+        <ToggleSwitch :modelValue="loop" inputId="loop" @update:modelValue="loop = !loop" />
       </div>
     </div>
 

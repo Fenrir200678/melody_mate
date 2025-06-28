@@ -75,7 +75,7 @@ export class MotifMelodyGenerator {
             },
             totalSteps: unifiedRhythm.totalSteps
           }
-          barResult = generateNotesForSteps(barContext, lastPitch)
+          barResult = generateNotesForSteps(barContext, lastPitch, context.melodicContour)
         } else {
           barResult = { notes: [], lastPitch: lastPitch || context.scale.notes[0] }
         }

@@ -25,7 +25,7 @@ export class StandardMelodyGenerator {
       unifiedRhythm: multiBarRhythm
     }
 
-    const result = generateNotesForSteps(extendedContext)
+    const result = generateNotesForSteps(extendedContext, undefined, context.melodicContour)
 
     return {
       notes: result.notes
