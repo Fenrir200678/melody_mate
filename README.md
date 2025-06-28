@@ -69,6 +69,7 @@ Melody Mate is a powerful, user-friendly web tool for generating, customizing, a
 - All settings grouped in collapsible panels for clarity
 - Tooltips, legends, and help texts throughout the app
 - **Automatic settings save:** All your preferences, custom rhythms, progressions, and options are automatically saved in your browser (localStorage). When you return, everything is instantly restored—no login or account needed. This ensures a seamless workflow and lets you pick up exactly where you left off, even after closing the browser.
+- **Clear Settings Button:** If you ever experience issues or after a new version release, you can use the red "Clear Settings" button in the footer to delete all saved preferences and reload the app. This is helpful to resolve problems caused by outdated or incompatible settings.
 
 ---
 

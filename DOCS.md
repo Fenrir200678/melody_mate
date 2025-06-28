@@ -10,6 +10,16 @@ Melody Mate is a web-based tool for generating, customizing, and exporting MIDI 
 
 ---
 
+## Clear Settings Button
+
+**If you ever experience issues or after a new version release, use the red "Clear Settings" button in the footer to delete all saved preferences and reload the app.**
+
+- This button will remove all settings stored in your browser (localStorage) and refresh the page.
+- It is especially helpful if something behaves unexpectedly or after an update, as old settings may sometimes cause problems.
+- You will be asked for confirmation before your settings are deleted.
+
+---
+
 ## 2. Feature Deep-Dive
 
 ### 2.1 Scales & Keys
