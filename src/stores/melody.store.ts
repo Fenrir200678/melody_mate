@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { Melody } from '@/ts/models'
+import type { AnyRhythm } from '@/ts/types/rhythm.types'
 
 /**
  * Pure State Management Store for Melody
@@ -10,7 +11,8 @@ export const useMelodyStore = defineStore('melody', {
     melody: null as Melody | null,
     isGenerating: false,
     midiUrl: '',
-    track: null as any // MIDI track object from midi-writer-js (not properly typed)
+    track: null as any, // MIDI track object from midi-writer-js (not properly typed)
+    lastUsedRhythm: null as AnyRhythm | null // The rhythm that was used to generate the current melody
   }),
 
   actions: {
@@ -40,6 +42,13 @@ export const useMelodyStore = defineStore('melody', {
      */
     setTrack(track: any) {
       this.track = track
+    },
+
+    /**
+     * Set the rhythm that was used to generate the current melody
+     */
+    setLastUsedRhythm(rhythm: AnyRhythm | null) {
+      this.lastUsedRhythm = rhythm
     }
   }
 })

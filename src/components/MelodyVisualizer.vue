@@ -49,15 +49,10 @@ const hasRests = computed(() => {
       </div>
     </div>
 
-    <!-- Progress Bar -->
-    <div v-if="hasNotes && isPlaying" class="w-full bg-zinc-700 rounded-full h-2">
-      <div
-        class="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full transition-all duration-300"
-        :style="{ width: `${progress}%` }"
-      ></div>
-    </div>
-
-    <div v-if="!hasNotes" class="p-8 text-center text-gray-200 border-2 border-dashed border-gray-600 rounded-lg">
+    <div
+      v-if="!hasNotes"
+      class="p-8 flex items-center justify-center text-gray-200 border-2 border-dashed border-gray-600 rounded-lg"
+    >
       <i class="pi pi-music-note text-3xl mb-2 block"></i>
       <p>Generate a melody to see it here.</p>
     </div>
@@ -80,6 +75,14 @@ const hasRests = computed(() => {
       <!-- Playback info -->
       <div v-if="isPlaying" class="text-xs text-center text-gray-400">
         <span>Currently playing note {{ currentNoteIndex + 1 }} of {{ displayNotes.length }}</span>
+      </div>
+
+      <!-- Progress Bar -->
+      <div v-if="hasNotes && isPlaying" class="w-full bg-zinc-700 rounded-full h-4">
+        <div
+          class="bg-gradient-to-r from-green-400 to-blue-500 h-4 rounded-full transition-all duration-300"
+          :style="{ width: `${progress}%` }"
+        ></div>
       </div>
     </div>
   </div>

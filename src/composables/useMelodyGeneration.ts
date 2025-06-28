@@ -55,14 +55,27 @@ export function useMelodyGeneration() {
     melodyStore.setMelody(null)
 
     try {
+      // Store the rhythm that will be used for generation
+      // Handle custom rhythm case where rhythm is null but useCustomRhythm is true
+      let rhythmUsedForGeneration: any = null
+      if (rhythmStore.useCustomRhythm) {
+        // Create a special marker for custom rhythm
+        rhythmUsedForGeneration = { name: 'Custom', isCustom: true }
+      } else {
+        rhythmUsedForGeneration = rhythmStore.rhythm
+      }
+
       // Generate melody using orchestrator service with Result pattern
       const result: Result<Melody> = await melodyOrchestrator.generateMelody()
 
       if (isSuccess(result)) {
         melodyStore.setMelody(result.data)
+        // Only store the rhythm if melody generation was successful
+        melodyStore.setLastUsedRhythm(rhythmUsedForGeneration)
       } else if (isError(result)) {
         console.error('Melody generation failed:', result.error)
         melodyStore.setMelody({ notes: [] }) // Fallback empty melody
+        // Don't update lastUsedRhythm on failure
       }
     } catch (error) {
       // Fallback for unexpected errors not caught by Result pattern
@@ -103,12 +116,25 @@ export function useMelodyGeneration() {
     melodyStore.setMelody(null)
 
     try {
+      // Store the rhythm that will be used for generation
+      // Handle custom rhythm case where rhythm is null but useCustomRhythm is true
+      let rhythmUsedForGeneration: any = null
+      if (rhythmStore.useCustomRhythm) {
+        // Create a special marker for custom rhythm
+        rhythmUsedForGeneration = { name: 'Custom', isCustom: true }
+      } else {
+        rhythmUsedForGeneration = rhythmStore.rhythm
+      }
+
       // Use legacy method for compatibility
       const melody = await melodyOrchestrator.generateMelodyLegacy()
       melodyStore.setMelody(melody)
+      // Store the rhythm that was used for successful generation
+      melodyStore.setLastUsedRhythm(rhythmUsedForGeneration)
     } catch (error) {
       console.error('Error during melody generation:', error)
       melodyStore.setMelody({ notes: [] }) // Fallback empty melody
+      // Don't update lastUsedRhythm on failure
     } finally {
       melodyStore.setIsGenerating(false)
 
