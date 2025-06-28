@@ -1,22 +1,38 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useMelodyStore } from '@/stores/melody.store'
-import { convertTicksToNotation } from '@/utils/duration'
+import { getOctave } from './settings/melody-visualizer/useMelodyVisualization'
+import NoteCard from './settings/melody-visualizer/NoteCard.vue'
+import VisualizerLegend from './settings/melody-visualizer/VisualizerLegend.vue'
 
 const melodyStore = useMelodyStore()
 
-const displayMelody = computed(() => {
+const displayNotes = computed(() => {
   if (!melodyStore.melody?.notes.length) {
-    return 'Generate a melody to see it here.'
+    return []
   }
-
   return melodyStore.melody.notes
-    .map((note) => {
-      const pitch = note.pitch === null ? 'rest' : note.pitch
-      const duration = convertTicksToNotation(note.duration)
-      return `${pitch} (${duration})`
-    })
-    .join(' → ')
+})
+
+const hasNotes = computed(() => displayNotes.value.length > 0)
+
+// Get unique octaves used in the melody
+const usedOctaves = computed(() => {
+  if (!hasNotes.value) return []
+
+  const octaves = new Set<number>()
+  displayNotes.value.forEach((note) => {
+    if (note.pitch) {
+      octaves.add(getOctave(note.pitch))
+    }
+  })
+
+  return Array.from(octaves).sort((a, b) => a - b)
+})
+
+// Check if melody has rests
+const hasRests = computed(() => {
+  return displayNotes.value.some((note) => !note.pitch)
 })
 </script>
 
@@ -26,10 +42,20 @@ const displayMelody = computed(() => {
       <i class="pi pi-chart-line text-lg"></i>
       <span class="text-xl">Generated Melody</span>
     </div>
-    <div class="p-4 rounded-lg border-l-4 border-primary-500">
-      <p class="font-mono">
-        {{ displayMelody }}
-      </p>
+
+    <div v-if="!hasNotes" class="p-8 text-center text-gray-200 border-2 border-dashed border-gray-600 rounded-lg">
+      <i class="pi pi-music-note text-3xl mb-2 block"></i>
+      <p>Generate a melody to see it here.</p>
+    </div>
+
+    <div v-else class="space-y-4">
+      <!-- Notes Display -->
+      <div class="flex flex-wrap gap-2 p-4 bg-zinc-900 rounded-lg items-end justify-center">
+        <NoteCard v-for="(note, index) in displayNotes" :key="index" :note="note" :index="index" />
+      </div>
+
+      <!-- Legend -->
+      <VisualizerLegend :used-octaves="usedOctaves" :has-rests="hasRests" />
     </div>
   </div>
 </template>

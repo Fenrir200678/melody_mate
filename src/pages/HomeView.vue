@@ -31,10 +31,10 @@ const AppSettings = defineAsyncComponent({
 
 <template>
   <div class="flex flex-col gap-4 md:flex-row">
-    <div class="w-full bg-zinc-900 rounded-lg px-4 py-8 md:w-[70%]">
+    <div class="w-full bg-zinc-900 rounded-lg px-4 py-8 md:w-[60%]">
       <AppSettings />
     </div>
-    <div class="w-full bg-zinc-900 rounded-lg px-4 py-8 flex flex-col gap-8 md:w-[30%]">
+    <div class="w-full bg-zinc-900 rounded-lg px-4 py-8 flex flex-col gap-8 md:w-[40%]">
       <MelodyVisualizer />
       <MelodyGenerator />
       <Divider />

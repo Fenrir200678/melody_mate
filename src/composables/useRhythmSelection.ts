@@ -21,9 +21,6 @@ export function useRhythmSelection() {
     throw new Error('Rhythm services not provided. Ensure they are registered in main.ts')
   }
 
-  // Custom rhythm conversion is now handled in MelodyContextService
-  // No need for separate conversion here anymore
-
   /**
    * Set step duration in custom rhythm sequence
    * Extracted Business Logic from setStepDuration action
@@ -100,7 +97,6 @@ export function useRhythmSelection() {
 
   /**
    * Set default rhythm for a category
-   * Extracted Business Logic from setDefaultRhythm action
    */
   const setDefaultRhythm = (category: RhythmCategory): void => {
     const firstRhythm = WEIGHTED_RHYTHMS.find((r) => r.category === category) || null

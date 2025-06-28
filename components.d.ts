@@ -27,6 +27,7 @@ declare module 'vue' {
     MelodyVisualizer: typeof import('./src/components/MelodyVisualizer.vue')['default']
     MotifRepetition: typeof import('./src/components/settings/generation/MotifRepetition.vue')['default']
     NGramSelector: typeof import('./src/components/settings/generation/NGramSelector.vue')['default']
+    NoteCard: typeof import('./src/components/settings/melody-visualizer/NoteCard.vue')['default']
     OctaveSelector: typeof import('./src/components/settings/composition/OctaveSelector.vue')['default']
     PageFooter: typeof import('./src/components/layout/PageFooter.vue')['default']
     PageHeader: typeof import('./src/components/layout/PageHeader.vue')['default']
@@ -46,5 +47,6 @@ declare module 'vue' {
     ScaleSelector: typeof import('./src/components/settings/key_scale/ScaleSelector.vue')['default']
     StartWithRootNote: typeof import('./src/components/settings/generation/StartWithRootNote.vue')['default']
     VelocitySelector: typeof import('./src/components/settings/composition/VelocitySelector.vue')['default']
+    VisualizerLegend: typeof import('./src/components/settings/melody-visualizer/VisualizerLegend.vue')['default']
   }
 }

@@ -10,7 +10,7 @@ import Toast from 'primevue/toast'
   <Toast />
   <PageHeader />
   <main
-    class="w-full md:w-[90%] max-w-[1500px] mx-auto px-2 md:px-4 bg-gradient-to-br from-emerald-900/8 via-transparent to-blue-900/8"
+    class="w-full md:w-[95%] max-w-[1920px] mx-auto px-2 md:px-4 bg-gradient-to-br from-emerald-900/8 via-transparent to-blue-900/8"
   >
     <RouterView />
   </main>
