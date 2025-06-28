@@ -24,7 +24,7 @@ dist-ssr
 *.sw?
 .vercel
 _backup
-.cursor
+.cursor/rules
 .gemini
 GEMINI.md
 .docs
