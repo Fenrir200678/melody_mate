@@ -42,8 +42,9 @@
         <p class="text-sm md:text-base text-zinc-300 leading-relaxed">
           Create melodies or basslines based on
           <span class="text-emerald-400 font-medium">stochastic processes</span> using
-          <span class="text-blue-400 font-medium">rhythm presets</span> or
-          <span class="text-cyan-400 font-medium">Euclidean rhythms</span>
+          <span class="text-cyan-400 font-medium">rhythm presets</span>,
+          <span class="text-cyan-500 font-medium">custom rhythms</span> or
+          <span class="text-cyan-600 font-medium">Euclidean rhythms</span>
           and export them as MIDI files.
         </p>
       </div>
