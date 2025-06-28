@@ -15,8 +15,8 @@ const value = computed({
     <div class="flex flex-col flex-1 min-w-0">
       <label for="rest-probability-slider" class="font-medium">Rest Probability</label>
       <span class="text-xs break-words">
-        Probability that a rest (silence) will be inserted instead of a note. Higher values create sparser, more
-        syncopated melodies.
+        Probability that a rest will be inserted instead of a note. Higher values create sparser, more syncopated
+        melodies. Only works with rhythm presets, since euclidean and custom sequencer rhythms generate their own rests.
       </span>
     </div>
     <div class="flex items-center gap-4 w-full mt-2">

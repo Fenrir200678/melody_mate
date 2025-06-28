@@ -22,7 +22,9 @@ const frequency = computed({
     <div class="flex items-center justify-between gap-4">
       <div class="flex flex-col flex-1 min-w-0">
         <label for="use-licks-checkbox" class="font-medium">Use Rhythmic Licks</label>
-        <span class="text-xs break-words"> Inject short, predefined rhythmic phrases to add variety. </span>
+        <span class="text-xs break-words">
+          Inject short, predefined rhythmic phrases to add variety. Only works with rhythm presets.
+        </span>
       </div>
       <Checkbox v-model="useLicks" :binary="true" inputId="use-licks-checkbox" />
     </div>
@@ -30,7 +32,9 @@ const frequency = computed({
     <div v-if="useLicks" class="flex flex-col justify-around gap-2 mt-2">
       <div class="flex flex-col flex-1 min-w-0">
         <label for="lick-frequency-slider" class="font-medium">Lick Frequency</label>
-        <span class="text-xs break-words"> How often the licks should appear in the melody. </span>
+        <span class="text-xs break-words">
+          How often the licks should appear in the melody. Only works with rhythm presets.
+        </span>
       </div>
       <div class="flex items-center gap-4 w-full mt-2">
         <Slider id="lick-frequency-slider" class="w-full" v-model="frequency" :min="0" :max="0.75" :step="0.05" />

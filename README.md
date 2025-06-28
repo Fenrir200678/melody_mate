@@ -1,17 +1,76 @@
-# Melody Mate
+# Melody Mate v2.0.0 beta
 
-Melody Mate is a web-based tool for generating MIDI melodies. With just a few clicks, you can create, customize, listen to, and export your own melodies as MIDI files—no musical background required.
+Melody Mate is a powerful, user-friendly web tool for generating, customizing, and exporting MIDI melodies—no musical background required. Create unique melodies or basslines, shape nearly every detail, and hopfully get inspired by the generated melodies to create your own music.
 
-## ✨ What can Melody Mate do?
+---
 
-- **Choose scale & key:** Ensure every note fits harmonically.
-- **Design rhythms:** Create your own rhythms, use presets, or explore Euclidean rhythms.
-- **Rule-based generation:** Control the melody with N-Gram/Markov-Chain models, motifs, rest probability, and more.
-- **Composition parameters:** Set length (1–4 bars), tempo (BPM), octave, and velocity.
-- **Instruments:** Choose from over 100 General MIDI instruments.
-- **Playback:** Listen to your melody directly in the browser.
-- **Visualization:** Instantly see the generated note sequence.
-- **MIDI export:** Download your melody as a .mid file for use in your DAW.
+## 🎵 What can Melody Mate do?
+
+### 🎼 Scales & Keys
+
+- Select from all common keys and scales (major, minor, modes, and more)
+- Instantly switch the key/scale for your entire melody
+
+### 🔗 Chord Progressions (Custom & Predefined)
+
+- Enable/disable chord progression guidance for melody generation
+- Build your own custom chord progressions (drag & drop, reorder, remove, up to 8 chords)
+- Choose from a library of predefined progressions (pop, jazz, minor, etc.)
+- Diatonic chord palette adapts to your selected key/scale
+- Adjustable "Chord Adherence" (how strictly the melody follows the chords)
+- Visual chord info: compact names, roman numerals, color coding
+
+### 🥁 Rhythm Design (Presets, Euclidean, Custom)
+
+- **Presets:** Choose from a large library of weighted rhythm patterns (categorized)
+- **Euclidean:** Generate mathematically even rhythms, rotate patterns, visualize as a circle
+- **Custom Sequencer:** 16-step grid, drag & drop note values, create any rhythm you want
+- Rhythm licks: Inject short, predefined rhythmic phrases for extra groove
+- Rest probability: Control how sparse or syncopated your melody is
+- Random rhythm option within a category
+
+### 🎶 Melody Generation & Structure
+
+- Rule-based generation with N-Gram/Markov-Chain models (adjustable context length)
+- Motif repetition: Repeat melodic motifs with customizable patterns
+- Famous motif injection: Seed your melody with iconic motifs (Beethoven, pop, etc.)
+- Melodic contour: Guide the overall shape (arc, ascending, descending, random)
+- Call & response: Motif variation with transposition/inversion
+- Start/end on root note (optional)
+- Adjustable bars (1–16), BPM, octave range
+
+### 🔊 Dynamics & Velocity
+
+- Fixed velocity: All notes at the same volume
+- Dynamic progressions: Choose from musical dynamic curves (piano, forte, etc.)
+- Select and preview dynamic profiles
+
+### 🎹 Instrument Selection & Playback
+
+- Choose from 100+ General MIDI instruments (grouped by type)
+- Instant playback in your browser (no plugins needed)
+- Loop playback option
+
+### 👀 Animated Melody Visualization
+
+- See your melody as a sequence of colored note cards
+- Animated playback: highlights the current note in sync with audio
+- Octave color coding, velocity transparency, rest indication
+- Rhythm legend and info (including custom/euclidean/preset type)
+
+### 💾 MIDI Export
+
+- Download your melody as a .mid file for use in any DAW or music software
+- Filename auto-generated based on your settings
+
+### 🧠 Smart User Experience
+
+- Modern, responsive UI (PrimeVue, TailwindCSS)
+- All settings grouped in collapsible panels for clarity
+- Tooltips, legends, and help texts throughout the app
+- **Automatic settings save:** All your preferences, custom rhythms, progressions, and options are automatically saved in your browser (localStorage). When you return, everything is instantly restored—no login or account needed. This ensures a seamless workflow and lets you pick up exactly where you left off, even after closing the browser.
+
+---
 
 ## 🚦 How does it work? (User Workflow)
 
@@ -26,14 +85,18 @@ Melody Mate is a web-based tool for generating MIDI melodies. With just a few cl
 4. **Export:**
    - Download your melody as a MIDI file and use it in your favorite DAW.
 
+---
+
 ## 🛠️ Tech Stack
 
 - **Frontend:** Vue 3, TypeScript, Vite
 - **UI:** PrimeVue, TailwindCSS
 - **State Management:** Pinia
-- **MIDI Playback:** [html-midi-player](https://github.com/cifkao/html-midi-player) (100+ General MIDI instruments)
-- **MIDI Export:** [midi-writer-js](https://github.com/grimmdude/MidiWriterJS)
-- **Music theory:** [tonal](https://github.com/tonaljs/tonal) + custom utilities
+- **MIDI Playback:** html-midi-player (100+ General MIDI instruments)
+- **MIDI Export:** midi-writer-js
+- **Music theory:** tonal.js + custom utilities
+
+---
 
 ## 🚀 Getting Started
 
@@ -66,11 +129,11 @@ pnpm build
 
 The build output will be in the `dist/` directory.
 
+---
+
 ## 🗺️ Roadmap
 
 - **AI-powered models:** Integration of Magenta.js for AI-based melody generation (planned)
-- **Chord progressions:** Module for automatic chord progressions (planned)
-- **More export formats:** e.g. MusicXML, WAV (planned)
 
 ## 📜 License
 

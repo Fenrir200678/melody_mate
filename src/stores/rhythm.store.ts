@@ -23,6 +23,10 @@ export const useRhythmStore = defineStore('rhythm', {
     return { ...defaults, ...(stored || {}) }
   },
 
+  getters: {
+    isPresetRhythm: (state) => !state.useCustomRhythm && !state.rhythm?.name.includes('Euclidean')
+  },
+
   actions: {
     /**
      * Set the current rhythm

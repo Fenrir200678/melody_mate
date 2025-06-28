@@ -372,7 +372,8 @@ export const WEIGHTED_RHYTHMS: WeightedRhythm[] = [
   {
     name: 'EBM Sequencer Bass',
     category: 'bass',
-    description: 'A driving, relentless 16th-note sequencer bassline, the foundation of EBM.',
+    description:
+      'A driving, relentless 16th-note sequencer bassline, the foundation of EBM. Works best with only 1 octave selected.',
     steps: [
       '16n',
       '16n',
@@ -495,7 +496,24 @@ export const WEIGHTED_RHYTHMS: WeightedRhythm[] = [
     name: 'Rolling Bass',
     category: 'bass',
     description: 'A rolling, syncopated bassline',
-    steps: ['16n', '16n', '16n', '16n', '16n', '16n', '16n', '16n'],
+    steps: [
+      '16n',
+      '16n',
+      '16n',
+      '16n',
+      '16n',
+      '16n',
+      '16n',
+      '16n',
+      '16n',
+      '16n',
+      '16n',
+      '16n',
+      '16n',
+      '16n',
+      '16n',
+      '16n'
+    ],
     subdivision: '16n',
     degreeWeights: {
       '0': 2.0,

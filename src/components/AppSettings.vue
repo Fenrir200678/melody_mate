@@ -28,7 +28,7 @@ import RhythmControl from '@/components/settings/rhythm/RhythmControl.vue'
 
 const chordStore = useChordStore()
 const rhythmStore = useRhythmStore()
-const { useCustomRhythm } = storeToRefs(rhythmStore)
+const { useCustomRhythm, isPresetRhythm } = storeToRefs(rhythmStore)
 
 const keyScaleCollapsed = ref(false)
 const harmonyCollapsed = ref(true)
@@ -100,9 +100,9 @@ const startEndCollapsed = ref(true)
       </template>
 
       <RhythmControl :disabled="useCustomRhythm" />
-      <RestProbabilitySelector :disabled="useCustomRhythm" />
-      <Divider />
-      <RhythmicLicksSelector :disabled="useCustomRhythm" />
+      <RestProbabilitySelector v-if="isPresetRhythm" />
+      <Divider v-if="isPresetRhythm" />
+      <RhythmicLicksSelector v-if="isPresetRhythm" />
     </Panel>
 
     <!-- Composition -->
