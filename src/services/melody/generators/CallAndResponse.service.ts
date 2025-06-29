@@ -47,33 +47,34 @@ export class CallAndResponse {
   }
 
   /**
-   * Split melody into logical phrases based on rests and melodic contour
+   * Split melody into logical phrases.
+   * This simplified version splits the melody into fixed-size chunks to ensure
+   * that call and response can be applied reliably.
    */
   private splitIntoPhases(notes: AppNote[]): AppNote[][] {
     const phrases: AppNote[][] = []
-    let currentPhrase: AppNote[] = []
-    const notesPerPhrase = Math.max(4, Math.floor(notes.length / 4)) // Adaptive phrase length
+    const phraseLength = 8 // Standard phrase length (e.g., 2 bars in 4/4)
 
-    for (let i = 0; i < notes.length; i++) {
-      currentPhrase.push(notes[i])
-
-      // End phrase at rests, natural phrase breaks, or max length
-      const isRest = notes[i].pitch === null
-      const isPhraseBoundary = currentPhrase.length >= notesPerPhrase
-      const isNaturalBreak = this.isNaturalPhraseBreak(notes, i)
-
-      if ((isRest || isPhraseBoundary || isNaturalBreak) && currentPhrase.length > 0) {
-        phrases.push([...currentPhrase])
-        currentPhrase = []
-      }
+    if (notes.length === 0) {
+      return []
     }
 
-    // Add remaining notes
-    if (currentPhrase.length > 0) {
-      phrases.push(currentPhrase)
+    // For shorter melodies, split them in half to create a call and response pair.
+    if (notes.length < phraseLength * 2) {
+      const midPoint = Math.ceil(notes.length / 2)
+      const call = notes.slice(0, midPoint)
+      const response = notes.slice(midPoint)
+      if (call.length > 0) phrases.push(call)
+      if (response.length > 0) phrases.push(response)
+      return phrases
     }
 
-    return phrases
+    // For longer melodies, chunk them into phrases of standard length.
+    for (let i = 0; i < notes.length; i += phraseLength) {
+      phrases.push(notes.slice(i, i + phraseLength))
+    }
+
+    return phrases.filter(p => p.length > 0)
   }
 
   /**
@@ -194,17 +195,6 @@ export class CallAndResponse {
   }
 
   // Helper methods
-  private isNaturalPhraseBreak(notes: AppNote[], index: number): boolean {
-    // Check for long notes or melodic peaks/valleys
-    if (index === 0 || index >= notes.length - 1) return false
-    
-    const current = notes[index]
-    const next = notes[index + 1] 
-    
-    // Long note followed by rest
-    return current.duration.includes('2n') && (next?.pitch === null)
-  }
-
   private getMelodicRange(phrase: AppNote[]): number {
     const pitches = phrase.filter(note => note.pitch !== null).map(note => note.pitch!)
     if (pitches.length < 2) return 0
