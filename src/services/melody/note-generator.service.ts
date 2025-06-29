@@ -77,7 +77,10 @@ export function generateNotesForSteps(
     const isPresetRhythm =
       !useCustomRhythm && (!rhythm || !rhythm.name.toLowerCase().includes('euclidean'))
 
-    if (isPresetRhythm && !event.isRest && Math.random() < (restProbability ?? 0)) {
+    // Penalize consecutive rests to make them less likely
+    const adjustedRestProbability = (restProbability ?? 0) / (state.consecutiveRests + 1)
+
+    if (isPresetRhythm && !event.isRest && Math.random() < adjustedRestProbability) {
       notes.push({ pitch: null, duration, velocity: 0 })
       state.consecutiveRests++
       continue

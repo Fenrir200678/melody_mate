@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{
-    description: string
+    description?: string
 }>()
 </script>
 <template>
@@ -8,7 +8,8 @@ const props = defineProps<{
         <div class="flex items-start gap-4">
         <i class="pi pi-info-circle text-sm mt-0.5"></i>
         <div class="text-xs text-white">
-            <span>{{ props.description }}</span>
+            <span v-if="props.description">{{ props.description }}</span>
+            <slot />
         </div>
         </div>
     </div>
