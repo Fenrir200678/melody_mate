@@ -125,7 +125,9 @@ export function generateNotesForSteps(
         melodyProgress,
         event.step,
         subdivision,
-        melodicContour
+        melodicContour,
+        minOctave,
+        maxOctave
       )
     }
 

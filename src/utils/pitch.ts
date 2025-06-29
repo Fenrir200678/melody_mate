@@ -24,7 +24,9 @@ export function getNextPitch(
   melodyProgress?: number,
   currentStep?: number,
   subdivision?: string,
-  melodicContour?: string
+  melodicContour?: string,
+  minOctave?: number,
+  maxOctave?: number
 ): string {
   const transitions = getTransitions(markovTable, state)
 
@@ -41,7 +43,9 @@ export function getNextPitch(
     currentChordNotes,
     melodyProgress,
     currentStep,
-    subdivision
+    subdivision,
+    minOctave,
+    maxOctave
   )
 
   // Filter out notes that are not in the current scale
