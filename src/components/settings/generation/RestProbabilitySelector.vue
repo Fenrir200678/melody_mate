@@ -26,8 +26,9 @@ const value = computed({
 
     <InfoBox>
       <p class="mb-2">
-        Higher values create sparser, more syncopated melodies. Only works with rhythm presets, since euclidean and
-        custom sequencer rhythms generate their own rests.
+        Only works with rhythm presets, since euclidean and custom sequencer rhythms generate their own rests. Rest
+        probability is applied <strong>per note</strong> and not over the entire melody. So even with low rest
+        probability, there is still a high chance of getting rests if your generated melody has many notes.
       </p>
       <p>
         It should also be noted that when you're using motif repetition, the rests apply per motif section and not to
