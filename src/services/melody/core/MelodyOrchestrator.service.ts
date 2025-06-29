@@ -7,6 +7,7 @@ import { MelodyContextService } from './MelodyContext.service'
 import { MelodyValidator } from './MelodyValidator.service'
 import { StandardMelodyGenerator } from '../generators/StandardMelodyGenerator.service'
 import { MotifMelodyGenerator } from '../generators/MotifMelodyGenerator.service'
+import { CallAndResponse } from '../generators/CallAndResponse.service'
 import { useCompositionStore } from '@/stores/composition.store'
 import { useGenerationStore } from '@/stores/generation.store'
 
@@ -20,12 +21,14 @@ export class MelodyOrchestrator implements ServiceOrchestrator<void, Melody> {
   private validator: MelodyValidator
   private standardGenerator: StandardMelodyGenerator
   private motifGenerator: MotifMelodyGenerator
+  private callAndResponseService: CallAndResponse
 
   constructor() {
     this.contextService = new MelodyContextService()
     this.validator = new MelodyValidator()
     this.standardGenerator = new StandardMelodyGenerator()
     this.motifGenerator = new MotifMelodyGenerator()
+    this.callAndResponseService = new CallAndResponse()
   }
 
   /**
@@ -73,6 +76,9 @@ export class MelodyOrchestrator implements ServiceOrchestrator<void, Melody> {
       melody = this.standardGenerator.generate(context)
     }
 
+    // Apply Call & Response post-processing if enabled
+    melody = this.callAndResponseService.applyCallAndResponse(melody, context)
+
     // Validate and return the result
     return this.validator.validate(melody)
   }
@@ -103,7 +109,7 @@ export class MelodyOrchestrator implements ServiceOrchestrator<void, Melody> {
    * ServiceOrchestrator implementation - get list of available sub-services
    */
   getServices(): string[] {
-    return ['MelodyContextService', 'MelodyValidator', 'StandardMelodyGenerator', 'MotifMelodyGenerator']
+    return ['MelodyContextService', 'MelodyValidator', 'StandardMelodyGenerator', 'MotifMelodyGenerator', 'ImprovedCallAndResponse']
   }
 
   /**

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useGenerationStore } from '@/stores/generation.store'
-import Checkbox from 'primevue/checkbox'
+import { useGenerationStore } from "@/stores/generation.store";
+import Checkbox from "primevue/checkbox";
 
-const generationStore = useGenerationStore()
+const generationStore = useGenerationStore();
 </script>
 
 <template>
@@ -11,7 +11,8 @@ const generationStore = useGenerationStore()
       <label for="use-call-and-response" class="font-medium leading-tight">
         Use Call and Response<br />
         <span class="text-xs break-words">
-          When using motif repetition, the repeated motifs will be "spiced up" with transposition and inversion.
+          Tries to create musical dialogue between phrases with intelligent variations:
+          echoes, inversions, sequences, and resolutions. Doesn't always make sense and doesn't work well with any rhythm, but can provide happy accidents.
         </span>
       </label>
     </div>
