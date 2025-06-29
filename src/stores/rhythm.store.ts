@@ -17,17 +17,51 @@ export const useRhythmStore = defineStore('rhythm', {
       useRandomRhythm: false,
       euclideanRotation: 0,
       customRhythmSequence: Array(SEQUENCER_STEPS_PER_BAR).fill(0) as SequencerStep[],
-      useCustomRhythm: false
+      useCustomRhythm: false,
+      numberOfBars: 1
     }
+
     const stored = loadState(LOCAL_STORAGE_KEY)
-    return { ...defaults, ...(stored || {}) }
+    const initialState = { ...defaults, ...(stored || {}) }
+
+    // Post-load consistency check to ensure sequence length matches number of bars
+    const expectedLength = initialState.numberOfBars * SEQUENCER_STEPS_PER_BAR
+    if (initialState.customRhythmSequence.length !== expectedLength) {
+      const oldSequence = initialState.customRhythmSequence
+      const newSequence = Array(expectedLength).fill(0)
+      const stepsToCopy = Math.min(oldSequence.length, expectedLength)
+      for (let i = 0; i < stepsToCopy; i++) {
+        newSequence[i] = oldSequence[i]
+      }
+      initialState.customRhythmSequence = newSequence
+    }
+
+    return initialState
   },
 
   getters: {
-    isPresetRhythm: (state) => !state.useCustomRhythm && !state.rhythm?.name.includes('Euclidean')
+    isPresetRhythm: (state) => !state.useCustomRhythm && !state.rhythm?.name.includes('Euclidean'),
+    totalSteps: (state) => state.numberOfBars * SEQUENCER_STEPS_PER_BAR
   },
 
   actions: {
+    /**
+     * Set the number of bars and update the sequence length, preserving existing steps.
+     */
+    setNumberOfBars(bars: number) {
+      const newTotalSteps = bars * SEQUENCER_STEPS_PER_BAR
+      const oldSequence = this.customRhythmSequence
+      const newSequence = Array(newTotalSteps).fill(0)
+
+      const stepsToCopy = Math.min(oldSequence.length, newTotalSteps)
+      for (let i = 0; i < stepsToCopy; i++) {
+        newSequence[i] = oldSequence[i]
+      }
+
+      this.numberOfBars = bars
+      this.customRhythmSequence = newSequence
+      saveState(LOCAL_STORAGE_KEY, this.$state)
+    },
     /**
      * Set the current rhythm
      */

@@ -63,7 +63,7 @@ export function useRhythmSelection() {
       const newStepsToOccupy = Math.round(duration / stepDuration)
 
       // Check for space
-      if (index + newStepsToOccupy > SEQUENCER_STEPS_PER_BAR) {
+      if (index + newStepsToOccupy > rhythmStore.totalSteps) {
         console.warn('Note duration exceeds available space.')
         rhythmStore.setCustomRhythmSequence(newSequence) // Commit the clearing part
         return
@@ -91,7 +91,7 @@ export function useRhythmSelection() {
    * Clear custom rhythm sequence
    */
   const clearCustomRhythm = (): void => {
-    const emptySequence = Array(SEQUENCER_STEPS_PER_BAR).fill(0) as SequencerStep[]
+    const emptySequence = Array(rhythmStore.totalSteps).fill(0) as SequencerStep[]
     rhythmStore.setCustomRhythmSequence(emptySequence)
   }
 
@@ -141,6 +141,7 @@ export function useRhythmSelection() {
   const euclideanRotation = computed(() => rhythmStore.euclideanRotation)
   const customRhythmSequence = computed(() => rhythmStore.customRhythmSequence)
   const useCustomRhythm = computed(() => rhythmStore.useCustomRhythm)
+  const numberOfBars = computed(() => rhythmStore.numberOfBars)
 
   return {
     // State
@@ -150,6 +151,7 @@ export function useRhythmSelection() {
     euclideanRotation,
     customRhythmSequence,
     useCustomRhythm,
+    numberOfBars,
 
     // Actions
     setStepDuration,
@@ -161,6 +163,7 @@ export function useRhythmSelection() {
 
     // Store actions (direct pass-through)
     setRhythm: rhythmStore.setRhythm,
-    setEuclideanRotation: rhythmStore.setEuclideanRotation
+    setEuclideanRotation: rhythmStore.setEuclideanRotation,
+    setNumberOfBars: rhythmStore.setNumberOfBars
   }
 }

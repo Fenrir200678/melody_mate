@@ -200,10 +200,13 @@ export function useMelodyGeneration() {
       return
     }
 
+    // Remove Instrument Change Event from track before downloading
+    track.removeEventsByName('ProgramChangeEvent')
+
     try {
       const { downloadMidiFile: downloadMidiFileService } = await import('@/services/MidiService')
       const fileName = generateFileName()
-      downloadMidiFileService(midiUrl, fileName, track)
+      downloadMidiFileService(midiUrl, fileName)
     } catch (error) {
       console.error('Error downloading MIDI file:', error)
     }

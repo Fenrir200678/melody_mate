@@ -68,9 +68,7 @@ export function generateMidiFile(melody: Melody, track: any): string {
   return dataUri
 }
 
-export function downloadMidiFile(dataUri: string, fileName: string, track: any): void {
-  track.removeEventsByName('ProgramChangeEvent')
-
+export function downloadMidiFile(dataUri: string, fileName: string): void {
   const link = document.createElement('a')
   link.href = dataUri
   link.download = fileName

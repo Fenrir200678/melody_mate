@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRhythmSelection } from '@/composables/useRhythmSelection'
 import { NOTE_DURATIONS } from '@/ts/consts'
 import RhythmSequencerControls from './RhythmSequencerControls.vue'
@@ -11,8 +11,15 @@ const props = defineProps<{
   rhythmTabSelected: boolean
 }>()
 
-const { customRhythmSequence, useCustomRhythm, setStepDuration, clearCustomRhythm, toggleCustomRhythm } =
-  useRhythmSelection()
+const {
+  customRhythmSequence,
+  useCustomRhythm,
+  numberOfBars,
+  setStepDuration,
+  clearCustomRhythm,
+  toggleCustomRhythm,
+  setNumberOfBars
+} = useRhythmSelection()
 
 // Available note values for the palette
 const noteValues = [
@@ -189,6 +196,12 @@ function handleToggleCustomRhythm(value: boolean) {
   toggleCustomRhythm(value)
 }
 
+function handleNumberOfBarsChange(value: number) {
+  if (value) {
+    setNumberOfBars(value)
+  }
+}
+
 // Trash zone for deleting notes
 function handleTrashDragOver(event: DragEvent) {
   if (draggedItem.value?.type === 'step') {
@@ -222,10 +235,12 @@ watch(
     <!-- Header Controls ausgelagert -->
     <RhythmSequencerControls
       :useCustomRhythm="useCustomRhythm"
+      :numberOfBars="numberOfBars"
       :handleToggleCustomRhythm="handleToggleCustomRhythm"
       :handleClearCustomRhythm="handleClearCustomRhythm"
       :handleTrashDragOver="handleTrashDragOver"
       :handleTrashDrop="handleTrashDrop"
+      :handleNumberOfBarsChange="handleNumberOfBarsChange"
     />
     <!-- Note Value Palette ausgelagert -->
     <RhythmNotePalette

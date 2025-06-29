@@ -1,15 +1,25 @@
 <script setup lang="ts">
 import ToggleSwitch from 'primevue/toggleswitch'
 import Button from 'primevue/button'
-import { defineProps } from 'vue'
+import SelectButton from 'primevue/selectbutton'
+import { ref } from 'vue'
 
 const props = defineProps<{
   useCustomRhythm: boolean
+  numberOfBars: number
   handleToggleCustomRhythm: (value: boolean) => void
   handleClearCustomRhythm: () => void
   handleTrashDragOver: (event: DragEvent) => void
   handleTrashDrop: (event: DragEvent) => void
+  handleNumberOfBarsChange: (value: number) => void
 }>()
+
+const barOptions = ref([
+  { label: '1', value: 1 },
+  { label: '2', value: 2 },
+  { label: '3', value: 3 },
+  { label: '4', value: 4 }
+])
 </script>
 
 <template>
@@ -23,6 +33,19 @@ const props = defineProps<{
         class="align-middle"
       />
     </div>
+
+    <div class="flex items-center gap-4">
+      <label for="numberOfBars" class="text-sm font-medium">Bars</label>
+      <SelectButton
+        :modelValue="props.numberOfBars"
+        :options="barOptions"
+        optionLabel="label"
+        optionValue="value"
+        @update:modelValue="props.handleNumberOfBarsChange"
+        aria-labelledby="numberOfBars"
+      />
+    </div>
+
     <div class="flex items-center gap-3 sm:gap-2">
       <!-- Trash Zone -->
       <div
