@@ -19,7 +19,15 @@ export const useGenerationStore = defineStore('generation', {
       melodicContour: 'arc',
       useRhythmicLicks: false,
       rhythmicLickFrequency: 0.25,
-      useCallAndResponse: false
+      useCallAndResponse: false,
+      // Advanced Musical Rules
+      enableIntervalWeighting: true,
+      enableScaleDegreeWeighting: true,
+      enableChordToneWeighting: true,
+      enableMelodicContourWeighting: true,
+      enableBeatStrengthWeighting: false,
+      enableVoiceLeadingWeighting: false,
+      enableRangeWeighting: false
     }
   }),
 
@@ -78,6 +86,35 @@ export const useGenerationStore = defineStore('generation', {
     },
     setEndWithRootNote(endWithRootNote: boolean) {
       this.endWithRootNote = endWithRootNote
+      saveState(LOCAL_STORAGE_KEY, this.$state)
+    },
+    // Advanced Musical Rules Actions
+    setEnableIntervalWeighting(enable: boolean) {
+      this.enableIntervalWeighting = enable
+      saveState(LOCAL_STORAGE_KEY, this.$state)
+    },
+    setEnableScaleDegreeWeighting(enable: boolean) {
+      this.enableScaleDegreeWeighting = enable
+      saveState(LOCAL_STORAGE_KEY, this.$state)
+    },
+    setEnableChordToneWeighting(enable: boolean) {
+      this.enableChordToneWeighting = enable
+      saveState(LOCAL_STORAGE_KEY, this.$state)
+    },
+    setEnableMelodicContourWeighting(enable: boolean) {
+      this.enableMelodicContourWeighting = enable
+      saveState(LOCAL_STORAGE_KEY, this.$state)
+    },
+    setEnableBeatStrengthWeighting(enable: boolean) {
+      this.enableBeatStrengthWeighting = enable
+      saveState(LOCAL_STORAGE_KEY, this.$state)
+    },
+    setEnableVoiceLeadingWeighting(enable: boolean) {
+      this.enableVoiceLeadingWeighting = enable
+      saveState(LOCAL_STORAGE_KEY, this.$state)
+    },
+    setEnableRangeWeighting(enable: boolean) {
+      this.enableRangeWeighting = enable
       saveState(LOCAL_STORAGE_KEY, this.$state)
     }
   }

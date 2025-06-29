@@ -310,7 +310,17 @@ export function applyMusicalWeighting(
   maxOctave?: number
 ): { notes: string[]; weights: number[] } {
   const generationStore = useGenerationStore()
-  const { chordAdherence, melodicContour } = generationStore
+  const { 
+    chordAdherence, 
+    melodicContour,
+    enableIntervalWeighting,
+    enableScaleDegreeWeighting,
+    enableChordToneWeighting,
+    enableMelodicContourWeighting,
+    enableBeatStrengthWeighting,
+    enableVoiceLeadingWeighting,
+    enableRangeWeighting
+  } = generationStore
 
   const possibleNotes = Array.from(transitions.keys())
   const initialWeights = Array.from(transitions.values())
@@ -335,14 +345,28 @@ export function applyMusicalWeighting(
       maxOctave
     }
 
-    // Apply all weighting rules
-    weight = applyIntervalWeighting(weight, context)
-    weight = applyScaleDegreeWeighting(weight, context)
-    weight = applyChordToneWeighting(weight, context)
-    weight = applyMelodicContourWeighting(weight, context)
-    weight = applyBeatStrengthWeighting(weight, context)
-    weight = applyVoiceLeadingWeighting(weight, context)
-    weight = applyRangeWeighting(weight, context)
+    // Apply weighting rules conditionally based on store flags
+    if (enableIntervalWeighting) {
+      weight = applyIntervalWeighting(weight, context)
+    }
+    if (enableScaleDegreeWeighting) {
+      weight = applyScaleDegreeWeighting(weight, context)
+    }
+    if (enableChordToneWeighting) {
+      weight = applyChordToneWeighting(weight, context)
+    }
+    if (enableMelodicContourWeighting) {
+      weight = applyMelodicContourWeighting(weight, context)
+    }
+    if (enableBeatStrengthWeighting) {
+      weight = applyBeatStrengthWeighting(weight, context)
+    }
+    if (enableVoiceLeadingWeighting) {
+      weight = applyVoiceLeadingWeighting(weight, context)
+    }
+    if (enableRangeWeighting) {
+      weight = applyRangeWeighting(weight, context)
+    }
 
     newWeights.push(Math.max(0.1, weight)) // Ensure weight is not zero.
   }

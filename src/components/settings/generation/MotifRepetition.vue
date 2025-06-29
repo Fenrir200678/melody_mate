@@ -69,10 +69,13 @@ const isDisabled = computed(() => {
         @update:modelValue="generationStore.setUseRandomMotifPattern"
       />
     </div>
-    <p class="text-sm text-zinc-300 leading-relaxed mt-2" v-if="!isDisabled">
-      Not every motif pattern is suitable for every rhythm. You have to experiment with the different patterns to find
-      the best one for your selected rhythm. Some rhythms even don't make sense at all with a motif pattern and give you
-      better results with the N-Gram option.
-    </p>
+    <InfoBox
+      v-if="!isDisabled"
+      class="mb-4"
+      description="Not every motif pattern is suitable for every rhythm. 
+      You have to experiment with the different patterns to find the best one for your selected rhythm. 
+      Some rhythms even don't make sense at all with a motif pattern. 
+      Doesn't work with the 'Use N-Grams' algorithm."
+    />
   </div>
 </template>

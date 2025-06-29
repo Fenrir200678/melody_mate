@@ -48,6 +48,14 @@
           and export them as MIDI files.
         </p>
       </div>
+
+      <div class="mt-4 flex items-center justify-center gap-2 bg-yellow-500/10 rounded-lg p-2">
+        <i class="pi pi-info-circle text-sm text-yellow-400"></i>
+        <p class="text-sm md:text-base text-yellow-300 leading-relaxed">
+          If you used the app before V2.0.1 beta you need to reset your settings to ensure everything works as expected!
+          Click the button in the footer below to reset.
+        </p>
+      </div>
     </div>
 
     <!-- Decorative elements -->

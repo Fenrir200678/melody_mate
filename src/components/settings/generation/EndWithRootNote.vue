@@ -9,10 +9,10 @@ const generationStore = useGenerationStore()
 
 <template>
   <div class="flex items-center justify-between gap-4 mt-4">
-    <div class="flex flex-col flex-1 min-w-0">
+    <div class="flex flex-col flex-1 min-w-0" :class="props.disabled ? 'text-zinc-500' : ''">
       <label for="end-with-root-note" class="font-medium leading-tight">
         End with root note<br />
-        <span class="text-xs break-words"> Resolves the melody to the root note of the scale</span>
+        <span class="text-xs break-words"> Resolves the melody to the root note of the scale.</span>
       </label>
     </div>
     <div class="flex-shrink-0 mt-1">

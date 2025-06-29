@@ -8,6 +8,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AdvancedMusicalRules: typeof import('./src/components/settings/generation/AdvancedMusicalRules.vue')['default']
     AppSettings: typeof import('./src/components/AppSettings.vue')['default']
     BpmSelector: typeof import('./src/components/settings/composition/BpmSelector.vue')['default']
     CallAndResponse: typeof import('./src/components/settings/generation/CallAndResponse.vue')['default']
@@ -20,6 +21,7 @@ declare module 'vue' {
     EndWithRootNote: typeof import('./src/components/settings/generation/EndWithRootNote.vue')['default']
     EuclideanRhythm: typeof import('./src/components/settings/rhythm/EuclideanRhythm.vue')['default']
     EuclideanVisualizer: typeof import('./src/components/settings/rhythm/EuclideanVisualizer.vue')['default']
+    InfoBox: typeof import('./src/components/common/InfoBox.vue')['default']
     KeySelector: typeof import('./src/components/settings/key_scale/KeySelector.vue')['default']
     LengthSelector: typeof import('./src/components/settings/composition/LengthSelector.vue')['default']
     LoadingSpinner: typeof import('./src/components/common/LoadingSpinner.vue')['default']
