@@ -16,7 +16,9 @@ const value = computed({
       <label for="rest-probability-slider" class="font-medium">Rest Probability</label>
       <span class="text-xs break-words">
         Probability that a rest will be inserted instead of a note. Higher values create sparser, more syncopated
-        melodies. Only works with rhythm presets, since euclidean and custom sequencer rhythms generate their own rests.
+        melodies. Only works with rhythm presets, since euclidean and custom sequencer rhythms generate their own
+        rests. It should also be noted that when you're using motif repetition, the rests apply per bar and not to the
+        entire melody.
       </span>
     </div>
     <div class="flex items-center gap-4 w-full mt-2">

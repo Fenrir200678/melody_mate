@@ -52,9 +52,10 @@ export function generateNotesForSteps(
 ): NoteGenerationResult {
   const { unifiedRhythm, totalSteps, scale, markovTable, minOctave, maxOctave, subdivision, n } = context
   const { useFixedVelocity, fixedVelocity, useDynamics, selectedDynamic } = usePlayerStore()
-  const { startWithRootNote, endWithRootNote, useRhythmicLicks, rhythmicLickFrequency } = useGenerationStore()
+  const { startWithRootNote, endWithRootNote, useRhythmicLicks, rhythmicLickFrequency, restProbability } =
+    useGenerationStore()
   const { chords, useChords } = useChordStore()
-  const { rhythm } = useRhythmStore()
+  const { rhythm, useCustomRhythm } = useRhythmStore()
   const notes: AppNote[] = []
 
   if (unifiedRhythm.events.length === 0) {
@@ -71,6 +72,16 @@ export function generateNotesForSteps(
   for (let i = 0; i < processedRhythm.events.length; i++) {
     const event = processedRhythm.events[i]
     const duration = convertStepsToDuration(event.durationInSteps, subdivision)
+
+    // New logic for rest probability
+    const isPresetRhythm =
+      !useCustomRhythm && (!rhythm || !rhythm.name.toLowerCase().includes('euclidean'))
+
+    if (isPresetRhythm && !event.isRest && Math.random() < (restProbability ?? 0)) {
+      notes.push({ pitch: null, duration, velocity: 0 })
+      state.consecutiveRests++
+      continue
+    }
 
     if (event.isRest) {
       notes.push({ pitch: null, duration, velocity: 0 })
