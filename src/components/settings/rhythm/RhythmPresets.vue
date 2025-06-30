@@ -31,6 +31,7 @@ function handleCategoryChange(category: RhythmCategory) {
 
 function handleRhythmChange(rhythm: WeightedRhythm) {
   if (!rhythm) return
+  rhythmStore.setCustomRhythm(false)
   rhythmStore.setRhythm(rhythm)
 }
 
