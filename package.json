@@ -1,7 +1,7 @@
 {
   "name": "melody-mate",
   "private": true,
-  "version": "2.0.5 beta",
+  "version": "2.0.6 beta",
   "type": "module",
   "homepage": "https://melody-mate-khaki.vercel.app",
   "description": "Melody Mate is a web-based MIDI melody generator using Vue 3 and TypeScript. Create unique melodies with stochastic or rule-based generation, customize scales and rhythms, and export them as MIDI files.",
@@ -51,6 +51,7 @@
     "@primeuix/themes": "^1.1.1",
     "@tailwindcss/vite": "^4.1.8",
     "@vercel/analytics": "^1.5.0",
+    "@vercel/speed-insights": "^1.2.0",
     "@vueuse/core": "^13.4.0",
     "@vueuse/integrations": "^13.4.0",
     "html-midi-player": "^1.5.0",

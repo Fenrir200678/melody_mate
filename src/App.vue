@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Analytics } from '@vercel/analytics/vue'
+import { SpeedInsights } from '@vercel/speed-insights/vue'
 import PageHeader from '@/components/layout/PageHeader.vue'
 import PageFooter from '@/components/layout/PageFooter.vue'
 import Toast from 'primevue/toast'
@@ -7,6 +8,7 @@ import Toast from 'primevue/toast'
 
 <template>
   <Analytics />
+  <SpeedInsights />
   <Toast />
   <PageHeader />
   <main
