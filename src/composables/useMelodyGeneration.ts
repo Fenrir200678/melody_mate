@@ -200,8 +200,10 @@ export function useMelodyGeneration() {
       return
     }
 
-    // Remove Instrument Change Event from track before downloading
+    // Remove Instrument Change, Tempo, and Time Signature Events from track before downloading
     track.removeEventsByName('ProgramChangeEvent')
+    track.removeEventsByName('TempoEvent')
+    track.removeEventsByName('TimeSignatureEvent')
 
     try {
       const { downloadMidiFile: downloadMidiFileService } = await import('@/services/MidiService')

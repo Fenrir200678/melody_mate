@@ -54,7 +54,7 @@ watch(
   { immediate: true, deep: true }
 )
 
-const generateAndSetEuclideanRhythm = () => {
+function generateAndSetEuclideanRhythm() {
   if (steps.value < pulses.value) {
     pulses.value = steps.value
   }
