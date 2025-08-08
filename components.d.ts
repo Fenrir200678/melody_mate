@@ -51,6 +51,8 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ScaleSelector: typeof import('./src/components/settings/key_scale/ScaleSelector.vue')['default']
+    SettingsContent: typeof import('./src/components/SettingsContent.vue')['default']
+    SettingsMenu: typeof import('./src/components/layout/SettingsMenu.vue')['default']
     StartWithRootNote: typeof import('./src/components/settings/generation/StartWithRootNote.vue')['default']
     VelocitySelector: typeof import('./src/components/settings/composition/VelocitySelector.vue')['default']
     VisualizerLegend: typeof import('./src/components/settings/melody-visualizer/VisualizerLegend.vue')['default']

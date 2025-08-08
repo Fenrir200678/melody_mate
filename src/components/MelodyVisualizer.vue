@@ -39,7 +39,7 @@ const hasRests = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 bg-zinc-800 rounded-lg p-4">
+  <div class="flex flex-col gap-4 bg-zinc-800 rounded-lg p-4 border border-zinc-700">
     <div class="flex items-center justify-center gap-2">
       <i class="pi pi-chart-line text-lg"></i>
       <span class="text-xl">Generated Melody</span>

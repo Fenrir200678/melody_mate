@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { defineAsyncComponent } from 'vue'
-import Divider from 'primevue/divider'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import { useUiStore } from '@/stores/ui.store'
 
 // Lazy load heavy components to improve initial bundle size
-const MelodyGenerator = defineAsyncComponent({
-  loader: () => import('@/components/MelodyGenerator.vue'),
+const MelodyVisualizer = defineAsyncComponent({
+  loader: () => import('@/components/MelodyVisualizer.vue'),
   loadingComponent: LoadingSpinner,
   delay: 200
 })
 
-const MelodyVisualizer = defineAsyncComponent({
-  loader: () => import('@/components/MelodyVisualizer.vue'),
+const MelodyGenerator = defineAsyncComponent({
+  loader: () => import('@/components/MelodyGenerator.vue'),
   loadingComponent: LoadingSpinner,
   delay: 200
 })
@@ -22,23 +22,33 @@ const MelodyPlayer = defineAsyncComponent({
   delay: 200
 })
 
-const AppSettings = defineAsyncComponent({
-  loader: () => import('@/components/AppSettings.vue'),
+const SettingsContent = defineAsyncComponent({
+  loader: () => import('../components/SettingsContent.vue'),
   loadingComponent: LoadingSpinner,
   delay: 200
 })
+
+const ui = useUiStore()
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 md:flex-row">
-    <div class="w-full bg-zinc-900 rounded-lg px-4 py-8 md:w-[60%]">
-      <AppSettings />
-    </div>
-    <div class="w-full bg-zinc-900 rounded-lg px-4 py-8 flex flex-col gap-8 md:w-[40%]">
+  <div class="flex flex-col gap-4">
+    <!-- Middle content area: Visualizer, Generate button, Player -->
+    <section class="rounded-xl p-4 md:p-6 flex flex-col gap-4 spotlight">
       <MelodyVisualizer />
-      <MelodyGenerator />
-      <Divider />
-      <MelodyPlayer />
-    </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="md:col-span-1">
+          <MelodyGenerator />
+        </div>
+        <div class="md:col-span-2">
+          <MelodyPlayer />
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings content below the player, driven by top menu tab selection -->
+    <section class="bg-zinc-900 rounded-lg p-4 md:p-6">
+      <SettingsContent :active="ui.selectedTab" />
+    </section>
   </div>
 </template>

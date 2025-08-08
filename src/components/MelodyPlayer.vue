@@ -4,7 +4,6 @@ import { useMelodyGeneration } from '@/composables/useMelodyGeneration'
 import { usePlayerStore } from '@/stores/player.store'
 import { generalMidiInstruments, type GeneralMidiInstrument } from '@/data/general-midi-instruments'
 
-import Button from 'primevue/button'
 import Divider from 'primevue/divider'
 import Select from 'primevue/select'
 import ToggleSwitch from 'primevue/toggleswitch'
@@ -57,8 +56,8 @@ watch(loop, (newVal) => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
-    <div class="flex items-center justify-between gap-4 w-full mb-2">
+  <div class="flex flex-col gap-3">
+    <div class="flex items-center justify-between gap-4 w-full">
       <label class="text-zinc-400">Instrument:</label>
       <Select
         v-model="selectedInstrument"
@@ -92,18 +91,6 @@ watch(loop, (newVal) => {
         <ToggleSwitch :modelValue="loop" inputId="loop" @update:modelValue="loop = !loop" />
       </div>
     </div>
-
-    <Divider />
-    <div class="flex items-center justify-center gap-2">
-      <Button
-        label="Download MIDI"
-        icon="pi pi-download"
-        :disabled="!canPlay"
-        @click="downloadMidiFile()"
-        class="w-full"
-        severity="success"
-        size="large"
-      />
-    </div>
+    <!-- Download moved to left column (Generate block) -->
   </div>
 </template>

@@ -1,67 +1,61 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import SettingsMenu from './SettingsMenu.vue'
+import { useUiStore } from '@/stores/ui.store'
+
+const ui = useUiStore()
+</script>
 
 <template>
-  <header class="relative w-full mb-4">
-    <!-- Background gradient -->
+  <header class="fixed top-0 z-50 w-full">
+    <!-- Top bar spanning full width with subtle gradient -->
     <div
-      class="absolute inset-0 bg-gradient-to-br from-emerald-900/8 via-transparent to-blue-900/8 rounded-xl blur-xl"
-    ></div>
-
-    <!-- Main header content -->
-    <div
-      class="relative flex flex-col items-center justify-center p-4 md:p-5 backdrop-blur-sm bg-zinc-900/40 rounded-lg border border-zinc-700/50 shadow-lg"
+      class="w-full bg-gradient-to-b from-zinc-900/95 to-zinc-900/90 supports-[backdrop-filter]:bg-zinc-900/75 backdrop-blur border-b border-zinc-800"
+      style="height: var(--topbar-h)"
     >
-      <!-- Logo and title section -->
-      <div class="flex items-center gap-4 mb-3">
-        <div class="relative group">
-          <div
-            class="absolute -inset-0.5 bg-gradient-to-r from-emerald-600 to-blue-600 rounded-full blur opacity-50 group-hover:opacity-70 transition duration-500"
-          ></div>
-          <div
-            class="relative bg-zinc-800 rounded-full p-2 border border-zinc-600 w-12 h-12 md:w-14 md:h-14 flex items-center justify-center overflow-hidden"
-          >
-            <img
-              src="/logo.png"
-              alt="Melody Mate Logo"
-              class="w-8 h-8 md:w-10 md:h-10 object-cover rounded-full transition-transform duration-300 group-hover:scale-110"
-            />
-          </div>
+      <div class="max-w-[1920px] mx-auto h-full px-3 md:px-4 flex items-center justify-between">
+        <!-- Left: App logo + title -->
+        <div class="flex items-center gap-2 md:gap-3">
+          <img src="/logo.png" alt="Melody Mate" class="w-7 h-7 rounded-full" />
+          <h1 class="text-lg md:text-xl font-semibold tracking-tight">Melody Mate</h1>
         </div>
 
-        <div class="text-center md:text-left">
-          <h1
-            class="text-2xl md:text-4xl font-bold bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent"
+        <!-- Right: quick links -->
+        <div class="flex items-center gap-3 md:gap-4 text-sm">
+          <a
+            href="https://github.com/Fenrir200678/melody_mate/blob/main/DOCS.md"
+            target="_blank"
+            class="flex items-center gap-1 text-zinc-300 hover:text-white"
           >
-            Melody Mate
-          </h1>
+            <i class="pi pi-book text-base"></i>
+            <span class="hidden sm:inline">Docs</span>
+          </a>
+          <a
+            href="https://github.com/Fenrir200678/melody_mate"
+            target="_blank"
+            class="flex items-center gap-1 text-zinc-300 hover:text-white"
+          >
+            <i class="pi pi-github text-base"></i>
+            <span class="hidden sm:inline">GitHub</span>
+          </a>
+          <a
+            href="https://github.com/Fenrir200678/melody_mate/issues"
+            target="_blank"
+            class="flex items-center gap-1 text-zinc-300 hover:text-white"
+          >
+            <i class="pi pi-comments text-base"></i>
+            <span class="hidden sm:inline">Feedback</span>
+          </a>
         </div>
-      </div>
-
-      <!-- Description -->
-      <div class="text-center max-w-2xl">
-        <p class="text-sm md:text-base text-zinc-300 leading-relaxed">
-          Create melodies or basslines based on
-          <span class="text-emerald-400 font-medium">stochastic processes</span> using
-          <span class="text-cyan-400 font-medium">rhythm presets</span>,
-          <span class="text-cyan-500 font-medium">custom rhythms</span> or
-          <span class="text-cyan-600 font-medium">Euclidean rhythms</span>
-          and export them as MIDI files.
-        </p>
-      </div>
-
-      <div class="mt-4 flex items-center justify-center gap-2 bg-yellow-500/10 rounded-lg p-2">
-        <i class="pi pi-info-circle text-sm text-yellow-400"></i>
-        <p class="text-sm md:text-base text-yellow-300 leading-relaxed">
-          If you used the app before V2.0.1 beta you need to reset your settings to ensure everything works as expected!
-          Click the button in the footer below to reset.
-        </p>
       </div>
     </div>
 
-    <!-- Decorative elements -->
-    <div class="absolute -top-2 -left-2 w-16 h-16 bg-emerald-500/4 rounded-full blur-xl animate-pulse"></div>
+    <!-- Integrated settings menu under top bar, full width background -->
     <div
-      class="absolute -bottom-2 -right-2 w-20 h-20 bg-blue-500/4 rounded-full blur-xl animate-pulse delay-1000"
-    ></div>
+      class="w-full bg-gradient-to-b from-zinc-900/92 to-zinc-900/85 supports-[backdrop-filter]:bg-zinc-900/75 backdrop-blur border-b border-zinc-800"
+    >
+      <div class="max-w-[1920px] mx-auto">
+        <SettingsMenu v-model="ui.selectedTab" />
+      </div>
+    </div>
   </header>
 </template>

@@ -2,20 +2,27 @@
 import { useMelodyGeneration } from '@/composables/useMelodyGeneration'
 import Button from 'primevue/button'
 
-const { generateMelody, isGenerating } = useMelodyGeneration()
+const { generateMelody, isGenerating, downloadMidiFile, hasMelody } = useMelodyGeneration()
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 w-full">
-    <div class="flex justify-center w-full">
-      <Button
-        @click="generateMelody()"
-        :loading="isGenerating"
-        label="Generate Melody"
-        icon="pi pi-sparkles"
-        size="large"
-        class="bg-primary-500 border-primary-500 hover:bg-primary-600 w-full"
-      />
-    </div>
+  <div class="w-full flex flex-col gap-3">
+    <Button
+      @click="generateMelody()"
+      :loading="isGenerating"
+      label="Generate"
+      icon="pi pi-sparkles"
+      size="large"
+      class="w-full bg-primary-500 border-primary-500 hover:bg-primary-600 mb-1"
+    />
+    <Button
+      label="Download"
+      icon="pi pi-download"
+      :disabled="!hasMelody"
+      @click="downloadMidiFile()"
+      class="w-full"
+      severity="success"
+      size="large"
+    />
   </div>
 </template>

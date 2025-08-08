@@ -11,50 +11,60 @@ function clearSettings() {
 }
 </script>
 <template>
-  <footer class="text-center mt-8 mb-12 text-sm w-full flex flex-col items-center gap-2">
-    <div class="mb-1">
-      <p>&copy; {{ new Date().getFullYear() }} | Melody Mate v{{ version }}</p>
-      <p>
-        Developed with ❤️ by
-        <a class="text-zinc-400 hover:underline" href="https://github.com/fenrir200678" target="_blank"> Fenrir </a>
-      </p>
+  <footer class="w-full mt-8 mb-2 text-xs md:text-sm">
+    <div class="max-w-[1920px] mx-auto px-3 md:px-4">
+      <div
+        class="flex flex-col md:flex-row items-center justify-between gap-3 rounded-lg border border-zinc-800 bg-zinc-900/60 p-3"
+      >
+        <!-- Left: version and author -->
+        <div class="flex items-center gap-2 text-zinc-400">
+          <span>© {{ new Date().getFullYear() }}</span>
+          <span class="hidden md:inline">·</span>
+          <span>v{{ version }}</span>
+          <span class="hidden md:inline">·</span>
+          <a class="hover:underline" href="https://github.com/fenrir200678" target="_blank">Fenrir</a>
+        </div>
+
+        <!-- Middle: links -->
+        <div class="flex items-center gap-4">
+          <a
+            href="https://github.com/Fenrir200678/melody_mate/blob/main/DOCS.md"
+            target="_blank"
+            class="flex items-center gap-1 text-zinc-300 hover:text-white"
+          >
+            <i class="pi pi-book"></i>
+            <span class="hidden sm:inline">Docs</span>
+          </a>
+          <a
+            href="https://github.com/Fenrir200678/melody_mate"
+            target="_blank"
+            class="flex items-center gap-1 text-zinc-300 hover:text-white"
+          >
+            <i class="pi pi-github"></i>
+            <span class="hidden sm:inline">GitHub</span>
+          </a>
+          <a
+            href="https://github.com/Fenrir200678/melody_mate/issues"
+            target="_blank"
+            class="flex items-center gap-1 text-zinc-300 hover:text-white"
+          >
+            <i class="pi pi-comments"></i>
+            <span class="hidden sm:inline">Feedback</span>
+          </a>
+        </div>
+
+        <!-- Right: reset button -->
+        <div>
+          <button
+            @click="clearSettings"
+            class="flex items-center gap-2 px-3 py-1.5 rounded bg-red-600 text-white font-medium shadow hover:bg-red-700 transition-colors border-none outline-none focus:ring-2 focus:ring-red-400"
+          >
+            <i class="pi pi-trash"></i>
+            <span>Clear Settings</span>
+          </button>
+        </div>
+      </div>
+      <div class="text-center text-zinc-500 mt-2">Non-Commercial License</div>
     </div>
-    <div class="flex flex-col md:flex-row items-center justify-center gap-3 mt-1">
-      <a
-        href="https://github.com/Fenrir200678/melody_mate/blob/main/DOCS.md"
-        target="_blank"
-        class="flex items-center gap-1 text-blue-300 hover:text-blue-400 transition-colors"
-      >
-        <i class="pi pi-book"></i>
-        Documentation
-      </a>
-      <a
-        href="https://github.com/Fenrir200678/melody_mate"
-        target="_blank"
-        class="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors"
-      >
-        <i class="pi pi-github"></i>
-        GitHub
-      </a>
-      <a
-        href="https://github.com/Fenrir200678/melody_mate/issues"
-        target="_blank"
-        class="flex items-center gap-1 text-emerald-400 hover:text-emerald-500 transition-colors"
-      >
-        <i class="pi pi-comments"></i>
-        Feedback / Report Bug
-      </a>
-    </div>
-    <button
-      @click="clearSettings"
-      class="flex items-center gap-2 mt-4 px-4 py-2 rounded bg-red-600 text-white font-semibold shadow hover:bg-red-700 transition-colors border-none outline-none focus:ring-2 focus:ring-red-400"
-    >
-      <i class="pi pi-trash"></i>
-      Clear Settings
-    </button>
-    <p class="text-xs text-red-400 mt-1 max-w-xs">
-      Tip: If you experience issues or after a new version release, clearing your settings can help!
-    </p>
-    <p class="text-xs text-zinc-400 mt-2">Non-Commercial License. All rights reserved.</p>
   </footer>
 </template>
