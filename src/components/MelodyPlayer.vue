@@ -1,21 +1,24 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useMelodyGeneration } from '@/composables/useMelodyGeneration'
 import { usePlayerStore } from '@/stores/player.store'
 import { generalMidiInstruments, type GeneralMidiInstrument } from '@/data/general-midi-instruments'
+import RhythmInfoInline from '@/components/common/RhythmInfoInline.vue'
 
-import Divider from 'primevue/divider'
+// Divider removed after layout changes
 import Select from 'primevue/select'
 import ToggleSwitch from 'primevue/toggleswitch'
 import type { SelectChangeEvent } from 'primevue/select'
+import { useUiStore } from '@/stores/ui.store'
 
-const { melody, midiUrl, generateMidiFile, downloadMidiFile } = useMelodyGeneration()
+const { midiUrl, generateMidiFile } = useMelodyGeneration()
 const playerStore = usePlayerStore()
+const ui = useUiStore()
 
 const loop = ref(false)
 const instruments = ref<GeneralMidiInstrument[]>(generalMidiInstruments)
 const selectedInstrument = ref<GeneralMidiInstrument['items'][number] | null>(null)
-const canPlay = computed(() => melody.value?.notes && melody.value.notes.length > 0)
+// const canPlay = computed(() => melody.value?.notes && melody.value.notes.length > 0)
 
 async function changeInstrument(event: SelectChangeEvent) {
   playerStore.setSelectedInstrument(event.value.value as number)
@@ -53,10 +56,15 @@ watch(loop, (newVal) => {
     }
   }
 })
+
+function uiNavigateToRhythm() {
+  ui.navigateTo('rhythm', 'rhythm')
+}
 </script>
 
 <template>
   <div class="flex flex-col gap-3">
+    <RhythmInfoInline @navigateRhythm="uiNavigateToRhythm" />
     <div class="flex items-center justify-between gap-4 w-full">
       <label class="text-zinc-400">Instrument:</label>
       <Select

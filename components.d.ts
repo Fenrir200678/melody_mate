@@ -41,6 +41,7 @@ declare module 'vue' {
     RestProbabilitySelector: typeof import('./src/components/settings/generation/RestProbabilitySelector.vue')['default']
     RhythmControl: typeof import('./src/components/settings/rhythm/RhythmControl.vue')['default']
     RhythmicLicksSelector: typeof import('./src/components/settings/generation/RhythmicLicksSelector.vue')['default']
+    RhythmInfoInline: typeof import('./src/components/common/RhythmInfoInline.vue')['default']
     RhythmNotePalette: typeof import('./src/components/settings/rhythm/RhythmNotePalette.vue')['default']
     RhythmPresets: typeof import('./src/components/settings/rhythm/RhythmPresets.vue')['default']
     RhythmSequencer: typeof import('./src/components/settings/rhythm/RhythmSequencer.vue')['default']

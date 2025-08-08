@@ -40,6 +40,11 @@ import AdvancedMusicalRules from '@/components/settings/generation/AdvancedMusic
 type SettingsTab = 'key-scale' | 'harmony' | 'rhythm' | 'composition' | 'motif' | 'start-end' | 'advanced'
 
 const props = defineProps<{ active: SettingsTab }>()
+// expose heading ref for parent scrolling
+const advancedHeadingEl = defineModel<HTMLElement | null>('advancedHeadingEl', { default: null })
+const keyScaleHeadingEl = defineModel<HTMLElement | null>('keyScaleHeadingEl', { default: null })
+const compositionHeadingEl = defineModel<HTMLElement | null>('compositionHeadingEl', { default: null })
+const rhythmHeadingEl = defineModel<HTMLElement | null>('rhythmHeadingEl', { default: null })
 
 // stores
 const chordStore = useChordStore()
@@ -58,6 +63,7 @@ const isAdvanced = computed(() => props.active === 'advanced')
 <template>
   <!-- Key & Scale -->
   <div v-if="isKeyScale" class="space-y-6">
+    <div ref="keyScaleHeadingEl"></div>
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
       <label class="font-medium block md:w-1/4 text-center md:text-left w-full">Key</label>
       <KeySelector />
@@ -90,6 +96,7 @@ const isAdvanced = computed(() => props.active === 'advanced')
 
   <!-- Rhythm -->
   <div v-else-if="isRhythm" class="space-y-6">
+    <div ref="rhythmHeadingEl"></div>
     <RhythmControl :disabled="useCustomRhythm" />
     <div v-if="isPresetRhythm" class="space-y-6">
       <RestProbabilitySelector />
@@ -100,6 +107,7 @@ const isAdvanced = computed(() => props.active === 'advanced')
 
   <!-- Composition, Octave & Velocity -->
   <div v-else-if="isComposition" class="space-y-6">
+    <div ref="compositionHeadingEl"></div>
     <LengthSelector />
     <div class="flex items-center justify-between gap-4">
       <BpmSelector />
@@ -127,6 +135,7 @@ const isAdvanced = computed(() => props.active === 'advanced')
 
   <!-- Advanced Settings -->
   <div v-else-if="isAdvanced">
+    <div ref="advancedHeadingEl"></div>
     <AdvancedMusicalRules />
   </div>
 </template>

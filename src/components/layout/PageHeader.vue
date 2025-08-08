@@ -25,15 +25,24 @@ const composition = useCompositionStore()
         <div class="flex items-center gap-3 md:gap-4 text-sm">
           <!-- key/scale badges -->
           <div class="hidden sm:flex items-center gap-2 mr-2">
-            <span class="px-2 py-0.5 rounded bg-zinc-800/70 border border-zinc-700 text-zinc-200"
-              >Key: {{ composition.key }}</span
+            <button
+              class="px-2 py-0.5 rounded bg-zinc-800/70 border border-zinc-700 text-zinc-200 hover:text-white hover:border-zinc-500"
+              @click="ui.navigateTo('key-scale', 'key-scale')"
             >
-            <span class="px-2 py-0.5 rounded bg-zinc-800/70 border border-zinc-700 text-zinc-200"
-              >Scale: {{ composition.scaleName }}</span
+              Key: {{ composition.key }}
+            </button>
+            <button
+              class="px-2 py-0.5 rounded bg-zinc-800/70 border border-zinc-700 text-zinc-200 hover:text-white hover:border-zinc-500"
+              @click="ui.navigateTo('key-scale', 'key-scale')"
             >
-            <span class="px-2 py-0.5 rounded bg-zinc-800/70 border border-zinc-700 text-zinc-200"
-              >Bars: {{ composition.bars }}</span
+              Scale: {{ composition.scaleName }}
+            </button>
+            <button
+              class="px-2 py-0.5 rounded bg-zinc-800/70 border border-zinc-700 text-zinc-200 hover:text-white hover:border-zinc-500"
+              @click="ui.navigateTo('composition', 'composition')"
             >
+              Bars: {{ composition.bars }}
+            </button>
           </div>
           <a
             href="https://github.com/Fenrir200678/melody_mate/blob/main/DOCS.md"

@@ -11,3 +11,8 @@ declare module '@/components/SettingsContent.vue' {
   const component: DefineComponent<{}, {}, any>
   export default component
 }
+
+declare module 'html-midi-player' {
+  const content: any
+  export default content
+}
