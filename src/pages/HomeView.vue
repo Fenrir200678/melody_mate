@@ -34,7 +34,7 @@ const ui = useUiStore()
 <template>
   <div class="flex flex-col gap-4">
     <!-- Middle content area: Visualizer, Generate button, Player -->
-    <section class="rounded-xl p-4 md:p-6 flex flex-col gap-4 spotlight">
+    <section class="rounded-xl p-4 md:p-6 flex flex-col gap-4 spotlight my-4">
       <MelodyVisualizer />
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="md:col-span-1">

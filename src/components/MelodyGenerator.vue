@@ -6,14 +6,14 @@ const { generateMelody, isGenerating, downloadMidiFile, hasMelody } = useMelodyG
 </script>
 
 <template>
-  <div class="w-full flex flex-col gap-3">
+  <div class="w-full flex flex-col gap-2">
     <Button
       @click="generateMelody()"
       :loading="isGenerating"
       label="Generate"
       icon="pi pi-sparkles"
       size="large"
-      class="w-full bg-primary-500 border-primary-500 hover:bg-primary-600 mb-1"
+      class="w-full bg-primary-500 border-primary-500 hover:bg-primary-600"
     />
     <Button
       label="Download"

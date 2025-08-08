@@ -33,7 +33,7 @@ const isActive = (id: SettingsTab) => computed(() => modelValue.value === id)
     <ul class="flex items-center justify-between gap-1 px-2 md:px-4 overflow-x-auto">
       <li v-for="item in items" :key="item.id" class="flex-1 min-w-20">
         <button
-          class="relative w-full flex flex-col items-center gap-1 py-2 md:py-3 px-3 text-xs md:text-sm transition-colors cursor-pointer rounded-md"
+          class="relative w-full flex flex-col items-center gap-1 py-2 md:py-3 px-3 text-xs md:text-sm cursor-pointer rounded-md transition-colors duration-150 ease-out"
           :class="[
             isActive(item.id).value
               ? 'text-emerald-300 bg-zinc-800/60 ring-1 ring-inset ring-zinc-700'

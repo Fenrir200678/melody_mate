@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import SettingsMenu from './SettingsMenu.vue'
 import { useUiStore } from '@/stores/ui.store'
+import { useCompositionStore } from '@/stores/composition.store'
 
 const ui = useUiStore()
+const composition = useCompositionStore()
 </script>
 
 <template>
@@ -19,8 +21,20 @@ const ui = useUiStore()
           <h1 class="text-lg md:text-xl font-semibold tracking-tight">Melody Mate</h1>
         </div>
 
-        <!-- Right: quick links -->
+        <!-- Right: quick info + links -->
         <div class="flex items-center gap-3 md:gap-4 text-sm">
+          <!-- key/scale badges -->
+          <div class="hidden sm:flex items-center gap-2 mr-2">
+            <span class="px-2 py-0.5 rounded bg-zinc-800/70 border border-zinc-700 text-zinc-200"
+              >Key: {{ composition.key }}</span
+            >
+            <span class="px-2 py-0.5 rounded bg-zinc-800/70 border border-zinc-700 text-zinc-200"
+              >Scale: {{ composition.scaleName }}</span
+            >
+            <span class="px-2 py-0.5 rounded bg-zinc-800/70 border border-zinc-700 text-zinc-200"
+              >Bars: {{ composition.bars }}</span
+            >
+          </div>
           <a
             href="https://github.com/Fenrir200678/melody_mate/blob/main/DOCS.md"
             target="_blank"
