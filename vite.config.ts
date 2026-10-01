@@ -1,83 +1,53 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import vueDevtools from 'vite-plugin-vue-devtools'
-import path from 'path'
+import { fileURLToPath, URL } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
-import compression from 'vite-plugin-compression'
-import Components from 'unplugin-vue-components/vite'
-import AutoImport from 'unplugin-auto-import/vite'
-import { PrimeVueResolver } from 'unplugin-vue-components/resolvers'
+import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite'
+import vueDevTools from 'vite-plugin-vue-devtools'
 
-// https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
-  const isProduction = mode === 'production'
-
-  return {
-    base: './',
-    plugins: [
-      vue({
-        template: {
-          compilerOptions: {
-            isCustomElement: (tag: string) => tag.startsWith('midi-')
-          }
-        }
-      }),
-      !isProduction ? vueDevtools() : undefined,
-      tailwindcss(),
-      Components({
-        resolvers: [PrimeVueResolver()]
-      }),
-      AutoImport({
-        imports: ['vue', 'pinia'],
-        dts: 'src/auto-imports.d.ts',
-        eslintrc: {
-          enabled: true,
-          filepath: './.eslintrc-auto-import.json',
-          globalsPropValue: true
-        }
-      }),
-      isProduction
-        ? compression({
-            algorithm: 'gzip',
-            ext: '.gz'
-          })
-        : undefined
-    ],
-    resolve: {
-      alias: {
-        '@': path.resolve(__dirname, 'src')
-      }
-    },
-    build: {
-      chunkSizeWarningLimit: 1800,
-      minify: isProduction ? 'terser' : 'esbuild',
-      terserOptions: isProduction
-        ? {
-            compress: {
-              drop_console: true,
-              drop_debugger: true
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [vue(), vueDevTools(), tailwindcss()],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@markov-tables': fileURLToPath(new URL('./markov-tables', import.meta.url))
+    }
+  },
+  build: {
+    chunkSizeWarningLimit: 800,
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: 'vendor-tone',
+              test: /node_modules[\\/]tone[\\/]/
             },
-            format: {
-              comments: false
+            {
+              name: 'vendor-tonal',
+              test: /node_modules[\\/](tonal|@tonaljs)[\\/]/
+            },
+            {
+              name: 'vendor-framework',
+              test: /node_modules[\\/](vue|pinia|@vueuse)[\\/]/
+            },
+            {
+              name: 'vendor-lucide',
+              test: /node_modules[\\/]@lucide[\\/]vue[\\/]/
+            },
+            {
+              name: 'vendor-midi',
+              test: /node_modules[\\/]midi-writer-js[\\/]/
+            },
+            {
+              name: 'vendor-zod',
+              test: /node_modules[\\/]zod[\\/]/
+            },
+            {
+              name: 'vendor-misc',
+              test: /node_modules[\\/]/
             }
-          }
-        : undefined,
-      rollupOptions: {
-        output: {
-          manualChunks(id: string) {
-            if (id.includes('node_modules')) {
-              // Core Vue ecosystem
-              if (id.includes('vue') || id.includes('@vue') || id.includes('pinia')) {
-                return 'vue'
-              }
-              // UI Framework
-              if (id.includes('primevue') || id.includes('primeicons')) {
-                return 'primevue'
-              }
-
-              return 'vendor'
-            }
-          }
+          ]
         }
       }
     }

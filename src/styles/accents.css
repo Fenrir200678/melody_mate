@@ -1,0 +1,15 @@
+/* Accent trio wiring. Any control can opt into the musical role accents by pairing
+   `btn-signal` / `btn-pulse` / `btn-chord` with an `--accent` consumer, so the
+   palette stays declared exactly once instead of being repeated per component. */
+
+.btn-signal {
+  --accent: var(--color-daw-signal);
+}
+
+.btn-pulse {
+  --accent: var(--color-daw-pulse);
+}
+
+.btn-chord {
+  --accent: var(--color-daw-chord);
+}

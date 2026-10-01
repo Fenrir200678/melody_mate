@@ -1,0 +1,9 @@
+node_modules
+dist
+dist-ssr
+pnpm-lock.yaml
+.vite
+coverage
+*.local
+markov-tables
+.vitest

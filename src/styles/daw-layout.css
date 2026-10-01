@@ -1,0 +1,317 @@
+/* Custom Studio Dark Scrollbars (Cross-browser WebKit & CSS Standards) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-daw-border) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-daw-border);
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in oklab, var(--color-daw-border) 60%, #ffffff);
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background-color: color-mix(in oklab, var(--color-daw-border) 35%, #ffffff);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Global Viewport & DAW Shell Layout */
+html,
+body,
+#app {
+  height: 100%;
+  height: 100dvh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: var(--color-daw-bg);
+  color: var(--color-daw-text);
+  overscroll-behavior: none;
+}
+
+.daw-shell {
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  width: 100%;
+  min-block-size: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--color-daw-bg);
+  color: var(--color-daw-text);
+  font-family: var(--font-ui);
+
+  & .daw-header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+    height: 3.25rem;
+    padding: 0 0.75rem;
+    background-color: var(--color-daw-panel);
+    border-bottom: 1px solid var(--color-daw-border);
+    user-select: none;
+    z-index: 20;
+    flex-shrink: 0;
+
+    & .daw-header-center {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: safe center;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+
+      & > * {
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  & .daw-workspace {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+
+    & .daw-sidebar-left,
+    & .daw-sidebar-right {
+      display: flex;
+      flex-direction: column;
+      background-color: var(--color-daw-panel);
+      overflow: hidden;
+      user-select: none;
+      z-index: 10;
+      height: 100%;
+      transition:
+        width var(--duration-fast) var(--ease-out-snappy),
+        opacity var(--duration-fast) var(--ease-out-snappy);
+    }
+
+    & .daw-sidebar-left {
+      width: var(--daw-sidebar-default-width, 350px);
+      border-right: 1px solid var(--color-daw-border);
+
+      &.is-resizing {
+        transition: none;
+      }
+
+      &.collapsed {
+        width: 0;
+        border-right: none;
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
+      }
+    }
+
+    & .daw-sidebar-right {
+      width: var(--daw-sidebar-default-width, 350px);
+      border-left: 1px solid var(--color-daw-border);
+
+      &.is-resizing {
+        transition: none;
+      }
+
+      &.collapsed {
+        width: 0;
+        border-left: none;
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
+      }
+    }
+
+    & .daw-center-viewport {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background-color: var(--color-daw-bg);
+      overflow: hidden;
+    }
+  }
+
+  & .daw-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 3.25rem;
+    padding: 0.75rem 1rem;
+    background-color: var(--color-daw-panel);
+    border-top: 1px solid var(--color-daw-border);
+    font-size: 0.75rem;
+    color: var(--color-daw-text-muted);
+    user-select: none;
+    z-index: 20;
+    flex-shrink: 0;
+
+    & .status-mono {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    & .footer-master-status {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      min-width: 0;
+      font-family: var(--font-mono);
+      font-size: 0.625rem;
+      white-space: nowrap;
+    }
+
+    & .footer-master-meter {
+      display: block;
+      width: 4rem;
+      height: 0.4rem;
+      border-radius: 9999px;
+      background: var(--color-daw-surface);
+      overflow: hidden;
+
+      & > span {
+        display: block;
+        height: 100%;
+        background: var(--color-daw-pulse);
+      }
+    }
+  }
+
+  & .sound-mix-dock {
+    display: flex;
+    flex-direction: column;
+    flex: none;
+    min-height: 2.25rem;
+    border-top: 1px solid var(--color-daw-border);
+    background: var(--color-daw-panel);
+    font-size: 0.75rem;
+
+    & .sound-mix-dock-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex: none;
+      min-height: 2.25rem;
+      padding: 0 0.75rem;
+    }
+
+    & .sound-mix-dock-content {
+      min-height: 0;
+      height: 0;
+      overflow: hidden;
+    }
+
+    &.is-open .sound-mix-dock-content {
+      overflow-y: auto;
+    }
+  }
+}
+
+@media (max-width: 1400px) {
+  .daw-header .daw-header-center {
+    justify-content: flex-start;
+  }
+}
+
+/* Compact creation panels keep the piano roll at full width. */
+@media (max-width: 1279px) {
+  .daw-shell {
+    & .daw-workspace {
+      grid-template-columns: minmax(0, 1fr);
+
+      & .daw-sidebar-left,
+      & .daw-sidebar-right {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        height: 100%;
+        width: min(340px, 88vw);
+        z-index: 40;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7);
+        transition: transform var(--duration-fast) var(--ease-out-snappy);
+
+        &.collapsed {
+          width: min(340px, 88vw);
+          opacity: 1;
+        }
+      }
+
+      & .daw-sidebar-left {
+        left: 0;
+        transform: translateX(0);
+
+        &.collapsed {
+          transform: translateX(-100%);
+        }
+      }
+
+      & .daw-sidebar-right {
+        right: 0;
+        transform: translateX(0);
+
+        &.collapsed {
+          transform: translateX(100%);
+        }
+      }
+    }
+  }
+
+  .daw-panel-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 35;
+    background: rgb(0 0 0 / 60%);
+  }
+}
+
+/* Mobile Gate & Desktop Enforcement */
+@media (max-width: 767px) {
+  .daw-shell {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .daw-mobile-gate {
+    display: none !important;
+  }
+}
+
+/* Reduced Motion Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .daw-shell,
+  .daw-sidebar-left,
+  .daw-sidebar-right,
+  .sound-mix-dock,
+  .btn-generate::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

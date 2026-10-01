@@ -1,0 +1,42 @@
+.take-sparkline {
+  width: 32px;
+  height: 16px;
+}
+
+.take-list {
+  max-height: 336px;
+}
+
+.take-select,
+.take-swap {
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-daw-surface-elevated);
+  }
+
+  &:focus-visible {
+    outline: 1px solid var(--color-daw-signal);
+    outline-offset: 2px;
+  }
+
+  &:active {
+    color: var(--color-daw-signal);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.45;
+  }
+}
+
+@media (hover: hover) {
+  .take-secondary {
+    opacity: 0.6;
+  }
+
+  .take-row:hover .take-secondary,
+  .take-row:focus-within .take-secondary {
+    opacity: 1;
+  }
+}

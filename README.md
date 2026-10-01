@@ -1,147 +1,218 @@
-# Melody Mate v1.1.0
+# Melody Mate v2
 
-Melody Mate is a powerful, user-friendly web tool for generating, customizing, and exporting MIDI melodies—no musical background required. Create unique melodies or basslines, shape nearly every detail, and hopefully get inspired by the generated melodies to create your own music.
+Melody Mate v2 is a generative MIDI workstation and melodic sketchpad designed for music producers, beatmakers and composers. It runs entirely in the browser and helps you create musically coherent melodies, basslines, arpeggios and chord progressions without relying on generic randomizers or cloud subscriptions.
 
----
+Once you have an idea you like, you can edit it directly on an interactive canvas piano roll, audition it using the built-in synthesizer engine and export clean multi-track MIDI directly into your DAW (Ableton Live, FL Studio, Logic Pro, Studio One, Cubase, Bitwig, or Reaper).
 
-## 🎵 What can Melody Mate do?
+<!-- Screenshot Placeholder: Full workspace view with piano roll, sidebars and docks -->
 
-### 🎼 Scales & Keys
+![Melody Mate v2 Interface](docs/screenshots/hero-overview.jpg)
 
-- Select from all common keys and scales (major, minor, modes, and more)
-- Instantly switch the key/scale for your entire melody
+## Why Melody Mate?
 
-### 🔗 Chord Progressions (Custom & Predefined)
+As a software engineer and hobby music producer, Melody Mate started as a personal passion project. Most generative MIDI tools fall into one of two extremes: either they are basic random-note generators that produce unmusical noise, or they are locked inside heavy subscription plugins.
 
-- Enable/disable chord progression guidance for melody generation
-- Build your own custom chord progressions (drag & drop, reorder, remove, up to 8 chords)
-- Choose from a library of predefined progressions (pop, jazz, minor, etc.)
-- Diatonic chord palette adapts to your selected key/scale
-- Adjustable "Chord Adherence" (how strictly the melody follows the chords)
-- Visual chord info: compact names, roman numerals, color coding
+I wanted to build a tool that I would genuinely use in my own studio sessions: something fun to use, musically grounded and inspiring. Melody Mate is built around practical music theory rules and classical compositional techniques. Instead of rolling random dice, it combines N-gram Markov models with voice leading heuristics, call-and-response structures and rhythmic foundations. It acts like a fast musical sparring partner that can spark ideas.
 
-### 🥁 Rhythm Design (Presets, Euclidean, Custom)
+### Mathematical Algorithms, Not Black-Box AI
 
-- **Presets:** Choose from a large library of weighted rhythm patterns (categorized)
-- **Euclidean:** Generate mathematically even rhythms, rotate patterns, visualize as a circle
-- **Custom Sequencer:** 16-step grid, drag & drop note values, create any rhythm you want
-- Rhythm licks: Inject short, predefined rhythmic phrases for extra groove
-- Rest probability: Control how sparse or syncopated your melody is
-- Random rhythm option within a category
+The term "AI" gets attached to almost everything these days, but Melody Mate does not use deep learning, neural networks, or cloud-based LLM prompts to generate music. Every note choice is driven by deterministic mathematics and rule-based voice leading heuristics. The generation is transparent, runs entirely locally in your browser and works completely offline.
 
-### 🎶 Melody Generation & Structure
+### Thoughtfully Engineered (Not "Vibe Coded")
 
-- Rule-based generation with N-Gram/Markov-Chain models (adjustable context length)
-- Motif repetition: Repeat melodic motifs with customizable patterns
-- Famous motif injection: Seed your melody with iconic motifs (Beethoven, pop, etc.)
-- Melodic contour: Guide the overall shape (arc, ascending, descending, random)
-- Call & response: Motif variation with transposition/inversion
-- Start/end on root note (optional)
-- Adjustable bars (1–16), BPM, octave range
+While Melody Mate was built with AI pair-programming assistance, it was not "vibe coded" into a fragile pile of unverified scripts. Drawing from over two decades of software engineering experience, the codebase is built on solid self-defined architectural principles: a pure TypeScript algorithmic core completely decoupled from UI frameworks, strict unidirectional state management with Zod schema validation and an extensive suite of over 1,600 automated tests verifying music theory logic, audio DSP pipelines and timing converters.
 
-### 🔊 Dynamics & Velocity
+### An Instrument, Not a Magic Wand
 
-- Fixed velocity: All notes at the same volume
-- Dynamic progressions: Choose from musical dynamic curves (piano, forte, etc.)
-- Select and preview dynamic profiles
+Melody Mate cannot magically write your next radio hit with a single button press. Because everything is grounded in combinatorial mathematics, music theory rules and probability, not every setting combination will immediately sound perfect together. Some parameter pairings will sound unusual or quirky until you find the right balance of options. Experimentation is encouraged!
 
-### 🎹 Instrument Selection & Playback
+Treat Melody Mate as an interactive musical instrument: experiment with different scales, shape the contour, nudge sliders, audition variations in the Take Rack and let happy accidents guide your arrangement. The fun lies in exploring ideas, finding a spark and shaping it into an inspriration for your next track.
 
-- Choose from 100+ General MIDI instruments (grouped by type)
-- Instant playback in your browser (no plugins needed)
-- Loop playback option
+## Core Features
 
-### 👀 Animated Melody Visualization
+### Targeted Generation with Work Ranges
 
-- See your melody as a sequence of colored note cards
-- Animated playback: highlights the current note in sync with audio
-- Octave color coding, velocity transparency, rest indication
-- Rhythm legend and info (including custom/euclidean/preset type)
+You do not have to regenerate an entire track just to fix one awkward measure. The Work Range system lets you highlight any section (such as Bar 2 to 3, or a specific 4-beat phrase) and apply generation, mutation, or transformation only to those steps. Notes outside the work range remain untouched.
 
-### 💾 MIDI Export
+### Interactive Canvas Piano Roll
 
-- Download your melody as a .mid file for use in any DAW or music software
-- Filename auto-generated based on your settings
+- Built on a dedicated HTML5 2D canvas running at 60 FPS.
+- Dual-track editing: toggle between Melody (Lead) and Harmony (Chords) via the toolbar or Tab key.
+- Scale Lock (shortcut K) snaps live note drawing and dragging strictly to the active scale, preventing accidental off-scale notes.
+- Scale highlighting illuminates valid scale degrees while darkening non-scale rows.
+- Ghost chord notes render the active chord voicings as translucent purple blocks directly behind your melody line.
+- Smart editing tools: Select (pointer and box), Lasso (marquee selection), Pencil (draw notes), Eraser (sweep delete) and Hand (pan viewport).
+- Bottom velocity lane with interactive stems and multi-selection scaling.
+- Note auditioning on click and drag.
 
-### 🧠 Smart User Experience
+### Musical Melody Generation
 
-- Modern, responsive UI (PrimeVue, TailwindCSS)
-- All settings grouped in collapsible panels for clarity
-- Tooltips, legends, and help texts throughout the app
-- **Automatic settings save:** All your preferences, custom rhythms, progressions, and options are automatically saved in your browser (localStorage). When you return, everything is instantly restored—no login or account needed. This ensures a seamless workflow and lets you pick up exactly where you left off, even after closing the browser.
-- **Clear Settings Button:** If you ever experience issues or after a new version release, you can use the red "Clear Settings" button in the footer to delete all saved preferences and reload the app. This is helpful to resolve problems caused by outdated or incompatible settings.
+- **Markov Chain Engine:** Tunable step memory (Orders 1, 2, 3 and 4) trained on scale motions, arpeggios and authentic cadences.
+- **Music Theory Heuristics:**
+  - Leap-then-Step rule balances wide jumps with stepwise counter-motion.
+  - Melodic Contour shapes phrases into Ascending, Descending, Arch, or Valley curves with adjustable strength.
+  - Metric weighting prioritizes chord tones on downbeats while allowing passing notes on offbeats.
+  - Nearest-octave register tracking eliminates unmusical octave jumps.
+- **Motif & Form Structuring:**
+  - Multi-bar form patterns including FREE, AAAA, ABAB, ABAC, AABA and ABCB.
+  - Motif Variation fader controls how far recurring phrases drift from the main theme.
+  - Call and Response mode with Echo, Inversion, Sequence and Resolution answer styles.
+- **Tonality & Pitch Rules:**
+  - 12 chromatic root keys.
+  - 21 scales and modes across Standard, Modes of Major, Jazz & Blues, Pentatonic and Exotic categories.
+  - Start on Root and Resolve to Root constraints.
+  - Pentatonic Hook mode restricts generation to the 5-note pentatonic scale for immediate pop catchiness.
 
----
+### Three Dedicated Studio Docks
 
-## 🚦 How does it work? (User Workflow)
+1. **Chord Studio (shortcut C):**
+   - Diatonic Chord Palette: automatically calculates triads and 7th chords for all 21 scales with Roman numerals.
+   - Interactive timeline: drag to place chords, resize durations and audition voicings.
+   - Voice Leading Analysis: displays semitone movement distance between transitions.
+   - Auto-Smooth algorithm: optimizes chord inversions to minimize jump distances across the progression with one click.
+   - Chord Inspector: switch between Close, Open and Drop-2 voicings, select inversions and shift registers.
+2. **Arp Studio (shortcut A):**
+   - Generative arpeggiator locked to active chord progressions.
+   - Patterns: Up, Down, UpDown, DownUp, Random, Converge, Diverge, Thumb Bass, Pinky Top, Brown, Chord Rhythm.
+   - Rates from 1/4 to 1/16, including triplet divisions.
+   - Controls for Gate length, Downbeat Accent, Note Density and Chord Adherence.
+   - Real-time trajectory visualizer and lockable seed controls.
+3. **Rhythm Studio (shortcut R):**
+   - Custom step sequencer supporting 1 to 4 bars (up to 64 steps at 16th-note resolution).
+   - Complete note value palette from whole notes down to dotted sixteenths, plus rests.
+   - Save custom rhythms locally with tags for reuse.
+   - Euclidean rhythm generator powered by the Bjorklund algorithm with live visualization.
 
-1. **Set your preferences:**
-   - Select key and scale
-   - Adjust length, BPM, octave, and velocity
-   - Tweak rhythm and generation options (motifs, N-Gram, rests, etc.)
-2. **Generate a melody:**
-   - Click "Generate Melody"—your melody appears and is ready to play.
-3. **Pick an instrument & play:**
-   - Choose an instrument from the list and play your melody instantly.
-4. **Export:**
-   - Download your melody as a MIDI file and use it in your favorite DAW.
+### Variation & Non-Destructive Takes
 
----
+- **Mutation Engine:** Adjust mutation strength and toggle individual axes (Rhythm, Pitch, Ornament, Simplify).
+- **Transform Tools:** Invert, Reverse, One Up, One Down, Double duration, Halve duration, Octave shifts and Grid phase shifts.
+- **Take Rack:** Automatically archives up to 25 generation runs with pitch sparklines and catchiness scores.
+- Lock favorite takes, audition takes in the background, reload them instantly, or use A/B comparison to toggle between ideas.
 
-## 🛠️ Tech Stack
+### Real-Time Melody Analysis
 
-- **Frontend:** Vue 3, TypeScript, Vite
-- **UI:** PrimeVue, TailwindCSS
-- **State Management:** Pinia
-- **MIDI Playback:** html-midi-player (100+ General MIDI instruments)
-- **MIDI Export:** midi-writer-js
-- **Music theory:** tonal.js + custom utilities
+- Live evaluation of pitch range, motion balance (steps vs. leaps vs. repeated notes), syncopation ratio and chord tone alignment.
+- Tension curve visualizer mapping musical tension bar by bar.
+- Composite Catchiness Score (0 to 100) estimating hook strength.
 
----
+### Built-in Hybrid Synthesizer & Output Protection
 
-## 🚀 Getting Started
+- No plugins or soundfonts required. Tone.js handles transport and FM voices; native Web Audio API graphs power subtractive synthesis.
+- Factory sound bank with various curated presets.
+- Dual channel strips (Melody and Chords) with Solo, Mute, Volume fader, live ADSR canvas and 8 micro knobs (Attack, Decay, Sustain, Release, Cutoff, Delay, Chorus, Reverb).
+- Master output protection: Optional Bus Compressor, AudioWorklet stereo RMS/Peak meters and an always on AudioWorklet lookahead brickwall peak limiter that prevents distortion and loud volume spikes.
+- Global Panic button to silence all voices immediately.
+
+### Multi-Track MIDI Export
+
+- Exports standard `.mid` files directly from your browser.
+- Three export modes:
+  1. Lead Melody only (Channel 1)
+  2. Chords only (Channel 2)
+  3. Multi-Track MIDI (Lead on Channel 1, Chords on Channel 2)
+- Includes active Swing and Timing Looseness groove offsets while keeping notes snapped to DAW grids.
+- Automatically tags key signature, time signature and tempo meta-events.
+- Descriptive filenames like `MelodyMate_Cmin_124BPM_4bar_MultiTrack.mid`.
+
+## Getting Started
 
 ### Prerequisites
 
-- Node.js (version 18 or higher)
-- pnpm (or npm/yarn)
+- Node.js (version 20 or higher recommended)
+- `pnpm` (exclusively used for package management)
 
 ### Installation
 
 ```bash
-git clone https://github.com/Fenrir200678/melody_mate
+# Clone the repository
+git clone https://github.com/Fenrir200678/melody_mate.git
 cd melody_mate
+
+# Install dependencies
 pnpm install
-```
 
-### Start development server
-
-```bash
+# Start the local development server
 pnpm dev
 ```
 
-The app will be available at `http://localhost:5173`.
+Open your browser at `http://localhost:5173` to start using Melody Mate.
 
-### Production build
+### Building for Production
 
 ```bash
+# Type check and build the production bundle
 pnpm build
+
+# Preview the production build locally
+pnpm preview
 ```
 
-The build output will be in the `dist/` directory.
+### Running Tests
 
----
+```bash
+# Run unit and core theory tests
+pnpm test:run
 
-## 🗺️ Roadmap
+# Run tests in watch mode
+pnpm test
+```
 
-- **AI-powered models:** Integration of Magenta.js for AI-based melody generation (planned)
+## Project Structure
 
-## 📜 License
+```text
+src/
+├── audio/          # Tone.js runtime, native voice graphs, mixer, worklets
+├── components/     # Vue 3 presentation components (DAW UI, Canvas, Studios)
+├── composables/    # Viewport math, shortcuts, canvas interaction composables
+├── config/         # Centralized defaults for generator, project and UI
+├── core/           # 100% pure TypeScript (theory, algorithms, rhythm, MIDI)
+│   ├── analysis/   # Catchiness scoring, tension, melodic motion balance
+│   ├── generator/  # Markov models, heuristics, motifs, arpeggios
+│   ├── midi/       # Multi-track MIDI file writer and formatters
+│   ├── presets/    # Chords, rhythm libraries, synth factory patches
+│   ├── rhythm/     # Euclidean algorithm, custom patterns, swing, groove
+│   ├── schemas/    # Zod schemas for notes, chords, project and takes
+│   ├── synth/      # Native subtractive voice math, patches, modulation
+│   ├── theory/     # Scales, intervals, chords, voice leading algorithms
+│   └── variation/  # Mutation axes, transform operators (invert, reverse)
+├── stores/         # Pinia reactive state stores
+├── styles/         # Tailwind CSS v4 entry and modular nested stylesheets
+└── utils/          # General math, formatting and UI helpers
+```
 
-This project is licensed under a **Non-Commercial License**.
+## Documentation
 
-You may use, modify, and share it for personal, educational, or non-commercial purposes—with attribution.
+- User guide and manual: [docs/DOCS.md](docs/DOCS.md)
+- Full feature inventory and technical breakdown: [docs/APP_FEATURES.md](docs/APP_FEATURES.md)
 
-**Commercial use is strictly prohibited without written permission.**
+## Roadmap & Planned Features
 
-© 2025 Farid Hassan – All rights reserved.
+Here is a glimpse of features, workflows and concepts currently on the radar for upcoming iterations:
+
+### Track Architecture & Live I/O
+
+- **Dedicated Bassline & Arpeggio Tracks:** Move beyond shared preview layers to independent multi-track lane architectures with dedicated generators, sound patches, and mute/solo controls.
+- **Direct Web MIDI Output:** Stream generative MIDI in real time directly to external hardware synthesizers or your desktop DAW.
+- **Progressive Web App (PWA):** Offline-first caching and standalone desktop app installability.
+
+### Generator & Music Theory Enhancements
+
+- **Extended Pitch Resolutions:** Expand "Start/Resolve to Root" constraints to allow cadential resolutions to chord 3rds or 5ths.
+- **High-Resolution 1/32 Grid & Ratchets:** Sub-division support down to 1/32 notes along with probabilistic note repeats/ratchets for modern electronic patterns.
+- **Interactive Take Ghost Previews:** Debounced piano roll ghost note overlays when hovering over take history cards.
+
+### Arp Studio Extensions
+
+- **Step-Gate & Rhythmic Masking:** 16-step rhythmic pattern trance-gate grid for rhythmic chopping and gate sequencing.
+- **Arp Style Quick Profiles:** Curated instant presets for iconic pattern archetypes (_80s Bassline_, _Rolling Trance 16th_, _Ambient Cascade_, _Pluck Ostinato_).
+
+If you have any suggestions, feature requests, or feedback, please feel free to open an issue or contribute to the discussion on the project's repository.
+
+## License
+
+This project is licensed under a Non-Commercial License.
+
+You may use, modify and share it for personal, educational, or non-commercial purposes - with attribution.
+
+Commercial use is strictly prohibited without written permission.

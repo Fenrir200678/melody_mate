@@ -1,45 +1,55 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en" class="dark bg-daw-bg">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0b0c0f" />
 
-    <!-- SEO Meta Tags -->
-    <title>Melody Mate - Stochastic & Rule-Based MIDI Melody Generator</title>
+    <!-- Primary Meta Tags -->
+    <title>Melody Mate V2 - Generative MIDI &amp; Chord Progression Workstation</title>
+    <meta name="title" content="Melody Mate V2 - Generative MIDI &amp; Chord Progression Workstation" />
     <meta
       name="description"
-      content="Melody Mate is a web-based MIDI melody generator using Vue 3 and TypeScript. Create unique melodies with stochastic or rule-based generation, customize scales and rhythms, and export them as MIDI files."
+      content="Web-based generative MIDI melody and chord progression workstation combining Markov transition models with classical voice leading heuristics, advanced Arp Studio, rhythm studio, and native synth engine."
     />
     <meta
       name="keywords"
-      content="Melody Mate, MIDI generator, melody generation, music composition, AI music, rule-based music, music theory, Vue.js, TypeScript, Magenta.js, Tone.js, music production tool, free music tool, online melody creator, Melodie Generator, MIDI Komposition, Musik erstellen, KI Musik, generative Musik, Musiktheorie, Online Tool Musik, Melodien erstellen, kostenlos, Stochastic, Rule-Based, MIDI, Melody, Generator, Music, Composition, AI, Music Theory, Music Production, Free, Online, Tool, Melody Generator, MIDI Composition, Music Creation, AI Music, Generative Music, Music Theory, Online Tool Music, Melody Creation, Free"
+      content="midi generator, arpeggiator, arp studio, chord progression, melody maker, music production, markov chain, voice leading, web audio, daw, tone.js, synth"
     />
-    <meta name="author" content="Farid Hassan" />
-    <meta name="robots" content="index, follow" />
+    <meta name="author" content="Melody Mate" />
 
-    <!-- Open Graph Tags (for social media sharing) -->
-    <meta property="og:title" content="Melody Mate - Stochastic & Rule-Based MIDI Melody Generator" />
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Melody Mate V2 - Generative MIDI &amp; Chord Progression Workstation" />
     <meta
       property="og:description"
-      content="Create unique melodies with stochastic or rule-based generation, customize scales and rhythms, and export them as MIDI files."
+      content="Web-based generative MIDI melody and chord progression workstation combining Markov transition models with classical voice leading heuristics, advanced Arp Studio, rhythm studio, and native synth engine."
     />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://melody-mate-khaki.vercel.app/" />
-    <meta property="og:image" content="https://melody-mate-khaki.vercel.app/social-image.png" />
+    <meta property="og:image" content="/social-image.jpg" />
+    <meta property="og:image:alt" content="Melody Mate DAW Workstation Interface" />
     <meta property="og:site_name" content="Melody Mate" />
 
-    <!-- Twitter Card Tags -->
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Melody Mate - Stochastic & Rule-Based MIDI Melody Generator" />
+    <meta name="twitter:title" content="Melody Mate V2 - Generative MIDI &amp; Chord Progression Workstation" />
     <meta
       name="twitter:description"
-      content="Create unique melodies with stochastic or rule-based generation, customize scales and rhythms, and export them as MIDI files."
+      content="Web-based generative MIDI melody and chord progression workstation combining Markov transition models with classical voice leading heuristics, advanced Arp Studio, rhythm studio, and native synth engine."
     />
-    <meta name="twitter:image" content="https://melody-mate-khaki.vercel.app/social-image.png" />
+    <meta name="twitter:image" content="/social-image.jpg" />
+    <meta name="twitter:image:alt" content="Melody Mate DAW Workstation Interface" />
+
+    <!-- Web Application & Accessibility -->
+    <meta name="application-name" content="Melody Mate" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Melody Mate" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   </head>
-  <body>
-    <div id="app"></div>
+  <body class="bg-daw-bg text-daw-text m-0 overflow-hidden p-0 select-none">
+    <div id="app" class="h-full w-full overflow-hidden"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

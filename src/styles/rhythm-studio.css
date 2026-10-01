@@ -1,0 +1,385 @@
+.rhythm-studio {
+  min-height: 0;
+  color: var(--color-daw-text);
+}
+
+.rhythm-studio__header,
+.rhythm-studio__footer {
+  background: var(--color-daw-panel);
+}
+
+.rhythm-studio__toolbar {
+  background: var(--color-daw-panel);
+}
+
+.rhythm-studio__icon,
+.rhythm-studio__preview,
+.rhythm-studio__action,
+.rhythm-studio__length {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 24px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  color: var(--color-daw-text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+.rhythm-studio__icon {
+  width: 24px;
+  height: 24px;
+}
+
+.rhythm-studio__icon svg,
+.rhythm-studio__action svg {
+  width: 12px;
+  height: 12px;
+  flex: none;
+}
+
+.rhythm-studio__icon:hover,
+.rhythm-studio__action:hover {
+  color: var(--color-daw-text);
+  background: var(--color-daw-surface);
+}
+
+.rhythm-studio__preview {
+  padding: 0 8px;
+  color: var(--color-daw-bg);
+  background: var(--color-daw-pulse);
+  font-weight: 700;
+}
+
+.rhythm-studio__preview:hover {
+  filter: brightness(1.08);
+}
+
+.rhythm-studio__preview:disabled,
+.rhythm-studio__icon:disabled,
+.rhythm-studio__action:disabled,
+.rhythm-studio__length:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.rhythm-studio__length {
+  min-width: 34px;
+  padding: 0 5px;
+  border-color: var(--color-daw-border);
+  background: var(--color-daw-surface);
+  font-family: var(--font-mono);
+  color: var(--color-daw-text-muted);
+}
+
+.rhythm-studio__length:hover {
+  color: var(--color-daw-text);
+}
+
+.rhythm-studio__length.is-selected {
+  border-color: var(--color-daw-pulse);
+  color: var(--color-daw-pulse);
+  background: color-mix(in srgb, var(--color-daw-pulse) 10%, var(--color-daw-surface));
+}
+
+.rhythm-studio__bar {
+  min-width: 24px;
+}
+
+.rhythm-studio__separator {
+  width: 1px;
+  height: 20px;
+  background: var(--color-daw-border);
+}
+
+.rhythm-studio__action {
+  min-height: 24px;
+  padding: 0 6px;
+  white-space: nowrap;
+}
+
+.rhythm-studio__preset-action {
+  min-width: 0;
+  max-width: min(320px, 38vw);
+}
+
+.rhythm-studio__preset-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rhythm-studio__preset-action svg {
+  flex: none;
+}
+
+.rhythm-studio__action.is-primary {
+  color: var(--color-daw-pulse);
+}
+
+.rhythm-studio__action.rhythm-studio__danger:hover {
+  color: var(--color-daw-text);
+}
+
+.rhythm-studio__confirm {
+  min-height: 28px;
+  border-top: 1px solid var(--color-daw-border);
+  background: color-mix(in srgb, var(--color-daw-pulse) 5%, var(--color-daw-panel));
+}
+
+.rhythm-studio__status {
+  min-height: 24px;
+}
+
+.rhythm-studio__status p {
+  margin: 0;
+}
+
+.rhythm-studio__status p:first-child {
+  color: var(--color-daw-text-muted);
+}
+
+.rhythm-studio__error {
+  color: var(--color-daw-signal);
+}
+
+.rhythm-studio__scroll {
+  overscroll-behavior: contain;
+  scrollbar-color: var(--color-daw-border) transparent;
+  scrollbar-width: thin;
+}
+
+.rhythm-studio__grid {
+  min-width: 740px;
+  padding: 4px 12px 8px;
+}
+
+.rhythm-studio__bar-row {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  min-height: 72px;
+  align-items: stretch;
+}
+
+.rhythm-studio__bar-label {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding-right: 8px;
+  color: var(--color-daw-text);
+  font: var(--text-micro)/1.2 var(--font-mono);
+}
+
+.rhythm-studio__bar-label span:last-child {
+  font-size: var(--text-micro);
+}
+
+.rhythm-studio__bar-track {
+  position: relative;
+  min-width: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-daw-border) 90%, var(--color-daw-text-muted));
+  background-color: color-mix(in srgb, var(--color-daw-surface) 48%, transparent);
+  background-image: repeating-linear-gradient(
+    to right,
+    transparent 0,
+    transparent calc(25% - 1px),
+    color-mix(in srgb, var(--color-daw-border) 92%, var(--color-daw-text-muted)) calc(25% - 1px),
+    color-mix(in srgb, var(--color-daw-border) 92%, var(--color-daw-text-muted)) 25%
+  );
+}
+
+.rhythm-studio__bar-track.is-current-bar {
+  background-color: color-mix(in srgb, var(--color-daw-pulse) 5%, var(--color-daw-surface));
+}
+
+.rhythm-studio__beat-labels,
+.rhythm-studio__cells {
+  position: absolute;
+  inset-inline: 0;
+  display: grid;
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+}
+
+.rhythm-studio__beat-labels {
+  top: 3px;
+  height: 12px;
+  pointer-events: none;
+}
+
+.rhythm-studio__beat-labels span {
+  padding-left: 3px;
+  color: color-mix(in srgb, var(--color-daw-text) 82%, var(--color-daw-text-muted));
+  font: var(--text-micro)/1 var(--font-mono);
+}
+
+.rhythm-studio__beat-labels i {
+  padding-left: 4px;
+  color: color-mix(in srgb, var(--color-daw-text-muted) 82%, transparent);
+  font-style: normal;
+  letter-spacing: 3px;
+}
+
+.rhythm-studio__cells {
+  top: 17px;
+  bottom: 14px;
+}
+
+.rhythm-studio__cell {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  border-left: 1px solid color-mix(in srgb, var(--color-daw-border) 46%, transparent);
+  border-radius: 2px;
+  outline: 0;
+  background: color-mix(in srgb, var(--color-daw-surface) 22%, transparent);
+  cursor: cell;
+}
+
+.rhythm-studio__cell.is-beat {
+  border-left-color: color-mix(in srgb, var(--color-daw-text-muted) 48%, var(--color-daw-border));
+  background: color-mix(in srgb, var(--color-daw-surface-elevated) 34%, transparent);
+}
+
+.rhythm-studio__cell:hover {
+  background: color-mix(in srgb, var(--color-daw-pulse) 9%, transparent);
+}
+
+.rhythm-studio__cell:focus-visible {
+  box-shadow: inset 0 0 0 1px var(--color-daw-signal);
+}
+
+.rhythm-studio__cell.is-playhead {
+  background: color-mix(in srgb, var(--color-daw-signal) 21%, var(--color-daw-surface));
+  box-shadow:
+    inset 1px 0 0 color-mix(in srgb, var(--color-daw-signal) 82%, white),
+    inset -1px 0 0 color-mix(in srgb, var(--color-daw-signal) 82%, white);
+}
+
+.rhythm-studio__events {
+  position: absolute;
+  inset: 22px 0 22px;
+  pointer-events: none;
+}
+
+.rhythm-studio__event {
+  position: absolute;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 6px;
+  height: 18px;
+  transform: translateY(-50%);
+  border: 1px solid color-mix(in srgb, var(--color-daw-pulse) 70%, var(--color-daw-border));
+  border-radius: var(--radius-note);
+  color: var(--color-daw-bg);
+  background: var(--color-daw-pulse);
+  font: var(--text-micro)/1 var(--font-mono);
+  pointer-events: auto;
+  touch-action: none;
+  cursor: grab;
+}
+
+.rhythm-studio__event.is-soft {
+  opacity: 0.64;
+}
+
+.rhythm-studio__event.is-accent {
+  box-shadow: inset 0 2px 0 color-mix(in srgb, white 28%, transparent);
+}
+
+.rhythm-studio__event.is-selected {
+  z-index: 2;
+  outline: 1px solid var(--color-daw-text);
+  outline-offset: 1px;
+}
+
+.rhythm-studio__event.is-playhead {
+  filter: brightness(1.35);
+}
+
+.rhythm-studio__event:active {
+  cursor: grabbing;
+}
+
+.rhythm-studio__event:focus-visible {
+  outline: 2px solid var(--color-daw-signal);
+  outline-offset: 2px;
+}
+
+.rhythm-studio__event-label {
+  overflow: hidden;
+  max-width: 100%;
+  padding: 0 2px;
+}
+
+.rhythm-studio__resize {
+  position: absolute;
+  inset-block: 0;
+  right: 0;
+  width: 7px;
+  cursor: ew-resize;
+}
+
+.rhythm-studio__velocity {
+  position: absolute;
+  right: 0;
+  bottom: 3px;
+  left: 0;
+  height: 7px;
+  pointer-events: none;
+}
+
+.rhythm-studio__velocity-mark {
+  position: absolute;
+  bottom: 0;
+  width: 4px;
+  min-height: 2px;
+  max-height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 1px 1px 0 0;
+  background: color-mix(in srgb, var(--color-daw-pulse) 70%, transparent);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.rhythm-studio__velocity-mark.is-selected {
+  background: var(--color-daw-text);
+}
+
+.rhythm-studio :is(button, [tabindex]):focus-visible {
+  outline: 1px solid var(--color-daw-signal);
+  outline-offset: 1px;
+}
+
+@media (max-width: 900px) {
+  .rhythm-studio__toolbar > .ml-auto {
+    width: 100%;
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+
+  .rhythm-studio__action:nth-child(2) {
+    max-width: min(320px, 45vw);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rhythm-studio__icon,
+  .rhythm-studio__preview,
+  .rhythm-studio__action,
+  .rhythm-studio__length {
+    transition: none;
+  }
+}

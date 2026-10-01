@@ -1,0 +1,43 @@
+@import '@fontsource/geist-sans';
+@import '@fontsource/geist-mono';
+@import 'tailwindcss';
+@import './variables.css';
+
+@theme {
+  --color-daw-bg: #0b0c0f;
+  --color-daw-panel: #15161a;
+  --color-daw-surface: #242730;
+  --color-daw-surface-elevated: #2e323e;
+  --color-daw-border: #333742;
+  --color-daw-text: #e9eaee;
+  --color-daw-text-muted: #8d8f99;
+
+  --color-daw-signal: #5b8dff; /* Melody / Playhead / Primary Action */
+  --color-daw-chord: #9b6bff; /* Chords / Harmony Track */
+  --color-daw-pulse: #2fd9b9; /* Rhythm / Velocity Lane */
+  --color-daw-danger: #ef7d86; /* Destructive actions / Errors */
+
+  --font-ui: 'Geist', 'Inter', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Consolidated type scale: micro (10) → 2xs (11) → xs (12) → sm (14) */
+  --text-micro: 0.625rem;
+  --text-micro--line-height: 0.75rem;
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 0.875rem;
+
+  --radius-panel: 0.625rem;
+  --radius-control: 0.5rem;
+  --radius-chip: 0.375rem;
+  --radius-note: 3px;
+}
+
+/* Modular Sub-Stylesheets (Native Nested CSS) */
+@import './daw-layout.css';
+@import './piano-roll.css';
+@import './controls.css';
+@import './preset-list.css';
+@import './accents.css';
+@import './synth-rack.css';
+@import './rhythm-studio.css';
+@import './takes.css';

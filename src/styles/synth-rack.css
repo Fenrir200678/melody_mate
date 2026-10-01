@@ -1,0 +1,125 @@
+/* Sound & Mix dock: horizontal mixer strip (Ableton-style channel strips) */
+
+/* All mixer strip parts adhere to canonical Tailwind CSS v4 utility tokens.
+   Custom structural rules are maintained here. */
+
+.synth-rack {
+  min-height: 0;
+  height: 100%;
+  padding: 0.375rem 0.5rem;
+  overflow-y: auto;
+}
+
+.mixer-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.15fr) minmax(0, 0.95fr);
+  gap: 0;
+  align-items: stretch;
+  min-height: 100%;
+}
+
+.channel-strip {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  min-width: 0;
+  min-height: 0;
+
+  & + & {
+    border-left: 1px solid var(--color-daw-border);
+  }
+
+  &.master-channel {
+    padding: 0.375rem 0.75rem;
+  }
+
+  & .strip-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+
+    & .strip-name {
+      font-size: var(--text-2xs);
+      line-height: var(--text-2xs--line-height);
+      font-weight: 600;
+      color: var(--color-daw-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  & .strip-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  & .strip-knobs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    row-gap: 0.375rem;
+    column-gap: 0.25rem;
+    justify-items: center;
+    align-items: start;
+  }
+
+  & .strip-volume {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 0;
+  }
+
+  & .master-meter {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    flex: 1;
+    min-height: 0;
+    justify-content: space-between;
+
+    & .master-meter-readout {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.25rem;
+      font-family: var(--font-mono);
+      font-size: var(--text-micro);
+      line-height: var(--text-micro--line-height);
+      font-variant-numeric: tabular-nums;
+      color: var(--color-daw-text-muted);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    & .master-meter-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.25rem;
+      font-size: var(--text-micro);
+      line-height: var(--text-micro--line-height);
+      color: var(--color-daw-text-muted);
+      user-select: none;
+    }
+  }
+}
+
+@media (max-width: 900px) {
+  .mixer-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .channel-strip {
+    & + & {
+      border-left: none;
+      border-top: 1px solid var(--color-daw-border);
+    }
+  }
+}

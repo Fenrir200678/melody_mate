@@ -1,0 +1,513 @@
+/* DAW Interactive Controls & Micro-UI Components (Native Nested CSS) */
+
+/* Button Styling & Generate Pill */
+.daw-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: var(--radius-control);
+  padding: 0.45rem 0.875rem;
+  border: 1px solid var(--color-daw-border);
+  background-color: var(--color-daw-surface);
+  color: var(--color-daw-text);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color var(--duration-fast) var(--ease-out-snappy),
+    border-color var(--duration-fast) var(--ease-out-snappy),
+    color var(--duration-fast) var(--ease-out-snappy),
+    transform var(--duration-fast) var(--ease-out-snappy);
+
+  &:hover {
+    background-color: color-mix(in oklab, var(--color-daw-surface) 80%, #ffffff);
+    border-color: color-mix(in oklab, var(--color-daw-border) 80%, #ffffff);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  &.btn-signal {
+    background-color: var(--color-daw-signal);
+    border-color: var(--color-daw-signal);
+    color: #ffffff;
+    font-weight: 600;
+
+    &:hover {
+      background-color: color-mix(in oklab, var(--color-daw-signal) 88%, #ffffff);
+    }
+  }
+
+  /* Signature Element: Generative Glow Pill Button */
+  &.btn-generate {
+    position: relative;
+    border: double 1px transparent;
+    border-radius: 9999px;
+    background-image:
+      linear-gradient(var(--color-daw-surface), var(--color-daw-surface)),
+      linear-gradient(135deg, var(--color-daw-signal), var(--color-daw-chord));
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    color: var(--color-daw-text);
+    font-weight: 600;
+    padding: 0.5rem 1.25rem;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -50%;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        color-mix(in oklab, #ffffff 40%, transparent) 50%,
+        transparent 100%
+      );
+      transform: rotate(25deg) translateY(-100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    &:active::after {
+      animation: generate-shimmer var(--duration-generate) var(--ease-out-snappy);
+    }
+  }
+}
+
+/* Signature Element: Generative action and work-range readout */
+.btn-generate-group {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  border: double 1px transparent;
+  border-radius: 9999px;
+  background-image:
+    linear-gradient(var(--color-daw-surface), var(--color-daw-surface)),
+    linear-gradient(135deg, var(--color-daw-signal), var(--color-daw-chord));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow:
+    0 0 12px rgba(91, 141, 255, 0.22),
+    0 1px 3px rgba(0, 0, 0, 0.35);
+  padding: 2px 4px 2px 2px;
+  gap: 2px;
+  user-select: none;
+  transition: box-shadow var(--duration-fast) var(--ease-out-snappy);
+
+  &:hover {
+    box-shadow:
+      0 0 18px rgba(91, 141, 255, 0.4),
+      0 2px 6px rgba(0, 0, 0, 0.45);
+  }
+
+  & .btn-generate-divider {
+    width: 1px;
+    height: 0.875rem;
+    background-color: var(--color-daw-border);
+    margin: 0 1px;
+  }
+}
+
+@keyframes generate-shimmer {
+  0% {
+    transform: rotate(25deg) translateY(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(25deg) translateY(100%);
+    opacity: 0;
+  }
+}
+
+/* Segmented Control: the whole box lands on exactly one step of the 20 / 24 / 28px
+   control scale. The frame carries no vertical padding — the 2px gap already keeps
+   the active segment off the border — so item height + border equals the scale step. */
+.daw-segmented {
+  --segment-height: 1.375rem;
+  --segment-font: var(--text-2xs);
+  --segment-line: var(--text-2xs--line-height);
+
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  height: 1.5rem;
+  background-color: var(--color-daw-panel);
+  border: 1px solid var(--color-daw-border);
+  border-radius: var(--radius-control);
+  padding: 0 0.125rem;
+  gap: 0.125rem;
+
+  &.size-xs {
+    --segment-height: 1.125rem;
+    --segment-font: var(--text-micro);
+    --segment-line: var(--text-micro--line-height);
+
+    height: 1.25rem;
+  }
+
+  &.size-md {
+    --segment-height: 1.625rem;
+    --segment-font: var(--text-xs);
+
+    height: 1.75rem;
+  }
+
+  &.is-grow {
+    display: flex;
+    width: 100%;
+
+    & .segmented-item {
+      flex: 1 1 0px;
+      min-width: 0;
+    }
+  }
+
+  /* A wrapped control grows instead of clipping its second row. height: auto without
+     vertical padding keeps a single-row box on its exact scale step (item + border),
+     and the row-gap keeps wrapped rows as far apart as neighbouring segments. */
+  &.is-wrap {
+    height: auto;
+    flex-wrap: wrap;
+    row-gap: 0.125rem;
+
+    & .segmented-item {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+  }
+
+  & .segmented-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--segment-height);
+    padding: 0 0.375rem;
+    font-size: var(--segment-font);
+    line-height: var(--segment-line);
+    font-weight: 500;
+    border-radius: var(--radius-chip);
+    color: var(--color-daw-text-muted);
+    border: 1px solid transparent;
+    background: transparent;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color var(--duration-fast) var(--ease-out-snappy),
+      border-color var(--duration-fast) var(--ease-out-snappy),
+      color var(--duration-fast) var(--ease-out-snappy);
+
+    &:hover:not(:disabled) {
+      color: var(--color-daw-text);
+    }
+
+    /* The active segment is carried by fill + accent hairline + weight, not by a
+       colour tint alone, so the state survives a low-contrast display. */
+    &.active {
+      background-color: color-mix(
+        in oklab,
+        var(--color-daw-surface-elevated) 82%,
+        var(--accent, var(--color-daw-signal))
+      );
+      border-color: color-mix(in oklab, var(--accent, var(--color-daw-signal)) 55%, transparent);
+      color: var(--color-daw-text);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgb(0 0 0 / 40%);
+    }
+  }
+
+  &.is-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+/* Rotary Knob (device-panel style: label above, value below) */
+.daw-knob {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  user-select: none;
+
+  & .knob-dial {
+    position: relative;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, var(--color-daw-surface), var(--color-daw-panel));
+    border: 1px solid var(--color-daw-border);
+    cursor: ns-resize;
+    box-shadow:
+      inset 0 1px 2px rgb(255 255 255 / 5%),
+      0 1px 3px rgb(0 0 0 / 40%);
+
+    &[data-size='xs'] {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    &[data-size='sm'] {
+      width: 1.625rem;
+      height: 1.625rem;
+    }
+
+    &[data-size='md'] {
+      width: 2rem;
+      height: 2rem;
+    }
+  }
+
+  & .knob-label {
+    font-size: var(--text-micro);
+    line-height: var(--text-micro--line-height);
+    color: var(--color-daw-text-muted);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  & .knob-value {
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    line-height: var(--text-micro--line-height);
+    font-variant-numeric: tabular-nums;
+    color: var(--color-daw-text);
+  }
+}
+
+/* Fader Control (vertical channel / horizontal strip variants) */
+.daw-fader {
+  display: flex;
+  user-select: none;
+
+  & .fader-label {
+    font-size: var(--text-micro);
+    line-height: var(--text-micro--line-height);
+    color: var(--color-daw-text-muted);
+    flex-shrink: 0;
+  }
+
+  & .fader-value {
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    line-height: var(--text-micro--line-height);
+    font-variant-numeric: tabular-nums;
+    color: var(--color-daw-text);
+    flex-shrink: 0;
+  }
+
+  & .fader-track {
+    position: relative;
+    background-color: var(--color-daw-panel);
+    border: 1px solid var(--color-daw-border);
+    border-radius: 9999px;
+    cursor: pointer;
+
+    & .fader-fill {
+      position: absolute;
+      background-color: var(--color-daw-pulse);
+      border-radius: 9999px;
+    }
+
+    & .fader-thumb {
+      position: absolute;
+      background-color: var(--color-daw-surface);
+      border: 1px solid var(--color-daw-border);
+      border-radius: var(--radius-chip);
+      box-shadow: 0 1px 3px rgb(0 0 0 / 50%);
+      cursor: ns-resize;
+    }
+  }
+
+  &.is-vertical {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.375rem;
+
+    & .fader-track {
+      width: 0.375rem;
+      height: 6rem;
+
+      & .fader-fill {
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+
+      & .fader-thumb {
+        left: 50%;
+        transform: translate(-50%, 50%);
+        width: 1.25rem;
+        height: 0.625rem;
+        cursor: ns-resize;
+      }
+    }
+  }
+
+  &.is-horizontal {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    min-width: 0;
+
+    & .fader-track {
+      flex: 1;
+      min-width: 0;
+      height: 0.375rem;
+
+      & .fader-fill {
+        top: 0;
+        bottom: 0;
+        left: 0;
+      }
+
+      & .fader-thumb {
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 0.625rem;
+        height: 1rem;
+        cursor: ew-resize;
+      }
+    }
+
+    & .fader-value {
+      min-width: 3rem;
+      text-align: right;
+    }
+  }
+}
+
+/* DAW Rack Module / Collapsible Card (flat device panel) */
+.daw-module {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-daw-surface);
+  border: 1px solid var(--color-daw-border);
+  border-radius: var(--radius-panel);
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+
+  /* Fixed header height: modules that carry #actions icons (20px chips) must not grow
+     taller than modules that only show a text badge, so the rack stack stays even. */
+  & .daw-module-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    height: 1.75rem;
+    padding: 0 0.625rem;
+    background-color: color-mix(in oklab, var(--color-daw-surface) 92%, #000000);
+    border-bottom: 1px solid var(--color-daw-border);
+    cursor: pointer;
+    user-select: none;
+    transition: background-color var(--duration-fast) var(--ease-out-snappy);
+
+    &:hover {
+      background-color: color-mix(in oklab, var(--color-daw-surface) 90%, #ffffff);
+    }
+
+    &.collapsed {
+      border-bottom-color: transparent;
+    }
+  }
+
+  & .daw-module-body {
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+/* Status Role Dots (Accents for Pitch, Rhythm, Chords) */
+.role-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+
+  &.dot-signal {
+    background-color: var(--color-daw-signal);
+    box-shadow: 0 0 6px var(--color-daw-signal);
+  }
+
+  &.dot-pulse {
+    background-color: var(--color-daw-pulse);
+    box-shadow: 0 0 6px var(--color-daw-pulse);
+  }
+
+  &.dot-chord {
+    background-color: var(--color-daw-chord);
+    box-shadow: 0 0 6px var(--color-daw-chord);
+  }
+
+  &.dot-danger {
+    background-color: var(--color-daw-danger);
+    box-shadow: 0 0 6px var(--color-daw-danger);
+  }
+}
+
+/* DAW Toggle & Hardware Switch Styling */
+.daw-toggle {
+  user-select: none;
+  touch-action: manipulation;
+  transition:
+    background-color var(--duration-fast) var(--ease-out-snappy),
+    border-color var(--duration-fast) var(--ease-out-snappy),
+    color var(--duration-fast) var(--ease-out-snappy),
+    box-shadow var(--duration-fast) var(--ease-out-snappy);
+
+  &:disabled,
+  &.is-disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+/* Switch Track Hardware Glow */
+.daw-switch-track {
+  &.is-active {
+    &.variant-signal {
+      box-shadow: 0 0 8px rgba(91, 141, 255, 0.35);
+    }
+    &.variant-pulse {
+      box-shadow: 0 0 8px rgba(47, 217, 185, 0.35);
+    }
+    &.variant-chord {
+      box-shadow: 0 0 8px rgba(155, 107, 255, 0.35);
+    }
+    &.variant-danger {
+      box-shadow: 0 0 8px rgba(239, 125, 134, 0.35);
+    }
+  }
+}
+
+/* Responsive Smart Label Container for Compact Views */
+.daw-toggle-responsive {
+  container-type: inline-size;
+}
+
+@container (max-width: 110px) {
+  .daw-toggle-full {
+    display: none !important;
+  }
+  .daw-toggle-short {
+    display: inline !important;
+  }
+}
