@@ -93,7 +93,12 @@
                   :left="badge.left"
                 />
 
-                <ChordGhostSlot :start-bar="endBar" :bar-width="barWidth" @add="addNextChord" />
+                <ChordGhostSlot
+                  v-if="endBar < PROJECT_BAR_BOUNDS.max"
+                  :start-bar="endBar"
+                  :bar-width="barWidth"
+                  @add="addNextChord"
+                />
               </template>
             </div>
           </div>
@@ -111,6 +116,7 @@
   import type { ChordEvent } from '@/core/schemas/chord.schema'
   import { type ChordFunction, getChordFunction } from '@/core/theory/chord-function'
   import { voiceLeadingDistance } from '@/core/theory/voice-leading'
+  import { PROJECT_BAR_BOUNDS } from '@/config/defaults'
   import { useChordPaletteDrop } from '@/composables/harmony/useChordPaletteDrop'
   import ChordPaletteDropPreview from './timeline/ChordPaletteDropPreview.vue'
   import { useChordInsertion } from '@/composables/harmony/useChordInsertion'
@@ -251,7 +257,7 @@
     if (dragState.value || event.button !== 0) return
     const lane = event.currentTarget as HTMLElement
     const positionBar = (event.clientX - lane.getBoundingClientRect().left) / barWidth.value
-    if (positionBar >= totalTrackBars.value) return
+    if (positionBar >= totalTrackBars.value || positionBar >= PROJECT_BAR_BOUNDS.max) return
     insertInEmptyBar(positionBar)
   }
 

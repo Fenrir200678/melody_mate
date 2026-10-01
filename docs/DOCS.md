@@ -72,7 +72,7 @@ The top header bar anchors the workstation. It hosts playback controls, arrangem
   - _Pentatonic:_ Major Pentatonic, Minor Pentatonic.
   - _Symmetric & Exotic:_ Whole Tone, Whole-Half Diminished, Half-Whole Diminished, Hungarian Minor, Phrygian Dominant, Double Harmonic Major, Ichikosucho.
 - **Scale Lock (`K`):** When active, any note drawn with the pencil tool or dragged vertically is forced onto valid scale degrees. This prevents accidental out-of-key notes while allowing intentional chromatic movement when switched off.
-- **Bar Count Selector:** Sets arrangement length to 1, 2, 4, 6, 8, 12, 16, or 32 bars (default is 4 bars). Changing the bar count expands or contracts the project timeline without deleting existing notes.
+- **Bar Count Selector:** Sets arrangement length to 1, 2, 4, 6, 8, 12, or 16 bars (default is 4 bars). Changing the bar count expands or contracts the project timeline without deleting existing notes.
 
 ### Tempo & Project Groove
 
@@ -482,7 +482,7 @@ Melody Mate v2 incorporates studio-grade protection processing on the master ste
   - Peak-hold indicators and high-contrast red clip warning LEDs.
   - Tabular numeric decibel readouts (`dBFS`).
 - **Sample Sanitization:** Real-time DSP sanitization replaces non-finite floating-point samples (`NaN` or `Infinity`) with silence, preventing audio engine crashes.
-- **Studio Interface & Sample Rate Protection:** Melody Mate automatically standardizes on $\le 48\text{ kHz}$ audio processing. When connecting studio audio interfaces configured to 96 kHz or 192 kHz, the browser transparently resamples the audio stream, preventing buffer underruns, pops/crackling, and CPU overload.
+- **Glitch-Resistant Audio Buffer & Interface Protection:** Melody Mate automatically standardizes on $\le 48\text{ kHz}$ audio processing with balanced buffer sizing (`latencyHint: 'balanced'`) and 100 ms scheduling lookahead. When connecting studio audio interfaces configured to 96 kHz or 192 kHz, or when running under Windows 11 WASAPI shared mode, the audio engine prevents buffer underruns, pops/crackles, and audio stream dropouts while maintaining sample-accurate playhead tracking and responsive note auditioning.
 - **Global Panic Button:** If an audio feedback loop occurs or an external MIDI note sticks, click the Panic button to immediately terminate all active voices, reset synthesizer nodes, and clear delay and reverb buffers.
 
 ---

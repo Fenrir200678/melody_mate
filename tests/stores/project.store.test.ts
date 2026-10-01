@@ -1,9 +1,8 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { PROJECT_SCHEMA_VERSION } from '../../src/core/schemas/project.schema'
-import { DEFAULT_PROJECT_SETTINGS } from '../../src/config/defaults'
-import { defaultsFingerprint } from '../../src/utils/defaults-fingerprint.utils'
-import { PROJECT_STORAGE_KEY, useProjectStore } from '../../src/stores/project.store'
+import { DEFAULT_PROJECT_SETTINGS, PROJECT_BAR_BOUNDS } from '../../src/config/defaults'
+import { PROJECT_DEFAULTS_FINGERPRINT, PROJECT_STORAGE_KEY, useProjectStore } from '../../src/stores/project.store'
 
 const storageMap = new Map<string, string>()
 
@@ -68,17 +67,17 @@ describe('useProjectStore', () => {
     expect(store.bpm).toBe(133)
   })
 
-  it('clamps bars between 1 and 32 and shrinks the loop end if necessary', () => {
+  it('clamps bars within PROJECT_BAR_BOUNDS and shrinks the loop end if necessary', () => {
     const store = useProjectStore()
 
     store.setBars(8)
     expect(store.bars).toBe(8)
 
     store.setBars(0)
-    expect(store.bars).toBe(1)
+    expect(store.bars).toBe(PROJECT_BAR_BOUNDS.min)
 
     store.setBars(45)
-    expect(store.bars).toBe(32)
+    expect(store.bars).toBe(PROJECT_BAR_BOUNDS.max)
 
     // When shortening bars below the loop end, loopEndStep adjusts to the new project length
     store.setLoop(0, 8 * 16)
@@ -168,7 +167,7 @@ describe('useProjectStore', () => {
       loopEndStep: 80,
       isLooping: false,
       audioSavedAt: 1_700_000_000_000,
-      defaultsFingerprint: defaultsFingerprint(DEFAULT_PROJECT_SETTINGS)
+      defaultsFingerprint: PROJECT_DEFAULTS_FINGERPRINT
     }
     localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify(savedConfig))
 

@@ -61,19 +61,19 @@ describe('useProgressionGaps', () => {
 
     // 1. Empty timeline: inserts at bar 0
     const first = insertInNextFreeSlot(tonic, 'triad')
-    expect(first.startBar).toBe(0)
-    expect(first.durationBars).toBe(1)
+    expect(first?.startBar).toBe(0)
+    expect(first?.durationBars).toBe(1)
 
     // 2. Add chord at bar 2, creating a gap at bar 1
     harmonyStore.chords = [chord('c-0', 0, 1), chord('c-2', 2, 1)]
     const filled = insertInNextFreeSlot(dominant, 'triad')
-    expect(filled.startBar).toBe(1)
-    expect(filled.durationBars).toBe(1)
+    expect(filled?.startBar).toBe(1)
+    expect(filled?.durationBars).toBe(1)
 
     // 3. Contiguous timeline: appends at the end
     harmonyStore.chords = [chord('c-0', 0, 1), chord('c-1', 1, 1), chord('c-2', 2, 1)]
     const appended = insertInNextFreeSlot(tonic, 'triad')
-    expect(appended.startBar).toBe(3)
+    expect(appended?.startBar).toBe(3)
   })
 
   it('updates gaps after resize, move and undo without recreating the composable', () => {

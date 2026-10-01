@@ -1,19 +1,51 @@
 import * as Tone from 'tone'
-import { MAX_SAFE_AUDIO_SAMPLE_RATE } from '../config/defaults'
+import {
+  DEFAULT_AUDIO_LATENCY_HINT,
+  DEFAULT_AUDIO_LOOKAHEAD,
+  MAX_SAFE_AUDIO_SAMPLE_RATE
+} from '../config/defaults'
 import { STEPS_PER_BAR } from '../core/schemas/project.schema'
 
 export type AudioContextState = 'running' | 'suspended' | 'closed' | 'unsupported'
 
+let isAudioContextConfigured = false
+
 /**
- * Ensures the Web Audio AudioContext in Tone.js is configured with a safe sample rate (<= 48 kHz).
- *
- * High-end studio audio interfaces configured to 96 kHz or 192 kHz require audio blocks
- * to be processed in under 0.66 ms, causing buffer underruns (pops and crackles), watchdog
- * termination, or AudioWorklet execution timeouts. Clamping sampleRate to 48 kHz avoids this
- * while providing an exact integer submultiple (2:1 or 4:1) for studio hardware.
+ * Returns whether the audio context has already been explicitly configured for DAW playback.
  */
-export function ensureConfiguredAudioContext(maxRate = MAX_SAFE_AUDIO_SAMPLE_RATE): void {
+export function isAudioContextConfiguredState(): boolean {
+  return isAudioContextConfigured
+}
+
+/**
+ * Resets the context configuration flag. Used exclusively in unit tests.
+ */
+export function resetAudioContextConfigurationForTesting(): void {
+  isAudioContextConfigured = false
+}
+
+/**
+ * Ensures the Web Audio AudioContext in Tone.js is configured for glitch-resistant DAW playback:
+ * 1. Clamps sample rate to <= 48 kHz to prevent buffer underruns and AudioWorklet timeouts on
+ *    high-resolution studio interfaces (96 kHz, 192 kHz).
+ * 2. Applies `latencyHint: 'balanced'` to prevent buffer underruns, pops, crackles, and WASAPI stream
+ *    starvation on Windows 11 Chrome/Edge while keeping note audition latency virtually imperceptible (~10.6 ms).
+ * 3. Sets Tone.js lookAhead to 0.1s (100 ms) to keep transport start and playhead tracking snappy
+ *    while providing adequate scheduling headroom.
+ */
+export function ensureConfiguredAudioContext(
+  maxRate = MAX_SAFE_AUDIO_SAMPLE_RATE,
+  latencyHint: AudioContextLatencyCategory = DEFAULT_AUDIO_LATENCY_HINT,
+  lookAhead = DEFAULT_AUDIO_LOOKAHEAD
+): void {
   if (typeof window === 'undefined') return
+
+  if (isAudioContextConfigured) {
+    const current = Tone.getContext()
+    if (current && current.sampleRate && current.sampleRate <= maxRate) {
+      return
+    }
+  }
 
   const AudioContextClass =
     window.AudioContext ||
@@ -22,25 +54,31 @@ export function ensureConfiguredAudioContext(maxRate = MAX_SAFE_AUDIO_SAMPLE_RAT
   if (!AudioContextClass) return
 
   try {
-    const current = Tone.getContext()
-    if (current && current.sampleRate && current.sampleRate <= maxRate) {
-      return
-    }
-
     const customContext = new AudioContextClass({
-      latencyHint: 'interactive',
+      latencyHint,
       sampleRate: maxRate
     })
     Tone.setContext(customContext, true)
+    isAudioContextConfigured = true
   } catch {
     try {
       const fallbackContext = new AudioContextClass({
-        latencyHint: 'interactive'
+        latencyHint
       })
       Tone.setContext(fallbackContext, true)
+      isAudioContextConfigured = true
     } catch {
       // Keep existing Tone context if custom instantiation is blocked
     }
+  }
+
+  try {
+    const current = Tone.getContext()
+    if (current && 'lookAhead' in current) {
+      current.lookAhead = lookAhead
+    }
+  } catch {
+    // Ignore if lookahead property is read-only or unsupported
   }
 }
 
@@ -183,10 +221,33 @@ export function setTransportPosition(position: string | number): void {
 }
 
 /**
- * Current playback position in elapsed seconds.
+ * Current playback position in elapsed seconds according to Tone.now() (includes scheduling lookahead).
  */
 export function getTransportSeconds(): number {
   return Tone.getTransport().seconds
+}
+
+/**
+ * Returns the audible playback position in elapsed seconds.
+ * Evaluated at Tone.immediate() (context.currentTime) instead of Tone.now() (currentTime + lookAhead)
+ * so that visual playhead positions stay locked to the physical audio output.
+ */
+export function getAudibleTransportSeconds(): number {
+  const transport = Tone.getTransport()
+  if (transport.state === 'started') {
+    try {
+      if (typeof transport.getSecondsAtTime === 'function') {
+        const immediateTime = typeof Tone.immediate === 'function' ? Tone.immediate() : Tone.now()
+        const result = transport.getSecondsAtTime(immediateTime)
+        if (typeof result === 'number' && Number.isFinite(result)) {
+          return Math.max(0, result)
+        }
+      }
+    } catch {
+      // Fall back to transport.seconds if getSecondsAtTime is unavailable or throws
+    }
+  }
+  return transport.seconds
 }
 
 /**

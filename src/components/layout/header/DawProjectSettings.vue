@@ -58,6 +58,7 @@
   import { computed } from 'vue'
   import { Lock, LockOpen } from '@lucide/vue'
   import DawIconButton from '@/components/common/DawIconButton.vue'
+  import { DEFAULT_PROJECT_BAR_OPTIONS, PROJECT_BAR_BOUNDS } from '@/config/defaults'
   import { SUPPORTED_SCALES, type ScaleDefinition } from '@/core/theory/scale.engine'
   import { useHarmonyStore } from '@/stores/harmony.store'
   import { useProjectStore } from '@/stores/project.store'
@@ -68,7 +69,11 @@
   const uiStore = useUiStore()
 
   const ROOT_KEYS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']
-  const barOptions = computed(() => [...new Set([1, 2, 4, 6, 8, 12, 16, 32, projectStore.bars])].sort((a, b) => a - b))
+  const barOptions = computed(() =>
+    [...new Set([...DEFAULT_PROJECT_BAR_OPTIONS, projectStore.bars])]
+      .filter((b) => b >= PROJECT_BAR_BOUNDS.min && b <= PROJECT_BAR_BOUNDS.max)
+      .sort((a, b) => a - b)
+  )
 
   interface ScaleGroup {
     category: string
@@ -127,6 +132,7 @@
     const val = Number(target.value)
     if (!isNaN(val)) {
       projectStore.setBars(val)
+      target.value = String(projectStore.bars)
     }
   }
 </script>

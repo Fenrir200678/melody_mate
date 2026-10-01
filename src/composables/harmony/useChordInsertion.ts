@@ -1,4 +1,6 @@
+import { PROJECT_BAR_BOUNDS } from '@/config/defaults'
 import { ChordEventSchema, type ChordEvent } from '@/core/schemas/chord.schema'
+import { STEPS_PER_BAR } from '@/core/schemas/project.schema'
 import {
   buildChordVoicing,
   chordNameFor,
@@ -55,12 +57,15 @@ export function useChordInsertion() {
   }
 
   /** Appends after the last chord, honouring any overlap resolution the store applied. */
-  function appendChord(chord: DiatonicChord, mode: ChordMode): ChordEvent {
-    return insertChordAt(chord, mode, endBar.value)
+  function appendChord(chord: DiatonicChord, mode: ChordMode): ChordEvent | null {
+    if (endBar.value >= PROJECT_BAR_BOUNDS.max) return null
+    const durationBars = Math.min(harmonyStore.defaultChordDuration, PROJECT_BAR_BOUNDS.max - endBar.value)
+    if (durationBars < 1 / STEPS_PER_BAR) return null
+    return insertChordAt(chord, mode, endBar.value, durationBars)
   }
 
   /** Inserts into the first available progression gap, or appends at the end if no gap exists. */
-  function insertInNextFreeSlot(chord: DiatonicChord, mode: ChordMode): ChordEvent {
+  function insertInNextFreeSlot(chord: DiatonicChord, mode: ChordMode): ChordEvent | null {
     const gaps = findProgressionGaps(harmonyStore.chords)
     if (gaps.length > 0) {
       const firstGap = gaps[0]

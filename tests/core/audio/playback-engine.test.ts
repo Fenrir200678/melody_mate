@@ -171,6 +171,24 @@ describe('PlaybackEngine', () => {
     engine.dispose()
   })
 
+  it('compensates output latency during active transport playback but preserves exact position when stopped', () => {
+    const engine = new PlaybackEngine()
+    vi.spyOn(engine, 'getOutputLatencySeconds').mockReturnValue(0.025)
+
+    // 1. Stopped: latency compensation is 0, so position is exact
+    transport.state = 'stopped'
+    transport.seconds = 2.0
+    expect(engine.getPlayheadStep(120)).toBe(16) // exactly 2.0 / 0.125
+
+    // 2. Started: latency compensation is applied
+    transport.state = 'started'
+    transport.seconds = 2.0
+    const expectedStep = (2.0 - 0.025) / 0.125
+    expect(engine.getPlayheadStep(120)).toBeCloseTo(expectedStep, 5)
+
+    engine.dispose()
+  })
+
   it('supports audition previews for notes and chords', () => {
     const engine = new PlaybackEngine()
 

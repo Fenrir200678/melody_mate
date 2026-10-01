@@ -1,4 +1,5 @@
 import { computed } from 'vue'
+import { PROJECT_BAR_BOUNDS } from '@/config/defaults'
 import { STEPS_PER_BAR } from '@/core/schemas/project.schema'
 import { findProgressionGaps, type ProgressionGap } from '@/core/theory/progression-gaps'
 import type { ChordMode } from '@/core/theory/chord.engine'
@@ -30,8 +31,9 @@ export function useProgressionGaps(options: { paletteDegree: () => number | null
   }
 
   function insertInEmptyBar(positionBar: number) {
-    if (!Number.isFinite(positionBar) || positionBar < 0) return null
+    if (!Number.isFinite(positionBar) || positionBar < 0 || positionBar >= PROJECT_BAR_BOUNDS.max) return null
     const startBar = Math.floor(positionBar)
+    if (startBar >= PROJECT_BAR_BOUNDS.max) return null
     const chords = harmonyStore.chords
     if (
       chords.some(
@@ -43,7 +45,11 @@ export function useProgressionGaps(options: { paletteDegree: () => number | null
       return null
     }
     const nextStart = Math.min(...chords.filter((chord) => chord.startBar > startBar).map((chord) => chord.startBar))
-    const durationBars = Math.min(harmonyStore.defaultChordDuration, nextStart - startBar)
+    const durationBars = Math.min(
+      harmonyStore.defaultChordDuration,
+      nextStart - startBar,
+      PROJECT_BAR_BOUNDS.max - startBar
+    )
     if (durationBars < 1 / STEPS_PER_BAR) return null
     return insert(startBar, durationBars)
   }

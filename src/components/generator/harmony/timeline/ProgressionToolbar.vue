@@ -40,7 +40,8 @@
         size="xs"
         appearance="surface"
         :icon="Copy"
-        :disabled="harmonyStore.chords.length === 0"
+        :disabled="isDuplicateDisabled"
+        :disabled-reason="duplicateDisabledReason"
         title="Duplicate progression to double length"
         @click="duplicateProgression"
       >
@@ -107,11 +108,16 @@
 
 <script setup lang="ts">
   import { computed } from 'vue'
+  import { PROJECT_BAR_BOUNDS } from '@/config/defaults'
   import { findProgressionGaps } from '@/core/theory/progression-gaps'
   import { Copy, FoldHorizontal, Play, Sparkles, Square, Trash2, Wand2 } from '@lucide/vue'
   import DawButton from '@/components/common/DawButton.vue'
   import DawStepper from '@/components/common/DawStepper.vue'
-  import { calculateProgressionBars, duplicateProgression as cloneProgression } from '@/composables/harmony/timelineOps'
+  import {
+    calculateProgressionBars,
+    duplicateProgression as cloneProgression,
+    progressionEndBar
+  } from '@/composables/harmony/timelineOps'
   import { useAudioStore } from '@/stores/audio.store'
   import { useHarmonyStore } from '@/stores/harmony.store'
   import { useProjectStore } from '@/stores/project.store'
@@ -134,6 +140,19 @@
   const audioStore = useAudioStore()
   const projectStore = useProjectStore()
 
+  const endBar = computed(() => progressionEndBar(harmonyStore.chords))
+  const isDuplicateDisabled = computed(() => {
+    if (harmonyStore.chords.length === 0) return true
+    return endBar.value * 2 > PROJECT_BAR_BOUNDS.max
+  })
+  const duplicateDisabledReason = computed(() => {
+    if (harmonyStore.chords.length === 0) return 'No chords to duplicate'
+    if (endBar.value * 2 > PROJECT_BAR_BOUNDS.max) {
+      return `Duplicating would exceed maximum project length (${PROJECT_BAR_BOUNDS.max} bars)`
+    }
+    return undefined
+  })
+
   function toggleProgressionPreview(): void {
     if (audioStore.isPreviewingProgression) {
       audioStore.stopProgressionPreview()
@@ -143,6 +162,7 @@
   }
 
   function duplicateProgression(): void {
+    if (isDuplicateDisabled.value) return
     const next = cloneProgression(harmonyStore.chords)
     if (next.length === 0) return
 

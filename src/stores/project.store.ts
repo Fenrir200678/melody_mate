@@ -12,7 +12,10 @@ import { defaultsFingerprint } from '../utils/defaults-fingerprint.utils'
 
 export const PROJECT_STORAGE_KEY = 'melodymate_project'
 
-const PROJECT_DEFAULTS_FINGERPRINT = defaultsFingerprint(DEFAULT_PROJECT_SETTINGS)
+export const PROJECT_DEFAULTS_FINGERPRINT = defaultsFingerprint({
+  ...DEFAULT_PROJECT_SETTINGS,
+  barBounds: PROJECT_BAR_BOUNDS
+})
 
 export type ProjectStorageResult = { ok: true } | { ok: false; error: string }
 

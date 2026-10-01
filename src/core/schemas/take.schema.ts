@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { PROJECT_BAR_BOUNDS } from '../../config/defaults'
 import { GeneratorParamsSchema } from './generator.schema'
 import { AppNoteSchema } from './note.schema'
 
@@ -8,7 +9,7 @@ export const TakeContextSchema = z.object({
   key: z.string().min(1),
   scale: z.string().min(1),
   bpm: z.number().min(40).max(280),
-  bars: z.number().int().min(1).max(32),
+  bars: z.number().int().min(PROJECT_BAR_BOUNDS.min).max(PROJECT_BAR_BOUNDS.max),
   rangeStartStep: z.number().min(0).optional(),
   rangeEndStep: z.number().positive().optional()
 })

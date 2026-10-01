@@ -3,10 +3,14 @@ import {
   APP_METADATA,
   DEFAULT_AUDIO_SOUND_IDS,
   DEFAULT_GENERATOR_PARAMS,
+  DEFAULT_PROJECT_BAR_OPTIONS,
   DEFAULT_PROJECT_SETTINGS,
   DEFAULT_TAKE_CAPACITY,
   DEFAULT_VARIATION_SETTINGS,
-  MAX_SAFE_AUDIO_SAMPLE_RATE
+  DEFAULT_AUDIO_LATENCY_HINT,
+  DEFAULT_AUDIO_LOOKAHEAD,
+  MAX_SAFE_AUDIO_SAMPLE_RATE,
+  PROJECT_BAR_BOUNDS
 } from '../../src/config/defaults'
 import { ALL_RHYTHM_PRESETS } from '../../src/core/presets/rhythm'
 import { ALL_BUILTIN_PRESETS } from '../../src/core/presets/synths'
@@ -78,13 +82,15 @@ describe('core defaults configuration', () => {
     it('respects reasonable musical project bounds', () => {
       expect(DEFAULT_PROJECT_SETTINGS.bpm).toBeGreaterThanOrEqual(40)
       expect(DEFAULT_PROJECT_SETTINGS.bpm).toBeLessThanOrEqual(280)
-      expect(DEFAULT_PROJECT_SETTINGS.bars).toBeGreaterThanOrEqual(1)
-      expect(DEFAULT_PROJECT_SETTINGS.bars).toBeLessThanOrEqual(32)
+      expect(DEFAULT_PROJECT_SETTINGS.bars).toBeGreaterThanOrEqual(PROJECT_BAR_BOUNDS.min)
+      expect(DEFAULT_PROJECT_SETTINGS.bars).toBeLessThanOrEqual(PROJECT_BAR_BOUNDS.max)
       expect(DEFAULT_PROJECT_SETTINGS.loopStartStep).toBeLessThan(DEFAULT_PROJECT_SETTINGS.loopEndStep)
       expect(DEFAULT_PROJECT_SETTINGS.swing).toBeGreaterThanOrEqual(0)
       expect(DEFAULT_PROJECT_SETTINGS.swing).toBeLessThanOrEqual(1)
       expect(DEFAULT_PROJECT_SETTINGS.timingLooseness).toBeGreaterThanOrEqual(0)
       expect(DEFAULT_PROJECT_SETTINGS.timingLooseness).toBeLessThanOrEqual(1)
+      expect(DEFAULT_PROJECT_BAR_OPTIONS).toEqual([1, 2, 4, 6, 8, 12, 16])
+      expect(Math.max(...DEFAULT_PROJECT_BAR_OPTIONS)).toBeLessThanOrEqual(PROJECT_BAR_BOUNDS.max)
     })
   })
 
@@ -103,9 +109,11 @@ describe('core defaults configuration', () => {
     })
   })
 
-  describe('MAX_SAFE_AUDIO_SAMPLE_RATE', () => {
-    it('is configured to 48000 Hz to prevent high-res audio interface overload', () => {
+  describe('audio performance defaults', () => {
+    it('is configured with safe sample rate, latency hint and lookahead constants', () => {
       expect(MAX_SAFE_AUDIO_SAMPLE_RATE).toBe(48000)
+      expect(DEFAULT_AUDIO_LATENCY_HINT).toBe('balanced')
+      expect(DEFAULT_AUDIO_LOOKAHEAD).toBe(0.1)
     })
   })
 

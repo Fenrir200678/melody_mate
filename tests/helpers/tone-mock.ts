@@ -118,6 +118,7 @@ export function createToneMock(options: ToneMockOptions = {}) {
     position: 0,
     seconds: 2.0,
     ticks: 1024,
+    getSecondsAtTime: vi.fn((_time?: number) => transport.seconds),
     loopStart: '0:0:0',
     loopEnd: '4:0:0',
     loop: true,
@@ -142,6 +143,7 @@ export function createToneMock(options: ToneMockOptions = {}) {
     FMSynth: vi.fn(),
     getTransport: vi.fn(() => transport),
     now: vi.fn(() => 0),
+    immediate: vi.fn(() => 0),
     Time: vi.fn(() => ({ toSeconds: () => 0.25 })),
     getContext: vi.fn(() => ({
       rawContext: { state: 'running', resume: vi.fn() },

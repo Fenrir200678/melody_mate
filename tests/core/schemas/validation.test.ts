@@ -11,7 +11,8 @@ import {
   DEFAULT_AUDIO_SOUND_IDS,
   DEFAULT_GENERATOR_PARAMS,
   DEFAULT_PROJECT_SETTINGS,
-  DEFAULT_SYNTH_MACROS
+  DEFAULT_SYNTH_MACROS,
+  PROJECT_BAR_BOUNDS
 } from '@/config/defaults'
 
 describe('Zod Schema Validation', () => {
@@ -259,9 +260,9 @@ describe('Zod Schema Validation', () => {
       expect(ProjectSchema.parse({ version: PROJECT_SCHEMA_VERSION, bpm: 280 }).bpm).toBe(280)
     })
 
-    it('should enforce bars between 1 and 32', () => {
-      expect(() => ProjectSchema.parse({ version: PROJECT_SCHEMA_VERSION, bars: 0 })).toThrow()
-      expect(() => ProjectSchema.parse({ version: PROJECT_SCHEMA_VERSION, bars: 33 })).toThrow()
+    it('should enforce bars within PROJECT_BAR_BOUNDS', () => {
+      expect(() => ProjectSchema.parse({ version: PROJECT_SCHEMA_VERSION, bars: PROJECT_BAR_BOUNDS.min - 1 })).toThrow()
+      expect(() => ProjectSchema.parse({ version: PROJECT_SCHEMA_VERSION, bars: PROJECT_BAR_BOUNDS.max + 1 })).toThrow()
       expect(ProjectSchema.parse({ version: PROJECT_SCHEMA_VERSION, bars: 8 }).bars).toBe(8)
     })
 

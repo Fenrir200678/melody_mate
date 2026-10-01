@@ -70,7 +70,7 @@ Unlike simple randomizers or playback-only tools, Melody Mate v2 operates as an 
   - Branding and current project name.
   - Transport playback controls: Play/Pause, Stop, Timecode display (`Bar.Beat.Step`).
   - Loop controls: Loop toggle, active loop range indicator, Play from Loop Start, Return to Start on Pause.
-  - Project musical settings: Root Key selector (12 chromatic keys), Scale dropdown (21 scales across 5 categories), Scale Lock toggle (`K`), Bar count selector (1, 2, 4, 6, 8, 12, 16, 32 bars).
+  - Project musical settings: Root Key selector (12 chromatic keys), Scale dropdown (21 scales across 5 categories), Scale Lock toggle (`K`), Bar count selector (1, 2, 4, 6, 8, 12, 16 bars).
   - BPM control with numeric entry and Tap Tempo button.
   - Project Groove module: Swing knob, Timing Looseness knob, and live straight-vs-swung timing preview SVG.
 - **DawWorkspace (3-Panel Split):**
@@ -389,7 +389,7 @@ The Analysis module (`AnalysisModule.vue`) provides real-time music theory metri
 Melody Mate v2 features an onboard audio engine that requires no external plugins or soundfonts:
 
 - Single unified AudioContext and Tone.Transport runtime.
-- **Automatic Sample Rate Clamping:** AudioContext is initialized/clamped to $\le 48\text{ kHz}$ (via `MAX_SAFE_AUDIO_SAMPLE_RATE`) with graceful browser fallback to prevent audio-rendering starvation, buffer underruns (crackling/pops), and AudioWorklet quota timeouts on high-resolution studio audio interfaces (96 kHz / 192 kHz).
+- **Glitch-Resistant Audio Buffer & Audible Playhead Sync:** AudioContext is initialized/clamped to $\le 48\text{ kHz}$ (via `MAX_SAFE_AUDIO_SAMPLE_RATE`) with `latencyHint: 'balanced'` (~10.6 ms buffer headroom) and a snappy $100\text{ ms}$ scheduling lookahead (`lookAhead: 0.1s`). Visual playhead queries evaluate at `Tone.immediate()` (`getAudibleTransportSeconds`) compensated for DSP limiter and hardware output latency, eliminating visual-to-auditory desync and preventing buffer underruns.
 - **Signal Flow:**
   $$\text{Voice Generators (Tone / Native)} \longrightarrow \text{Channel Strips (Lead / Chord)} \longrightarrow \text{FX Sends (Delay / Chorus / Reverb)} \longrightarrow \text{Bus Compressor} \longrightarrow \text{Worklet Limiter} \longrightarrow \text{Destination}$$
 - Safe audition synth for piano roll clicks and keyboard previewing.

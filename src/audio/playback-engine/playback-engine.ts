@@ -15,7 +15,12 @@ import { PreviewController, type NotesAuditionOptions } from './preview-controll
 import { SynthRegistry } from './synth-registry'
 import { TransportScheduler } from './transport-scheduler'
 import type { SynthPatch } from '../../core/synth/patch'
-import { ensureAudioContextRunning, setTransportLoop, stepToTransportPosition } from '../transport-adapter'
+import {
+  ensureAudioContextRunning,
+  getAudibleTransportSeconds,
+  setTransportLoop,
+  stepToTransportPosition
+} from '../transport-adapter'
 import { TRUNCATE_SILENCE_POLICY } from '../../core/audio/voice-lifecycle'
 import { RhythmPreviewController } from '../rhythm-preview'
 import type { CustomRhythmPattern } from '../../core/schemas/custom-rhythm.schema'
@@ -342,30 +347,42 @@ export class PlaybackEngine {
   // --- Playhead & Time Queries ---
 
   getCurrentTimeSeconds(): number {
-    return Tone.getTransport().seconds
+    return getAudibleTransportSeconds()
   }
 
-  /** Fixed latency of the always-on final output protection stage in seconds. */
+  /** Fixed latency of the always-on final output protection stage and audio hardware in seconds. */
   getOutputLatencySeconds(): number {
-    return this.effectsRack.getOutputLatencySeconds()
+    const rackLatency = this.effectsRack.getOutputLatencySeconds()
+    let hardwareLatency = 0
+    try {
+      const rawCtx = Tone.getContext().rawContext as AudioContext | undefined
+      if (rawCtx) {
+        hardwareLatency = (rawCtx.outputLatency ?? 0) + (rawCtx.baseLatency ?? 0)
+      }
+    } catch {
+      // Ignore in non-browser or mock environments
+    }
+    return rackLatency + hardwareLatency
   }
 
   /**
    * Continuous playhead position on the project step grid (fractional steps), loop-wrapped
    * by Tone's transport and never quantized — the sole time source for smooth rendering.
-   * Compensated for output-protection latency so the cursor matches the audible sample.
+   * Compensated for output-protection latency during active playback so the cursor matches the audible sample.
    */
   getPlayheadStep(bpm: number): number {
     const stepSeconds = getStepDurationSeconds(bpm, '16n')
     if (stepSeconds <= 0) return 0
-    return transportSecondsToPlayheadStep(this.getCurrentTimeSeconds(), stepSeconds, this.getOutputLatencySeconds())
+    const latency = Tone.getTransport().state === 'started' ? this.getOutputLatencySeconds() : 0
+    return transportSecondsToPlayheadStep(this.getCurrentTimeSeconds(), stepSeconds, latency)
   }
 
   getCurrentStep(bpm: number): number {
     const stepDuration = getStepDurationSeconds(bpm, '16n')
     if (stepDuration <= 0) return 0
+    const latency = Tone.getTransport().state === 'started' ? this.getOutputLatencySeconds() : 0
     return Math.floor(
-      transportSecondsToPlayheadStep(this.getCurrentTimeSeconds(), stepDuration, this.getOutputLatencySeconds())
+      transportSecondsToPlayheadStep(this.getCurrentTimeSeconds(), stepDuration, latency)
     )
   }
 

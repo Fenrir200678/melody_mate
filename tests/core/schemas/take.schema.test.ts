@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { TakeSnapshotSchema } from '../../../src/core/schemas/take.schema'
-import { DEFAULT_GENERATOR_PARAMS } from '../../../src/config/defaults'
+import { DEFAULT_GENERATOR_PARAMS, PROJECT_BAR_BOUNDS } from '../../../src/config/defaults'
 
 const snapshot = {
   id: 'take-1',
@@ -32,6 +32,7 @@ describe('TakeSnapshotSchema', () => {
       { notes: [{ midi: 200 }] },
       { params: { minOctave: 7, maxOctave: 2 } },
       { context: { ...snapshot.context, bars: 0 } },
+      { context: { ...snapshot.context, bars: PROJECT_BAR_BOUNDS.max + 1 } },
       { context: { ...snapshot.context, bpm: -1 } },
       { createdAt: -1 },
       { score: Infinity },

@@ -200,6 +200,31 @@ describe('PeakLimiter timing and settings', () => {
     expect(peakOf(left, right)).toBeLessThanOrEqual(CEILING + LIMITER_CEILING_TOLERANCE)
     expect(limiter.getReport().gainReductionDb).toBeGreaterThan(5)
   })
+
+  it('runs continuously for 100,000 frames without NaNs or zero-locking', () => {
+    const limiter = new PeakLimiter({ sampleRate: SAMPLE_RATE })
+    const blockSize = 128
+    const inL = new Float32Array(blockSize)
+    const inR = new Float32Array(blockSize)
+    const outL = new Float32Array(blockSize)
+    const outR = new Float32Array(blockSize)
+
+    let nonZeroOutputs = 0
+    for (let block = 0; block < 1000; block++) {
+      for (let i = 0; i < blockSize; i++) {
+        // Musical signal alternating between silence, notes, and loud peaks
+        inL[i] = Math.sin((block * blockSize + i) * 0.1) * (block % 10 === 0 ? 3 : 0.5)
+        inR[i] = Math.cos((block * blockSize + i) * 0.1) * (block % 10 === 0 ? 3 : 0.5)
+      }
+      limiter.process(inL, inR, outL, outR, blockSize)
+      for (let i = 0; i < blockSize; i++) {
+        expect(Number.isFinite(outL[i])).toBe(true)
+        expect(Number.isFinite(outR[i])).toBe(true)
+        if (Math.abs(outL[i]) > 0.01) nonZeroOutputs++
+      }
+    }
+    expect(nonZeroOutputs).toBeGreaterThan(50000)
+  })
 })
 
 describe('limiter helpers', () => {

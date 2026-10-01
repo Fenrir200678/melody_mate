@@ -23,7 +23,13 @@ import type { VariationSettings } from './config.types'
 
 export type { VariationSettings }
 
-export const PROJECT_BAR_BOUNDS = { min: 1, max: 32 } as const
+export const PROJECT_BAR_BOUNDS = { min: 1, max: 16 } as const
+
+/**
+ * Standard project bar length choices offered in the DAW header dropdown.
+ */
+export const DEFAULT_PROJECT_BAR_OPTIONS = [1, 2, 4, 6, 8, 12, 16] as const
+
 
 /**
  * Application branding, versioning, license, and repository links.
@@ -167,6 +173,19 @@ export const DEFAULT_MIXER_SETTINGS = {
  */
 export const MAX_SAFE_AUDIO_SAMPLE_RATE = 48000
 
+/**
+ * Default Web Audio context latency hint. 'balanced' provides a stable, glitch-resistant
+ * buffer size (~512 samples / ~10.6 ms at 48 kHz) on desktop operating systems (specifically
+ * Windows WASAPI shared mode) eliminating pops, crackles, and buffer underrun dropouts while
+ * keeping audition note clicks imperceptibly fast.
+ */
+export const DEFAULT_AUDIO_LATENCY_HINT: AudioContextLatencyCategory = 'balanced'
+
+/**
+ * Lookahead window in seconds for Tone.js event scheduling. A 100 ms lookahead provides balanced headroom
+ * against UI thread or garbage-collection pauses while keeping transport start and playback snappy.
+ */
+export const DEFAULT_AUDIO_LOOKAHEAD = 0.1
 
 /**
  * Debounce delay in milliseconds before audio settings snapshots are automatically committed to storage.
