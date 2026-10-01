@@ -389,6 +389,7 @@ The Analysis module (`AnalysisModule.vue`) provides real-time music theory metri
 Melody Mate v2 features an onboard audio engine that requires no external plugins or soundfonts:
 
 - Single unified AudioContext and Tone.Transport runtime.
+- **Automatic Sample Rate Clamping:** AudioContext is initialized/clamped to $\le 48\text{ kHz}$ (via `MAX_SAFE_AUDIO_SAMPLE_RATE`) with graceful browser fallback to prevent audio-rendering starvation, buffer underruns (crackling/pops), and AudioWorklet quota timeouts on high-resolution studio audio interfaces (96 kHz / 192 kHz).
 - **Signal Flow:**
   $$\text{Voice Generators (Tone / Native)} \longrightarrow \text{Channel Strips (Lead / Chord)} \longrightarrow \text{FX Sends (Delay / Chorus / Reverb)} \longrightarrow \text{Bus Compressor} \longrightarrow \text{Worklet Limiter} \longrightarrow \text{Destination}$$
 - Safe audition synth for piano roll clicks and keyboard previewing.

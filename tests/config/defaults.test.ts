@@ -5,7 +5,8 @@ import {
   DEFAULT_GENERATOR_PARAMS,
   DEFAULT_PROJECT_SETTINGS,
   DEFAULT_TAKE_CAPACITY,
-  DEFAULT_VARIATION_SETTINGS
+  DEFAULT_VARIATION_SETTINGS,
+  MAX_SAFE_AUDIO_SAMPLE_RATE
 } from '../../src/config/defaults'
 import { ALL_RHYTHM_PRESETS } from '../../src/core/presets/rhythm'
 import { ALL_BUILTIN_PRESETS } from '../../src/core/presets/synths'
@@ -99,6 +100,12 @@ describe('core defaults configuration', () => {
     it('is a positive integer representing take slot capacity', () => {
       expect(Number.isInteger(DEFAULT_TAKE_CAPACITY)).toBe(true)
       expect(DEFAULT_TAKE_CAPACITY).toBeGreaterThan(0)
+    })
+  })
+
+  describe('MAX_SAFE_AUDIO_SAMPLE_RATE', () => {
+    it('is configured to 48000 Hz to prevent high-res audio interface overload', () => {
+      expect(MAX_SAFE_AUDIO_SAMPLE_RATE).toBe(48000)
     })
   })
 

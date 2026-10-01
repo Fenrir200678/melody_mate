@@ -1,7 +1,48 @@
 import * as Tone from 'tone'
+import { MAX_SAFE_AUDIO_SAMPLE_RATE } from '../config/defaults'
 import { STEPS_PER_BAR } from '../core/schemas/project.schema'
 
 export type AudioContextState = 'running' | 'suspended' | 'closed' | 'unsupported'
+
+/**
+ * Ensures the Web Audio AudioContext in Tone.js is configured with a safe sample rate (<= 48 kHz).
+ *
+ * High-end studio audio interfaces configured to 96 kHz or 192 kHz require audio blocks
+ * to be processed in under 0.66 ms, causing buffer underruns (pops and crackles), watchdog
+ * termination, or AudioWorklet execution timeouts. Clamping sampleRate to 48 kHz avoids this
+ * while providing an exact integer submultiple (2:1 or 4:1) for studio hardware.
+ */
+export function ensureConfiguredAudioContext(maxRate = MAX_SAFE_AUDIO_SAMPLE_RATE): void {
+  if (typeof window === 'undefined') return
+
+  const AudioContextClass =
+    window.AudioContext ||
+    (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+
+  if (!AudioContextClass) return
+
+  try {
+    const current = Tone.getContext()
+    if (current && current.sampleRate && current.sampleRate <= maxRate) {
+      return
+    }
+
+    const customContext = new AudioContextClass({
+      latencyHint: 'interactive',
+      sampleRate: maxRate
+    })
+    Tone.setContext(customContext, true)
+  } catch {
+    try {
+      const fallbackContext = new AudioContextClass({
+        latencyHint: 'interactive'
+      })
+      Tone.setContext(fallbackContext, true)
+    } catch {
+      // Keep existing Tone context if custom instantiation is blocked
+    }
+  }
+}
 
 /**
  * Audio-clock timestamps for parameter automation. Keeping these behind one module means the
@@ -23,6 +64,7 @@ export function timeNotationToSeconds(duration: string): number {
  */
 export async function ensureAudioContextRunning(): Promise<boolean> {
   try {
+    ensureConfiguredAudioContext()
     const ctx = Tone.getContext()
     if (ctx && ctx.state !== 'running') {
       await Tone.start()

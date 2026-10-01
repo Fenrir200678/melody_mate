@@ -482,6 +482,7 @@ Melody Mate v2 incorporates studio-grade protection processing on the master ste
   - Peak-hold indicators and high-contrast red clip warning LEDs.
   - Tabular numeric decibel readouts (`dBFS`).
 - **Sample Sanitization:** Real-time DSP sanitization replaces non-finite floating-point samples (`NaN` or `Infinity`) with silence, preventing audio engine crashes.
+- **Studio Interface & Sample Rate Protection:** Melody Mate automatically standardizes on $\le 48\text{ kHz}$ audio processing. When connecting studio audio interfaces configured to 96 kHz or 192 kHz, the browser transparently resamples the audio stream, preventing buffer underruns, pops/crackling, and CPU overload.
 - **Global Panic Button:** If an audio feedback loop occurs or an external MIDI note sticks, click the Panic button to immediately terminate all active voices, reset synthesizer nodes, and clear delay and reverb buffers.
 
 ---

@@ -161,6 +161,14 @@ export const DEFAULT_MIXER_SETTINGS = {
 } as const
 
 /**
+ * Maximum safe sample rate in Hz for Web Audio playback. Clamping sample rate to 48 kHz
+ * protects against buffer underruns, pops/crackles, and audio worklet execution timeouts on
+ * high-resolution studio audio interfaces (96 kHz, 192 kHz).
+ */
+export const MAX_SAFE_AUDIO_SAMPLE_RATE = 48000
+
+
+/**
  * Debounce delay in milliseconds before audio settings snapshots are automatically committed to storage.
  */
 export const AUDIO_SETTINGS_PERSISTENCE_DEBOUNCE_MS = 1000

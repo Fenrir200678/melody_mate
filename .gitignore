@@ -26,6 +26,9 @@ dist-ssr
 
 __pycache__/
 .development
+AGENTS.md
+DESIGN.md
+RTK.md
 
 # Vitest cache/output artifacts
 .vitest

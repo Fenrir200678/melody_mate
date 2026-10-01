@@ -1,6 +1,7 @@
 export { PlaybackEngine, TRANSPORT_LIFECYCLE_SEMANTICS } from './playback-engine'
 export {
   ensureAudioContextRunning,
+  ensureConfiguredAudioContext,
   rampTransportBpm,
   getAudioContextState,
   getAudioSampleRate
