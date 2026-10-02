@@ -381,9 +381,7 @@ export class PlaybackEngine {
     const stepDuration = getStepDurationSeconds(bpm, '16n')
     if (stepDuration <= 0) return 0
     const latency = Tone.getTransport().state === 'started' ? this.getOutputLatencySeconds() : 0
-    return Math.floor(
-      transportSecondsToPlayheadStep(this.getCurrentTimeSeconds(), stepDuration, latency)
-    )
+    return Math.floor(transportSecondsToPlayheadStep(this.getCurrentTimeSeconds(), stepDuration, latency))
   }
 
   // --- Preset Selection ---

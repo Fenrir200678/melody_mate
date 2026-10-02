@@ -1,9 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import {
-  DEFAULT_AUDIO_LATENCY_HINT,
-  DEFAULT_AUDIO_LOOKAHEAD,
-  MAX_SAFE_AUDIO_SAMPLE_RATE
-} from '@/config/defaults'
+import { DEFAULT_AUDIO_LATENCY_HINT, DEFAULT_AUDIO_LOOKAHEAD, MAX_SAFE_AUDIO_SAMPLE_RATE } from '@/config/defaults'
 
 // Hoist mocks for Tone.js
 const { mockToneGetContext, mockToneSetContext, mockToneStart, mockToneImmediate, mockTransport } = vi.hoisted(() => {
@@ -257,4 +253,3 @@ describe('transport-adapter audio context configuration & latency management', (
     expect(getAudibleTransportSeconds()).toBe(4.0)
   })
 })
-

@@ -20,16 +20,32 @@
  * ============================================================================
  */
 import type { VariationSettings } from './config.types'
+import type { MidiOutputSettings } from '../core/midi/output.types'
 
 export type { VariationSettings }
 
 export const PROJECT_BAR_BOUNDS = { min: 1, max: 16 } as const
 
+export const MIDI_OUTPUT_BOUNDS = {
+  channel: { min: 1, max: 16 },
+  pitch: { min: 0, max: 127 },
+  onVelocity: { min: 1, max: 127 },
+  offVelocity: { min: 0, max: 127 },
+  // Scheduling must additionally validate negative offsets against the available lookahead.
+  offsetMs: { min: -50, max: 50 }
+} as const
+
+export const DEFAULT_MIDI_NOTE_OFF_VELOCITY = 0
+
+export const DEFAULT_MIDI_OUTPUT_SETTINGS = {
+  lead: { mode: 'internal', port: null, channel: 1, offsetMs: 0, sendPreviews: false },
+  chord: { mode: 'internal', port: null, channel: 2, offsetMs: 0, sendPreviews: false }
+} as const satisfies MidiOutputSettings
+
 /**
  * Standard project bar length choices offered in the DAW header dropdown.
  */
 export const DEFAULT_PROJECT_BAR_OPTIONS = [1, 2, 4, 6, 8, 12, 16] as const
-
 
 /**
  * Application branding, versioning, license, and repository links.

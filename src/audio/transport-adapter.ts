@@ -1,9 +1,5 @@
 import * as Tone from 'tone'
-import {
-  DEFAULT_AUDIO_LATENCY_HINT,
-  DEFAULT_AUDIO_LOOKAHEAD,
-  MAX_SAFE_AUDIO_SAMPLE_RATE
-} from '../config/defaults'
+import { DEFAULT_AUDIO_LATENCY_HINT, DEFAULT_AUDIO_LOOKAHEAD, MAX_SAFE_AUDIO_SAMPLE_RATE } from '../config/defaults'
 import { STEPS_PER_BAR } from '../core/schemas/project.schema'
 
 export type AudioContextState = 'running' | 'suspended' | 'closed' | 'unsupported'
@@ -48,8 +44,7 @@ export function ensureConfiguredAudioContext(
   }
 
   const AudioContextClass =
-    window.AudioContext ||
-    (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+    window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
 
   if (!AudioContextClass) return
 
