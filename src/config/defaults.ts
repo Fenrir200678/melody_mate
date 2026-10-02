@@ -203,6 +203,18 @@ export const DEFAULT_AUDIO_LATENCY_HINT: AudioContextLatencyCategory = 'balanced
  */
 export const DEFAULT_AUDIO_LOOKAHEAD = 0.1
 
+export const DEFAULT_MIDI_QUEUE_TIMING = {
+  horizonMs: 30,
+  pumpIntervalMs: 10,
+  lateOnThresholdMs: 20,
+  cancelGuardMs: 2
+} as const
+
+export const DEFAULT_MIDI_CLOCK_POLICY = {
+  maxSampleAgeMs: 250,
+  maxClockJumpMs: 50
+} as const
+
 /**
  * Debounce delay in milliseconds before audio settings snapshots are automatically committed to storage.
  */

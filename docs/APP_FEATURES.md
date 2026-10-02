@@ -467,6 +467,30 @@ Accessible via the **Sound & Mix** workspace dock (`S`):
 
 ## 13. Multi-Track MIDI Export & DAW Integration
 
+### Live MIDI access infrastructure (Task 62)
+
+- `src/audio/midi/access-manager.ts` owns explicit `requestMIDIAccess({ sysex: false })`, secure-context/feature detection, output discovery, refresh and `statechange` subscriptions. Input ports are never opened or subscribed.
+- `runtime.ts` shares one manager between runtime owners; `midi-output.store.ts` orchestrates actions and holds only copied plain snapshots. Permission, native ports and availability are not persisted. Creating the store does not request permission.
+- Global and per-track snapshots expose English status messages and recovery actions for unsupported/insecure contexts, disabled/requesting/denied access, no outputs, available/opening/ready/disconnected ports and failures. Ready means connected and open, not confirmed device reception.
+- Port selection uses exact IDs without fallback to names or the first device. Pending opens are deduplicated and invalidated after disable, close, replacement, disconnect or disposal. Reconnect requires an explicit open. Failed candidate selection retains the working previous route.
+- `port-resource.ts` shares one resource across Melody/Chords, serializes asynchronous open/cleanup/close, and closes after the final usage. A runtime cleanup hook receives the native port, track and reason before close, switch, disable, disconnect or disposal for the later note-lifecycle implementation. Cleanup failures do not block cleanup of other resources.
+- Small access/port fakes verify permission and open races, hotplug, shared usage, switch rollback, close/reopen ordering and listener disposal. Visible MIDI UI and project persistence remain pending.
+
+API behavior was verified against [MDN requestMIDIAccess](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/requestMIDIAccess) and the [W3C Web MIDI specification](https://www.w3.org/TR/webmidi/), including the distinction between device state and `open`/`closed`/`pending` connection state.
+
+### Audio/performance clock bridge and owned port queue (Task 63)
+
+- Pure `src/core/transport/output-timing.ts` maps audio seconds to performance milliseconds using a validated, fresh output timestamp pair, or an explicitly estimated raw-context/current-performance fallback. Internal graph latency is added once; positive route offsets delay MIDI, negative offsets advance it. Device `baseLatency`/`outputLatency` are not added again to the calibrated pair. `createToneMidiClockBridge` reads the existing Tone raw context; pass `EffectsRack.getOutputLatencySeconds()`, not `PlaybackEngine.getOutputLatencySeconds()` (which includes device estimates). Clock discontinuities, suspend/resume and explicit reset invalidate the scheduling epoch.
+- `MidiPortQueue.own()` enforces one queue per native port and a shared clock owner/timing policy across sessions. A port must expose `clear()` before any notes can be submitted. All note, cleanup and panic sends are timestamped and recorded in a submitted-event ledger; this records submission, not confirmed physical delivery.
+- `DEFAULT_MIDI_QUEUE_TIMING` centrally defines a 30 ms output horizon, 10 ms pump interval, 20 ms late-On threshold and 2 ms cancel guard. Long releases remain local until they enter the horizon. Injected wakeups drive the pump; their call time never defines the musical timeline. Missed/expired attacks are dropped, late releases sent immediately, equal-time Offs ordered before Ons. Same-pitch retriggers shorten the predecessor gate and remove its stale release, including when future attacks arrive out of order.
+- Track, session, generation, loop and stable source-note cancellation use port-wide `clear()` followed by a new clock sample. Only definitely future attacks are requeued; potentially due attacks are never replayed. Canceled possible ownership gets targeted Offs, while retained voices keep their release obligations. Cleanup-Off obligations and late releases remain owned until their actual submitted timestamp has passed the guard, so consecutive clears cannot silently discard them. Pure reconciliation preserves unchanged possible-active sources across schedule refreshes and supports per-note mute. Superseded retrigger ownership cannot release a newer voice. A failed clear blocks further scheduling and attempts emergency release, including Offs following submitted future attacks.
+- `MidiOutputSession` maps injected audio-time intents and verifies the negative-offset/lookahead/pump/guard budget. Its disposal cancels only its own session; port disposal and panic provide broader cleanup. The shared access runtime's cleanup hook cancels a closing/switching/disconnected track before releasing its port lease. Panic sends explicit Offs plus sustain-off, All Notes Off and All Sound Off only on channels used by that owner. New attacks are rejected until panic submissions have passed the cancel guard; cleanup obligations survive a queue-owner replacement. A failed owner remains unavailable on the same native port object.
+- Deterministic core tests and port-buffer fakes cover units, additive graph latency, fallback/reanchoring, short/long gates, shared-port clear races, future/due attacks, late releases, retriggers, per-note reconcile, failure cleanup and disposal. External app playback, preview/test-note UI and MIDI Clock messages remain disabled. Task 64 must verify the actual dispatch advance budget; Task 69 must measure real ports and latency.
+
+Timing and cancellation contracts were verified against [MDN getOutputTimestamp](https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/getOutputTimestamp), the [Web MIDI send/clear specification](https://www.w3.org/TR/webmidi/#dom-midioutput-clear), installed Tone 15.1.22 clock code and the local limiter's sample-delay path. Hardware delivery is not acknowledged by the API and has not been measured in this task.
+
+### MIDI file export
+
 Melody Mate v2 provides professional MIDI export formatted for immediate use in external digital audio workstations:
 
 - **Export Formats (`DawMidiExportPopover.vue`):**

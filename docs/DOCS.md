@@ -491,6 +491,8 @@ Melody Mate v2 incorporates studio-grade protection processing on the master ste
 
 ## 8. Multi-Track MIDI Export & DAW Integration
 
+Live MIDI access, port lifecycle, clock conversion and cancellable note-queue infrastructure are implemented internally. Live MIDI controls and external playback are not enabled yet. MIDI permission is never requested on startup. Internal playback and MIDI file export remain independent of device access. The clock bridge converts audio scheduling times; it does not transmit MIDI Clock or synchronize a DAW transport. Real device latency and reliability measurements remain pending.
+
 Click the **Export MIDI** button in the footer to open the export popover. Melody Mate v2 produces standard Type 1 MIDI files (`.mid`) formatted for direct import into any professional DAW or hardware sequencer.
 
 ### Export Modes
