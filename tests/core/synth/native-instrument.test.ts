@@ -48,6 +48,16 @@ beforeEach(() => {
 })
 
 describe('NativeInstrument orchestration', () => {
+  it('preserves a short explicit gate at a loop boundary', () => {
+    vi.useFakeTimers()
+    const instrument = new NativeInstrument(patch({ mode: 'poly' }), context)
+    instrument.playNote('loop-gate', 'C4', 0.02, 0.08, 0.8)
+    vi.runAllTimers()
+    expect(voices[0].trigger).toHaveBeenCalledWith(60, 0.8, 0.08)
+    expect(voices[0].release).toHaveBeenCalledWith(0.1)
+    instrument.dispose()
+  })
+
   it('releases identical pitches by unique IDs', () => {
     const instrument = new NativeInstrument(patch({ mode: 'poly', maxVoices: 2 }), context)
     instrument.noteOn('first', 'C4', 0, 0.8)

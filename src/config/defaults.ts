@@ -42,6 +42,12 @@ export const DEFAULT_MIDI_OUTPUT_SETTINGS = {
   chord: { mode: 'internal', port: null, channel: 2, offsetMs: 0, sendPreviews: false }
 } as const satisfies MidiOutputSettings
 
+export const DEFAULT_TRANSPORT_OUTPUT = {
+  sessionId: 'transport',
+  chordVelocity: 0.75,
+  minChordPickupSeconds: 0.05
+} as const
+
 /**
  * Standard project bar length choices offered in the DAW header dropdown.
  */

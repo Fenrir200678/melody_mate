@@ -83,6 +83,7 @@ export const useAudioSettingsStore = defineStore('audio-settings', () => {
   }
 
   function applySnapshot(snapshot: ProjectAudioSnapshot): void {
+    useAudioStore().stop()
     const leadId = getPresetsForTrack('lead').some((preset) => preset.id === snapshot.lead.soundId)
       ? snapshot.lead.soundId
       : DEFAULT_AUDIO_SOUND_IDS.lead

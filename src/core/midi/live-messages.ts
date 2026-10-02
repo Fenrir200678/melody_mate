@@ -32,6 +32,10 @@ export function melodyMidiNote(note: Pick<AppNote, 'id' | 'midi'>): MidiResult<M
   return { ok: true, value: { midi: note.midi, source: { kind: 'melody', noteId: note.id } } }
 }
 
+export function normalizedVelocityToMidi(velocity: number): number {
+  return Math.max(1, Math.min(127, Math.round(velocity * 127)))
+}
+
 export function convertMidiPitches(pitches: readonly string[]): MidiPitchConversion {
   const midis = new Set<number>()
   const rejectedPitches: string[] = []

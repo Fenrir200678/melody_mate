@@ -97,10 +97,10 @@ export const useMelodyStore = defineStore('melody', () => {
     selectedNoteIds.value = selectedNoteIds.value.filter((id) => idSet.has(id))
   }
 
-  function syncAudioIfActive(): void {
+  function syncAudioIfActive(replace = false): void {
     const audioStore = useAudioStore()
     if (audioStore.isPlaying || audioStore.isPaused) {
-      audioStore.syncLeadSchedule()
+      audioStore.syncLeadSchedule(replace)
     }
   }
 
@@ -217,21 +217,21 @@ export const useMelodyStore = defineStore('melody', () => {
     syncAudioIfActive()
   }
 
-  function setNotes(newNotes: AppNote[], recordHistory = true): void {
+  function setNotes(newNotes: AppNote[], recordHistory = true, replacePlayback = true): void {
     if (recordHistory) {
       history.record()
     }
     history.resetComparison()
     notes.value = sortNotes(newNotes)
     pruneSelectedNoteIds()
-    syncAudioIfActive()
+    syncAudioIfActive(replacePlayback)
   }
 
   function replaceNotesInScope(newNotes: AppNote[], scope: TakeScope): void {
     history.record()
     notes.value = replaceNotesInWorkRange(notes.value, copyNotes(newNotes), scope)
     pruneSelectedNoteIds()
-    syncAudioIfActive()
+    syncAudioIfActive(true)
   }
 
   function swapTake(take: TakeSnapshot): void {
@@ -335,7 +335,7 @@ export const useMelodyStore = defineStore('melody', () => {
     const changed = updated.some((n, i) => n.midi !== notes.value[i]?.midi)
     if (!changed) return
 
-    setNotes(updated, true)
+    setNotes(updated, true, false)
 
     const firstSelected = updated.find((n) => selectedNoteIds.value.includes(n.id))
     if (firstSelected && uiStore.isAuditionEnabled) {
@@ -384,7 +384,7 @@ export const useMelodyStore = defineStore('melody', () => {
     const changed = updated.some((n, i) => n.step !== notes.value[i]?.step)
     if (!changed) return
 
-    setNotes(updated, true)
+    setNotes(updated, true, false)
   }
 
   function adjustSelectedDuration(deltaSteps: number): void {
@@ -393,7 +393,7 @@ export const useMelodyStore = defineStore('melody', () => {
     const changed = updated.some((n, i) => n.durationSteps !== notes.value[i]?.durationSteps)
     if (!changed) return
 
-    setNotes(updated, true)
+    setNotes(updated, true, false)
   }
 
   function adjustSelectedVelocity(delta: number): void {
@@ -402,7 +402,7 @@ export const useMelodyStore = defineStore('melody', () => {
     const changed = updated.some((n, i) => n.velocity !== notes.value[i]?.velocity)
     if (!changed) return
 
-    setNotes(updated, true)
+    setNotes(updated, true, false)
   }
 
   function toggleSelectedMute(): void {
@@ -411,7 +411,7 @@ export const useMelodyStore = defineStore('melody', () => {
     const changed = updated.some((n, i) => n.isMuted !== notes.value[i]?.isMuted)
     if (!changed) return
 
-    setNotes(updated, true)
+    setNotes(updated, true, false)
   }
 
   function undo(): void {

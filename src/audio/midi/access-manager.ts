@@ -21,7 +21,10 @@ interface Route {
   active?: Lease
   pending?: Lease
   operation?: Promise<boolean>
+  operationId: number
 }
+
+export type MidiRoutePreparation = (port: MidiOutputPort) => boolean | void
 
 export class MidiAccessManager {
   private readonly environment: MidiAccessEnvironment
@@ -37,8 +40,8 @@ export class MidiAccessManager {
   private cleanups = new Set<Promise<void>>()
   private cleanupHook?: MidiCleanupHook
   private routes: Record<MidiTrackKey, Route> = {
-    lead: { state: { ...midiStatus('not-enabled'), desiredPortId: null, activePortId: null } },
-    chord: { state: { ...midiStatus('not-enabled'), desiredPortId: null, activePortId: null } }
+    lead: { state: { ...midiStatus('not-enabled'), desiredPortId: null, activePortId: null }, operationId: 0 },
+    chord: { state: { ...midiStatus('not-enabled'), desiredPortId: null, activePortId: null }, operationId: 0 }
   }
 
   constructor(environment: MidiAccessEnvironment = browserMidiEnvironment()) {
@@ -157,14 +160,20 @@ export class MidiAccessManager {
     this.publish()
   }
 
-  open(track: MidiTrackKey, portId: string): Promise<boolean> {
+  open(track: MidiTrackKey, portId: string, prepare?: MidiRoutePreparation): Promise<boolean> {
     const route = this.routes[track]
     if (!this.enabled || this.disposed) return Promise.resolve(false)
-    if (route.pending?.resource.port.id === portId && route.operation) return route.operation
+    if (!prepare && route.pending?.resource.port.id === portId && route.operation) return route.operation
+    const operationId = ++route.operationId
     if (route.pending) void this.releaseLease(route.pending, track, 'switch')
     route.pending = undefined
     route.operation = undefined
     if (route.active?.resource.port.id === portId && this.getOpenOutput(track)) {
+      try {
+        if (prepare?.(route.active.resource.port) === false) return Promise.resolve(false)
+      } catch {
+        return Promise.resolve(false)
+      }
       route.state = { ...route.state, ...midiStatus('ready'), desiredPortId: portId }
       this.publish()
       return Promise.resolve(true)
@@ -184,7 +193,13 @@ export class MidiAccessManager {
     const lease = { resource, token: Symbol(track) }
     route.pending = lease
     const generation = this.generation
-    const current = () => this.enabled && !this.disposed && generation === this.generation && route.pending === lease
+    let preparationRejected = false
+    const current = () =>
+      this.enabled &&
+      !this.disposed &&
+      generation === this.generation &&
+      route.operationId === operationId &&
+      route.pending === lease
     const operation = resource
       .acquire(lease.token)
       .then(async () => {
@@ -195,6 +210,16 @@ export class MidiAccessManager {
           port.connection !== 'open'
         ) {
           if (current()) route.state = { ...route.state, ...midiStatus('disconnected') }
+          return false
+        }
+        if (!current()) return false
+        try {
+          if (prepare?.(port) === false) {
+            preparationRejected = true
+            return false
+          }
+        } catch {
+          preparationRejected = true
           return false
         }
         const previous = route.active
@@ -213,7 +238,14 @@ export class MidiAccessManager {
         route.operation = undefined
         route.state = { ...route.state, ...midiStatus('ready'), activePortId: portId }
         if (previous) await this.releaseLease(previous, track, 'switch', false)
-        return this.generation === generation && route.active === lease && this.getOpenOutput(track) === port
+        return (
+          this.enabled &&
+          !this.disposed &&
+          generation === this.generation &&
+          route.operationId === operationId &&
+          route.active === lease &&
+          this.getOpenOutput(track) === port
+        )
       })
       .catch(() => {
         if (current())
@@ -221,7 +253,7 @@ export class MidiAccessManager {
         return false
       })
       .then(async (success) => {
-        if (!success) await this.releaseLease(lease, track, 'close')
+        if (!success) await this.releaseLease(lease, track, 'close', !preparationRejected)
         if (route.pending === lease) {
           route.pending = undefined
           route.operation = undefined
@@ -265,6 +297,7 @@ export class MidiAccessManager {
 
   private releaseRoute(track: MidiTrackKey, reason: MidiCleanupReason, status: MidiStatus): Promise<void> {
     const route = this.routes[track]
+    ++route.operationId
     const leases = [route.active, route.pending].filter((lease): lease is Lease => !!lease)
     route.active = undefined
     route.pending = undefined
@@ -277,6 +310,25 @@ export class MidiAccessManager {
     const operation = this.releaseRoute(track, 'close', this.enabled ? 'available' : 'not-enabled')
     this.publish()
     return operation
+  }
+
+  /** Invalidates and closes in-flight route candidates while leaving active routes untouched. */
+  cancelPending(): void {
+    for (const track of ['lead', 'chord'] as const) {
+      const route = this.routes[track]
+      const pending = route.pending
+      if (!pending) continue
+      ++route.operationId
+      route.pending = undefined
+      route.operation = undefined
+      route.state = {
+        ...route.state,
+        ...midiStatus(route.active ? 'ready' : this.enabled ? 'available' : 'not-enabled'),
+        activePortId: route.active?.resource.port.id ?? null
+      }
+      void this.releaseLease(pending, track, 'close')
+    }
+    this.publish()
   }
 
   disable(): Promise<void> {

@@ -15,6 +15,37 @@ afterEach(() => {
 })
 
 describe('owned MIDI port queue', () => {
+  it.each([0, 15])(
+    'reconciles disconnect after clear advances %s ms and never replays its old attack',
+    (clearAdvanceMs) => {
+      const fake = new QueueFake()
+      fake.queue.enqueue(intent('disconnect', { onTimeMs: 1010, offTimeMs: 2000 }))
+      fake.queue.pump()
+      const staleWakeup = fake.callback
+      fake.port.state = 'disconnected'
+      fake.clearAdvanceMs = clearAdvanceMs
+      fake.queue.disconnect()
+      staleWakeup?.()
+      const submitted = fake.port.send.mock.calls.length
+      fake.queue.disconnect()
+      expect(fake.port.send).toHaveBeenCalledTimes(submitted)
+      fake.clearAdvanceMs = 0
+      fake.port.state = 'connected'
+      fake.queue.recover()
+      fake.advance(2100)
+      expect(fake.delivered.map(({ bytes }) => bytes)).toEqual(
+        clearAdvanceMs
+          ? [
+              [0x90, 60, 100],
+              [0x80, 60, 0]
+            ]
+          : []
+      )
+      expect(fake.delivered.some(({ bytes }) => (bytes[0]! & 0xf0) === 0xb0)).toBe(false)
+      fake.queue.dispose()
+    }
+  )
+
   it('has exactly one owner and wakeup per port', () => {
     const fake = setup()
     expect(MidiPortQueue.own(fake.port, fake.environment, TEST_QUEUE_TIMING)).toBe(fake.queue)

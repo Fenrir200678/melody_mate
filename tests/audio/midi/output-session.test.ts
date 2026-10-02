@@ -12,7 +12,7 @@ afterEach(async () => {
   for (const cleanup of cleanups.splice(0).reverse()) await cleanup()
 })
 
-async function setup() {
+async function setup(readHook?: () => void) {
   const fake = new QueueFake()
   const access = new MidiAccessManager({ secureContext: true, requestAccess: async () => new AccessFake(fake.port) })
   access.setCleanupHook(({ port, track }) => cancelMidiPortScope(port, { track }))
@@ -24,11 +24,14 @@ async function setup() {
   fake.port.send.mockClear()
   fake.port.clear.mockClear()
   const clock = new MidiClockBridge({
-    read: () => ({ running: fake.running, contextTimeSeconds: fake.nowMs / 1000, performanceTimeMs: fake.nowMs }),
+    read: () => {
+      readHook?.()
+      return { running: fake.running, contextTimeSeconds: fake.nowMs / 1000, performanceTimeMs: fake.nowMs }
+    },
     signalPathLatencySeconds: () => 0.005
   })
-  const create = (id: string) =>
-    new MidiOutputSession(id, access, clock, () => 0.1, TEST_QUEUE_TIMING, fake.environment.wakeup)
+  const create = (id: string, onTimingLoss?: () => void) =>
+    new MidiOutputSession(id, access, clock, () => 0.1, TEST_QUEUE_TIMING, fake.environment.wakeup, onTimingLoss)
   cleanups.push(() => access.dispose())
   return { fake, access, clock, create }
 }
@@ -114,6 +117,18 @@ describe('MIDI output scheduling session infrastructure', () => {
     ])
     expect(fake.port.close).not.toHaveBeenCalled()
     expect(access.getOpenOutput('chord')).toBe(fake.port)
+  })
+
+  it.each([2, 3, 4])('cannot enqueue an attack after timing loss at dispatch clock read %s', async (readAt) => {
+    let reads = 0
+    const { fake, create } = await setup(() => {
+      if (++reads === readAt) fake.running = false
+    })
+    const session = create('transport', () => session.cancel({}))
+    cleanups.push(() => session.dispose())
+    expect(() => session.enqueue(audioIntent('in-flight'))).toThrow('canceled')
+    fake.callback?.()
+    expect(fake.port.send).not.toHaveBeenCalled()
   })
 
   it('releases on suspend and accepts only newly scheduled notes after resume', async () => {

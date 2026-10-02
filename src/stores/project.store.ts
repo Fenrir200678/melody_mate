@@ -8,6 +8,7 @@ import {
   type ProjectConfig
 } from '../core/schemas/project.schema'
 import { DEFAULT_PROJECT_SETTINGS, PROJECT_BAR_BOUNDS } from '../config/defaults'
+import { useAudioStore } from './audio.store'
 import { defaultsFingerprint } from '../utils/defaults-fingerprint.utils'
 
 export const PROJECT_STORAGE_KEY = 'melodymate_project'
@@ -124,6 +125,7 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   function reset(): void {
+    useAudioStore().stop()
     bpm.value = defaults.bpm
     key.value = defaults.key
     scale.value = defaults.scale
@@ -155,7 +157,7 @@ export const useProjectStore = defineStore('project', () => {
     }
   }
 
-  function hydrateFromStorage(): void {
+  function hydrateFromStorage(initial = false): void {
     if (typeof window === 'undefined' || !window.localStorage) return
     try {
       const raw = window.localStorage.getItem(PROJECT_STORAGE_KEY)
@@ -166,6 +168,7 @@ export const useProjectStore = defineStore('project', () => {
       if ((parsed as Record<string, unknown>).defaultsFingerprint !== PROJECT_DEFAULTS_FINGERPRINT) return
       const result = ProjectSchema.safeParse(parsed)
       if (result.success) {
+        if (!initial) useAudioStore().stop()
         bpm.value = result.data.bpm
         key.value = result.data.key
         scale.value = result.data.scale
@@ -184,7 +187,7 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   // Hydrate initially
-  hydrateFromStorage()
+  hydrateFromStorage(true)
 
   // Automatic persistence watch. The audio revision is written only through saveToStorage callers so
   // a commit marker cannot drift ahead of the audio snapshot document.

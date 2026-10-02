@@ -258,6 +258,64 @@ describe('MIDI access and port lifecycle', () => {
     expect(candidate.connection).toBe('closed')
   })
 
+  it('synchronously cancels pending opens without releasing active routes', async () => {
+    const active = new PortFake('active')
+    const candidate = new PortFake('candidate')
+    candidate.openGate = deferred<void>()
+    const { manager } = fixture(active, candidate)
+    await manager.enable()
+    await manager.open('lead', active.id)
+    const opening = manager.open('lead', candidate.id)
+    await vi.waitFor(() => expect(candidate.open).toHaveBeenCalledOnce())
+
+    manager.cancelPending()
+    expect(manager.getOpenOutput('lead')).toBe(active)
+    candidate.openGate.resolve()
+
+    expect(await opening).toBe(false)
+    expect(manager.getOpenOutput('lead')).toBe(active)
+    expect(candidate.connection).toBe('closed')
+    expect(active.close).not.toHaveBeenCalled()
+  })
+
+  it('rejects unsafe preparation before cleaning the active route', async () => {
+    const active = new PortFake('active')
+    const candidate = new PortFake('candidate')
+    const { manager } = fixture(active, candidate)
+    const cleanup = vi.fn()
+    manager.setCleanupHook(cleanup)
+    await manager.enable()
+    await manager.open('lead', active.id)
+    cleanup.mockClear()
+
+    expect(await manager.open('lead', candidate.id, () => false)).toBe(false)
+    expect(manager.getOpenOutput('lead')).toBe(active)
+    expect(cleanup).not.toHaveBeenCalled()
+    expect(candidate.connection).toBe('closed')
+  })
+
+  it('prepares a candidate before cleaning the existing route', async () => {
+    const active = new PortFake('active')
+    const candidate = new PortFake('candidate')
+    const { manager } = fixture(active, candidate)
+    const order: string[] = []
+    manager.setCleanupHook(() => {
+      order.push('cleanup')
+    })
+    await manager.enable()
+    await manager.open('lead', active.id)
+    order.length = 0
+
+    expect(
+      await manager.open('lead', candidate.id, (port) => {
+        expect(port).toBe(candidate)
+        order.push('prepare')
+      })
+    ).toBe(true)
+    expect(order).toEqual(['prepare', 'cleanup'])
+    expect(manager.getOpenOutput('lead')).toBe(candidate)
+  })
+
   it.each(['opening', 'cleanup'] as const)(
     'retains the active route if a candidate disconnects during %s',
     async (phase) => {

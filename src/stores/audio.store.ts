@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed, markRaw, ref, watch } from 'vue'
+import { computed, markRaw, onScopeDispose, ref, watch } from 'vue'
 import { PlaybackEngine, ensureAudioContextRunning, rampTransportBpm } from '../audio/audio-runtime'
 import { useAudioAudition } from '../composables/useAudioAudition'
 import { useAudioPatches } from '../composables/useAudioPatches'
@@ -9,6 +9,7 @@ import { useHarmonyStore } from './harmony.store'
 import { useMelodyStore } from './melody.store'
 import { useMixerStore } from './mixer.store'
 import { useProjectStore } from './project.store'
+import { useMidiOutputStore } from './midi-output.store'
 import { useUiStore } from './ui.store'
 
 export type { AudioMacros, MacroConfig } from './mixer.store'
@@ -19,6 +20,8 @@ export const useAudioStore = defineStore('audio', () => {
 
   const initializationError = ref<string | null>(null)
   const isInitializingAudio = ref(false)
+  let startRequest = 0
+  let disposed = false
   let initializationPromise: Promise<PlaybackEngine | null> | null = null
 
   function getEngine(): PlaybackEngine | null {
@@ -35,7 +38,10 @@ export const useAudioStore = defineStore('audio', () => {
       try {
         if (!(await ensureAudioContextRunning()))
           throw new Error('Audio output is blocked. Try again after interacting with the page.')
-        const engine = new PlaybackEngine()
+        const engine = new PlaybackEngine(undefined, useMidiOutputStore().getRuntime(), () => {
+          const harmony = useHarmonyStore()
+          return harmony.useChords && !harmony.isMuted
+        })
         const mixerStore = useMixerStore()
         mixerStore.applyToEngine(engine)
 
@@ -45,6 +51,10 @@ export const useAudioStore = defineStore('audio', () => {
         await engine.initializeDiagnostics()
         mixerStore.syncDiagnostics(engine)
 
+        if (disposed) {
+          engine.dispose()
+          return null
+        }
         engineInstance = engine
         initializationError.value = null
         return engine
@@ -81,29 +91,26 @@ export const useAudioStore = defineStore('audio', () => {
     getBpm: () => useProjectStore().bpm
   })
 
-  function syncSchedule(): void {
+  function syncSchedule(bpm?: number): void {
     const engine = getEngine()
     if (!engine) return
 
     const melodyStore = useMelodyStore()
     const harmonyStore = useHarmonyStore()
     const projectStore = useProjectStore()
-    const mixerStore = useMixerStore()
-
-    const activeChords =
-      harmonyStore.useChords && !mixerStore.isChordMuted && !harmonyStore.isMuted ? harmonyStore.chords : []
-
-    engine.schedule(melodyStore.notes, activeChords, projectStore.toConfig())
+    const config = projectStore.toConfig()
+    if (bpm !== undefined) config.bpm = bpm
+    engine.schedule(melodyStore.notes, harmonyStore.chords, config, bpm !== undefined)
   }
 
-  function syncLeadSchedule(): void {
+  function syncLeadSchedule(replace = false): void {
     const engine = getEngine()
     if (!engine) return
 
     const melodyStore = useMelodyStore()
     const projectStore = useProjectStore()
 
-    engine.scheduleLead(melodyStore.notes, projectStore.toConfig())
+    engine.scheduleLead(melodyStore.notes, projectStore.toConfig(), replace)
   }
 
   function syncChordSchedule(): void {
@@ -112,12 +119,7 @@ export const useAudioStore = defineStore('audio', () => {
 
     const harmonyStore = useHarmonyStore()
     const projectStore = useProjectStore()
-    const mixerStore = useMixerStore()
-
-    const activeChords =
-      harmonyStore.useChords && !mixerStore.isChordMuted && !harmonyStore.isMuted ? harmonyStore.chords : []
-
-    engine.scheduleChords(activeChords, projectStore.toConfig())
+    engine.scheduleChords(harmonyStore.chords, projectStore.toConfig())
   }
 
   watch([() => useProjectStore().swing, () => useProjectStore().timingLooseness], () => {
@@ -125,6 +127,7 @@ export const useAudioStore = defineStore('audio', () => {
   })
 
   async function play(): Promise<void> {
+    const request = ++startRequest
     const uiStore = useUiStore()
     const projectStore = useProjectStore()
 
@@ -139,7 +142,7 @@ export const useAudioStore = defineStore('audio', () => {
     }
 
     const engine = await initializeAudio()
-    if (!engine) return
+    if (!engine || disposed || request !== startRequest) return
     engine.seekToStep(currentStep.value)
     syncSchedule()
     try {
@@ -148,12 +151,14 @@ export const useAudioStore = defineStore('audio', () => {
       initializationError.value = error instanceof Error ? error.message : 'Audio playback failed.'
       return
     }
+    if (disposed || request !== startRequest) return
     playhead.step = currentStep.value
     isPlaying.value = true
     isPaused.value = false
   }
 
   function pause(): void {
+    ++startRequest
     const engine = getEngine()
     if (engine) {
       engine.pause()
@@ -170,6 +175,7 @@ export const useAudioStore = defineStore('audio', () => {
   }
 
   function stop(): void {
+    ++startRequest
     audition.stopNotesAudition()
     audition.stopRhythmPreview()
     const uiStore = useUiStore()
@@ -237,6 +243,7 @@ export const useAudioStore = defineStore('audio', () => {
     } catch {
       // The transport may be unavailable before audio initialization.
     }
+    syncSchedule(bpm)
   }
 
   function setLooping(val: boolean): void {
@@ -244,17 +251,44 @@ export const useAudioStore = defineStore('audio', () => {
     getEngine()?.setLoop(projectStore.loopStartStep, projectStore.loopEndStep, val)
   }
 
+  watch(
+    [() => useProjectStore().loopStartStep, () => useProjectStore().loopEndStep, () => useProjectStore().isLooping],
+    () => applyLoop(),
+    { flush: 'sync' }
+  )
+
   function applyLoop(): void {
     const projectStore = useProjectStore()
     getEngine()?.setLoop(projectStore.loopStartStep, projectStore.loopEndStep, projectStore.isLooping)
   }
 
   function reset(): void {
+    stop()
     audition.stopRhythmPreview()
     followPlayhead.value = DEFAULT_FOLLOW_PLAYHEAD
     patches.resetPatches()
     useMixerStore().reset()
   }
+
+  function panic(): void {
+    ++startRequest
+    if (!getEngine()) useMidiOutputStore().getRuntime().panic()
+    audition.panic()
+  }
+
+  watch(
+    [() => useHarmonyStore().isMuted, () => useHarmonyStore().useChords],
+    () => {
+      getEngine()?.syncOutputAudibility()
+    },
+    { flush: 'sync' }
+  )
+
+  onScopeDispose(() => {
+    disposed = true
+    ++startRequest
+    engineInstance?.dispose()
+  })
 
   const playbackEngine = computed<PlaybackEngine | null>(() => getEngine())
 
@@ -305,6 +339,6 @@ export const useAudioStore = defineStore('audio', () => {
     stopProgressionPreview: audition.stopProgressionPreview,
     previewRhythm: audition.previewRhythm,
     stopRhythmPreview: audition.stopRhythmPreview,
-    panic: audition.panic
+    panic
   }
 })

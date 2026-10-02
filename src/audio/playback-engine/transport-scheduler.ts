@@ -1,21 +1,16 @@
 import * as Tone from 'tone'
-import type { InstrumentHost } from '../instrument-host'
+import { DEFAULT_TRANSPORT_OUTPUT } from '../../config/defaults'
+import { chordMidiNotes, melodyMidiNote } from '../../core/midi/live-messages'
+import type { TrackOutputRouter } from '../output-router'
 import { getGroovedLeadStarts, getGroovedStartStep } from '../../core/rhythm/groove'
 import type { ChordEvent } from '../../core/schemas/chord.schema'
 import type { AppNote } from '../../core/schemas/note.schema'
 import type { ProjectConfig } from '../../core/schemas/project.schema'
 import { STEPS_PER_BAR } from '../../core/schemas/project.schema'
-import type { EventGenerationTracker } from '../../core/synth/event-generation'
-import type { EffectsRack } from '../mixer'
 import { getStepDurationSeconds } from '../../core/transport/playback-timing'
 
 export interface TransportSchedulerDeps {
-  readonly effectsRack: EffectsRack
-  readonly generations: EventGenerationTracker
-  getLeadSynth(): InstrumentHost | null
-  getChordSynth(): InstrumentHost | null
-  /** Keeps voice ownership bounded after a note-on, in case no release callback follows. */
-  holdVoice(voiceId: string, holdSeconds: number): void
+  readonly outputRouter: TrackOutputRouter
 }
 
 /**
@@ -26,6 +21,14 @@ export interface TransportSchedulerDeps {
  * start. The scheduler owns the transport event IDs it created so callers can withdraw them.
  */
 export class TransportScheduler {
+  private leadRevision = 0
+  private chordRevision = 0
+  private notes: AppNote[] = []
+  private chords: ChordEvent[] = []
+  private config?: ProjectConfig
+  private leadGeneration = 0
+  private chordGeneration = 0
+
   private leadScheduledEventIds: number[] = []
   private chordScheduledEventIds: number[] = []
 
@@ -37,8 +40,13 @@ export class TransportScheduler {
 
   scheduleLead(notes: AppNote[], projectConfig: ProjectConfig, eventGeneration: number): void {
     this.clearLead()
+    this.notes = notes
+    this.config = { ...projectConfig }
+    this.leadGeneration = eventGeneration
+    const revision = this.leadRevision
+    this.deps.outputRouter.setLoop(projectConfig)
     const transport = Tone.getTransport()
-    const { generations, effectsRack } = this.deps
+    const { outputRouter } = this.deps
     const stepDuration = getStepDurationSeconds(projectConfig.bpm, '16n')
     const stepsPerBar = STEPS_PER_BAR
     const ticksPerStep = (transport.PPQ * 4) / stepsPerBar
@@ -51,17 +59,24 @@ export class TransportScheduler {
       if (note.isMuted) continue
 
       const position = `${Math.round((leadStarts.get(note.id) ?? note.step) * ticksPerStep)}i`
+      const startStep = Math.round((leadStarts.get(note.id) ?? note.step) * ticksPerStep) / ticksPerStep
+      const midiNote = melodyMidiNote(note)
       const durationSeconds = note.durationSteps * stepDuration
       const velocity = Math.max(0.01, Math.min(1.0, note.velocity / 127))
 
       const eventId = transport.schedule((time) => {
-        if (!generations.isCurrent('transport-lead', eventGeneration)) return
-        const leadSynth = this.deps.getLeadSynth()
-        if (!effectsRack.isLeadAudible() || !leadSynth) return
-        const handle = generations.beginVoice('transport-lead', eventGeneration, note.pitch)[0]
-        if (!handle) return
-        leadSynth.playNote(handle.id, note.pitch, durationSeconds, time, velocity)
-        this.deps.holdVoice(handle.id, durationSeconds)
+        if (revision !== this.leadRevision) return
+        outputRouter.dispatch({
+          track: 'lead',
+          generation: eventGeneration,
+          pitches: note.pitch,
+          midiNotes: midiNote.ok ? [midiNote.value] : [],
+          velocity,
+          onTimeSeconds: time,
+          durationSeconds,
+          startStep,
+          stepDurationSeconds: stepDuration
+        })
       }, position)
 
       this.leadScheduledEventIds.push(eventId)
@@ -70,12 +85,17 @@ export class TransportScheduler {
 
   scheduleChords(chords: ChordEvent[], projectConfig: ProjectConfig, eventGeneration: number): void {
     this.clearChords()
+    this.chords = chords
+    this.config = { ...projectConfig }
+    this.chordGeneration = eventGeneration
+    const revision = this.chordRevision
+    this.deps.outputRouter.setLoop(projectConfig)
     const transport = Tone.getTransport()
-    const { generations, effectsRack } = this.deps
+    const { outputRouter } = this.deps
     const stepsPerBar = STEPS_PER_BAR
     const ticksPerStep = (transport.PPQ * 4) / stepsPerBar
-    const beatDuration = 60 / Math.max(20, projectConfig.bpm)
-    const barDurationSeconds = beatDuration * 4
+    const stepDuration = getStepDurationSeconds(projectConfig.bpm, '16n')
+    const barDurationSeconds = stepDuration * stepsPerBar
 
     for (const chord of chords) {
       if (!chord.voicing || chord.voicing.length === 0) continue
@@ -85,15 +105,22 @@ export class TransportScheduler {
       const position = `${Math.round(groovedStep * ticksPerStep)}i`
       const durationSeconds = chord.durationBars * barDurationSeconds
       const voicedNotes = chord.voicing
+      const midiNotes = chordMidiNotes(chord)
+      const startStep = Math.round(groovedStep * ticksPerStep) / ticksPerStep
 
       const eventId = transport.schedule((time) => {
-        if (!generations.isCurrent('transport-chord', eventGeneration)) return
-        const chordSynth = this.deps.getChordSynth()
-        if (!effectsRack.isChordAudible() || !chordSynth) return
-        const handle = generations.beginVoice('transport-chord', eventGeneration, voicedNotes.join(','))[0]
-        if (!handle) return
-        chordSynth.playNote(handle.id, voicedNotes, durationSeconds, time, 0.75)
-        this.deps.holdVoice(handle.id, durationSeconds)
+        if (revision !== this.chordRevision) return
+        outputRouter.dispatch({
+          track: 'chord',
+          generation: eventGeneration,
+          pitches: voicedNotes,
+          midiNotes: midiNotes.ok ? midiNotes.value.notes : [],
+          velocity: DEFAULT_TRANSPORT_OUTPUT.chordVelocity,
+          onTimeSeconds: time,
+          durationSeconds,
+          startStep,
+          stepDurationSeconds: stepDuration
+        })
       }, position)
 
       this.chordScheduledEventIds.push(eventId)
@@ -112,6 +139,8 @@ export class TransportScheduler {
   }
 
   clearLead(): void {
+    ++this.leadRevision
+    this.notes = []
     const transport = Tone.getTransport()
     for (const id of this.leadScheduledEventIds) {
       transport.clear(id)
@@ -120,6 +149,8 @@ export class TransportScheduler {
   }
 
   clearChords(): void {
+    ++this.chordRevision
+    this.chords = []
     const transport = Tone.getTransport()
     for (const id of this.chordScheduledEventIds) {
       transport.clear(id)
@@ -136,8 +167,21 @@ export class TransportScheduler {
     this.clearChords()
   }
 
+  refreshLoop(loop?: Pick<ProjectConfig, 'loopStartStep' | 'loopEndStep' | 'isLooping'>): void {
+    if (!this.config) return
+    const config = { ...this.config, ...loop }
+    const notes = this.notes
+    const chords = this.chords
+    this.schedule(notes, chords, config, this.leadGeneration, this.chordGeneration)
+  }
+
   /** Drops the tracked IDs without touching the transport, for a caller that already cancelled it. */
   reset(): void {
+    ++this.leadRevision
+    ++this.chordRevision
+    this.notes = []
+    this.chords = []
+    this.config = undefined
     this.leadScheduledEventIds = []
     this.chordScheduledEventIds = []
   }

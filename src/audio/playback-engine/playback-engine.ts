@@ -2,7 +2,7 @@ import * as Tone from 'tone'
 import { transportSecondsToPlayheadStep } from '../../core/audio-dsp/output-latency'
 import type { ChordEvent } from '../../core/schemas/chord.schema'
 import type { AppNote } from '../../core/schemas/note.schema'
-import { STEPS_PER_BAR, type ProjectConfig } from '../../core/schemas/project.schema'
+import type { ProjectConfig } from '../../core/schemas/project.schema'
 import type { ChordPreset, LeadPreset } from '../../core/schemas/synth.schema'
 import {
   createEventGenerationTracker,
@@ -13,7 +13,10 @@ import { EffectsRack } from '../mixer'
 import { getStepDurationSeconds } from '../../core/transport/playback-timing'
 import { PreviewController, type NotesAuditionOptions } from './preview-controller'
 import { SynthRegistry } from './synth-registry'
+import { TransportMidiLifecycle } from './midi-lifecycle'
 import { TransportScheduler } from './transport-scheduler'
+import { TrackOutputRouter, type TrackOutputRuntime } from '../output-router'
+import { pickupActiveChord } from './chord-pickup'
 import type { SynthPatch } from '../../core/synth/patch'
 import {
   ensureAudioContextRunning,
@@ -61,10 +64,13 @@ export const TRANSPORT_LIFECYCLE_SEMANTICS = {
  * together.
  */
 export class PlaybackEngine {
+  readonly outputRouter: TrackOutputRouter
   readonly effectsRack: EffectsRack
   readonly generations: EventGenerationTracker = createEventGenerationTracker()
 
   private readonly synths: SynthRegistry
+  private readonly midiLifecycle: TransportMidiLifecycle
+  private startOperation = 0
   private readonly scheduler: TransportScheduler
   private readonly previews: PreviewController
   private rhythmPreview: RhythmPreviewController | null = null
@@ -78,16 +84,25 @@ export class PlaybackEngine {
     return meteringReady && protectionReady
   }
 
-  constructor(effectsRack?: EffectsRack) {
+  constructor(
+    effectsRack?: EffectsRack,
+    outputRuntime?: TrackOutputRuntime,
+    isChordEnabled: () => boolean = () => true
+  ) {
     this.effectsRack = effectsRack ?? new EffectsRack()
     this.synths = new SynthRegistry(this.effectsRack)
-    this.scheduler = new TransportScheduler({
-      effectsRack: this.effectsRack,
+    this.outputRouter = new TrackOutputRouter({
       generations: this.generations,
-      getLeadSynth: () => this.synths.getLead(),
-      getChordSynth: () => this.synths.getChord(),
+      runtime: outputRuntime,
+      isAudible: (track) =>
+        track === 'lead' ? this.effectsRack.isLeadAudible() : isChordEnabled() && this.effectsRack.isChordAudible(),
+      getInstrument: (track) => (track === 'lead' ? this.synths.getLead() : this.synths.getChord()),
       holdVoice: (voiceId, holdSeconds) => this.scheduleVoiceExpiry(voiceId, holdSeconds)
     })
+    this.midiLifecycle = new TransportMidiLifecycle(this.outputRouter, outputRuntime, () => {
+      ++this.startOperation
+    })
+    this.scheduler = new TransportScheduler({ outputRouter: this.outputRouter })
     this.previews = new PreviewController({
       generations: this.generations,
       getLeadPreviewSynth: () => this.synths.getLeadPreview(),
@@ -122,9 +137,11 @@ export class PlaybackEngine {
    * Schedules melody notes and accompaniment chords on Tone.Transport under fresh generations,
    * so events of the previous schedule can never start.
    */
-  schedule(notes: AppNote[], chords: ChordEvent[], projectConfig: ProjectConfig): void {
+  schedule(notes: AppNote[], chords: ChordEvent[], projectConfig: ProjectConfig, preserveTempoRamp = false): void {
+    this.midiLifecycle.refreshLead(notes, true)
+    this.midiLifecycle.cancel('chord')
     const transport = Tone.getTransport()
-    transport.bpm.value = projectConfig.bpm
+    if (!preserveTempoRamp) transport.bpm.value = projectConfig.bpm
     this.setTempo(projectConfig.bpm)
     setTransportLoop(projectConfig.loopStartStep, projectConfig.loopEndStep, projectConfig.isLooping)
 
@@ -137,7 +154,8 @@ export class PlaybackEngine {
    * Updates only melody notes on the transport, leaving scheduled chords and active chord voices
    * completely untouched.
    */
-  scheduleLead(notes: AppNote[], projectConfig: ProjectConfig): void {
+  scheduleLead(notes: AppNote[], projectConfig: ProjectConfig, replace = false): void {
+    this.midiLifecycle.refreshLead(notes, replace)
     const leadGen = this.beginTransportTrackSession('transport-lead')
     this.scheduler.scheduleLead(notes, projectConfig, leadGen)
   }
@@ -146,9 +164,19 @@ export class PlaybackEngine {
    * Updates only chord accompaniment on the transport, leaving melody notes completely untouched.
    */
   scheduleChords(chords: ChordEvent[], projectConfig: ProjectConfig): void {
+    this.midiLifecycle.cancel('chord')
     const chordGen = this.beginTransportTrackSession('transport-chord')
     this.scheduler.scheduleChords(chords, projectConfig, chordGen)
-    this.pickupActiveChordIfPlaying(chords, projectConfig, chordGen)
+    if (Tone.getTransport().state === 'started') {
+      pickupActiveChord(
+        this.outputRouter,
+        chords,
+        projectConfig,
+        chordGen,
+        this.getCurrentStep(projectConfig.bpm),
+        Tone.now()
+      )
+    }
   }
 
   setTempo(bpm: number): void {
@@ -172,41 +200,10 @@ export class PlaybackEngine {
     return this.generations.openGeneration(track)
   }
 
-  /**
-   * If chords are updated while transport is playing, immediately sounds the chord corresponding
-   * to the current playhead position for its remaining duration.
-   */
-  private pickupActiveChordIfPlaying(
-    chords: ChordEvent[],
-    projectConfig: ProjectConfig,
-    eventGeneration: number
-  ): void {
-    if (Tone.getTransport().state !== 'started') return
-    const currentStep = this.getCurrentStep(projectConfig.bpm)
-    const stepsPerBar = STEPS_PER_BAR
-    const currentBar = currentStep / stepsPerBar
-
-    const activeChord = chords.find(
-      (c) => c.voicing && c.voicing.length > 0 && currentBar >= c.startBar && currentBar < c.startBar + c.durationBars
-    )
-    if (!activeChord) return
-
-    const chordEndStep = (activeChord.startBar + activeChord.durationBars) * stepsPerBar
-    const remainingSteps = chordEndStep - currentStep
-    const stepDuration = getStepDurationSeconds(projectConfig.bpm, '16n')
-    const remainingSeconds = remainingSteps * stepDuration
-
-    if (remainingSeconds > 0.05) {
-      const chordSynth = this.synths.getChord()
-      if (!this.effectsRack.isChordAudible() || !chordSynth) return
-      const handle = this.generations.beginVoice('transport-chord', eventGeneration, activeChord.voicing.join(','))[0]
-      if (!handle) return
-      chordSynth.playNote(handle.id, activeChord.voicing, remainingSeconds, Tone.now(), 0.75)
-      this.scheduleVoiceExpiry(handle.id, remainingSeconds)
-    }
-  }
-
   clearScheduledEvents(): void {
+    this.generations.invalidate('transport-lead')
+    this.generations.invalidate('transport-chord')
+    this.midiLifecycle.cancel()
     this.scheduler.clear()
   }
 
@@ -243,13 +240,19 @@ export class PlaybackEngine {
   // --- Transport Controls ---
 
   async play(): Promise<void> {
+    const operation = ++this.startOperation
     // A start directly after a stop or panic must not begin inside the 12–35 ms silencing window.
     this.effectsRack.restoreVoiceGains()
-    await ensureAudioContextRunning()
+    if (!(await ensureAudioContextRunning())) throw new Error('Audio context is not running.')
+    if (this.isDisposed || operation !== this.startOperation) return
+    await this.midiLifecycle.resume()
+    if (this.isDisposed || operation !== this.startOperation) return
     Tone.getTransport().start()
   }
 
   pause(): void {
+    ++this.startOperation
+    this.midiLifecycle.suspend()
     this.clearScheduledEvents()
     this.invalidateTransportSession()
     this.truncateVoices()
@@ -257,6 +260,8 @@ export class PlaybackEngine {
   }
 
   stop(targetStep = 0): void {
+    ++this.startOperation
+    this.midiLifecycle.suspend()
     this.previews.stopNotesAudition()
     const transport = Tone.getTransport()
     transport.stop()
@@ -272,6 +277,8 @@ export class PlaybackEngine {
    * left untouched, so panic can be used as a safety action during playback.
    */
   panic(): void {
+    ++this.startOperation
+    this.midiLifecycle.panic()
     this.previews.stopNotesAudition()
     Tone.getTransport().cancel()
     this.scheduler.reset()
@@ -281,11 +288,20 @@ export class PlaybackEngine {
     this.previews.stopProgressionPreview()
   }
 
+  syncOutputAudibility(): void {
+    this.midiLifecycle.syncAudibility()
+  }
+
   setLoop(startStep: number, endStep: number, isLooping: boolean): void {
+    this.midiLifecycle.cancel()
+    this.scheduler.refreshLoop({ loopStartStep: startStep, loopEndStep: endStep, isLooping })
+    this.outputRouter.setLoop({ loopEndStep: endStep, isLooping })
     setTransportLoop(startStep, endStep, isLooping)
   }
 
   seekToStep(step: number): void {
+    this.midiLifecycle.cancel()
+    if (this.midiLifecycle.isExternal) this.scheduler.refreshLoop()
     // Release any sounding voices so notes do not hang across the seek position
     this.releaseSessionVoices('transport')
     this.releaseSessionVoices('transport-lead')
@@ -399,6 +415,8 @@ export class PlaybackEngine {
   dispose(): void {
     if (this.isDisposed) return
     this.isDisposed = true
+    ++this.startOperation
+    this.midiLifecycle.dispose()
     this.previews.dispose()
     this.rhythmPreview?.dispose()
     for (const timer of this.expiryTimers) clearTimeout(timer)

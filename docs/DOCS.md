@@ -56,6 +56,7 @@ The top header bar anchors the workstation. It hosts playback controls, arrangem
 ### Loop & Playhead Modes
 
 - **Loop Toggle (`L`):** Activates continuous looping between the loop start and loop end markers.
+- **Loop Note Gates:** Notes and chords release at the loop end even when their written duration extends beyond it. Instrument release and effect tails can continue to decay.
 - **Loop Markers:** Draggable triangular flags located on the top ruler. Click and drag the left or right marker to position the playback loop region anywhere along the project grid.
 - **Loop Selection (`Ctrl+L` / `Cmd+L`):** Snaps the loop region boundaries directly to the time span of all currently selected notes.
 - **Play from Loop Start:** When enabled, pressing Play (`Space`) always restarts playback from the loop start marker rather than resuming from the paused location.
@@ -77,6 +78,7 @@ The top header bar anchors the workstation. It hosts playback controls, arrangem
 ### Tempo & Project Groove
 
 - **BPM (Tempo):** Configurable from 40 to 280 BPM (default is 120 BPM). Click the numeric display to type an exact tempo value, or click the up/down arrows.
+- Changing BPM rebuilds upcoming melody and chord events with the new note durations while keeping the short tempo ramp. Notes already sounding internally may finish with their original gate.
 - **Tap Tempo:** Click repeatedly in rhythm to automatically calculate and set the BPM to match your tapped beat.
 - **Swing Knob (0% to 100%):** Shifts offbeat 8th and 16th notes later in time, creating traditional MPC-style swing or shuffle feel. 0% is strictly straight; 50% to 70% produces natural swing.
 - **Timing Looseness Knob (0% to 100%):** Injects subtle human micro-timing variations into note onsets. Small values (5% to 15%) eliminate robotic stiffness without dragging the groove.
@@ -485,13 +487,19 @@ Melody Mate v2 incorporates studio-grade protection processing on the master ste
   - Tabular numeric decibel readouts (`dBFS`).
 - **Sample Sanitization:** Real-time DSP sanitization replaces non-finite floating-point samples (`NaN` or `Infinity`) with silence, preventing audio engine crashes.
 - **Glitch-Resistant Audio Buffer & Interface Protection:** Melody Mate automatically standardizes on $\le 48\text{ kHz}$ audio processing with balanced buffer sizing (`latencyHint: 'balanced'`) and 100 ms scheduling lookahead. When connecting studio audio interfaces configured to 96 kHz or 192 kHz, or when running under Windows 11 WASAPI shared mode, the audio engine prevents buffer underruns, pops/crackles, and audio stream dropouts while maintaining sample-accurate playhead tracking and responsive note auditioning.
-- **Global Panic Button:** Always available in the footer, even with Sound & Mix closed. Panic silences internal voices and clears effect tails. Use it to stop unwanted sustained sound immediately. On narrow laptops Reset Settings and Export MIDI use icon buttons with the same accessible names and tooltips; Panic keeps its text label.
+- **Global Panic Button:** Always available in the footer, even with Sound & Mix closed. Panic silences internal voices and clears effect tails. For enabled MIDI routes it also clears app-owned port queues, releases known notes, and sends sustain-off, All Notes Off and All Sound Off on channels the app has used. Use it to stop unwanted sustained sound immediately. On narrow laptops Reset Settings and Export MIDI use icon buttons with the same accessible names and tooltips; Panic keeps its text label.
 
 ---
 
 ## 8. Multi-Track MIDI Export & DAW Integration
 
-Live MIDI access, port lifecycle, clock conversion and cancellable note-queue infrastructure are implemented internally. Live MIDI controls and external playback are not enabled yet. MIDI permission is never requested on startup. Internal playback and MIDI file export remain independent of device access. The clock bridge converts audio scheduling times; it does not transmit MIDI Clock or synchronize a DAW transport. Real device latency and reliability measurements remain pending.
+Live MIDI access, clock conversion, cancellable port queues and the shared Internal/MIDI/Both transport router are connected to the application runtime. Routing is currently available through the runtime/store API; live MIDI controls, preview routing and routing persistence remain pending. Defaults stay Internal, previews use the existing internal path, and MIDI permission is never requested on startup. Internal playback and MIDI file export remain independent of device access.
+
+Enabled external notes are released on Stop, Pause, Seek, loop changes, Clear and project Reset/Load. Track mute, solo exclusion and Harmony mute release only affected tracks. Editing or muting one melody note releases its stable note ID while unchanged sounding melody notes and the other track keep their scheduled Offs. Replace/Generate, BPM and groove changes end affected external generations and rebuild future events; currently sounding internal notes keep their established release policy. A BPM change gives new Both notes the same new duration in both outputs. Seek does not chase missed melody notes; the existing active-chord pickup remains available after chord updates.
+
+A route, channel or offset change replaces the old target only after preparation succeeds. MIDI Disable, pagehide, AudioContext suspension and clock timing loss cancel future external attacks. Device loss stops further sends; reconnect performs best-effort cleanup of known notes before an explicit Play/resume permits new output. Interrupted notes are never replayed. Normal edits and track cancellations send targeted Note-Offs; channel-wide safety controllers are reserved for global Panic.
+
+The clock bridge does not transmit MIDI Clock or synchronize a DAW transport. Lifecycle behavior is verified with deterministic port-buffer tests, including shared-port cancellation and late callbacks. Physical disconnects, browser crashes, hardware delivery and real device/DAW timing remain unverified; their acceptance belongs to Task 69.
 
 Click the **Export MIDI** button in the footer to open the export popover. Melody Mate v2 produces standard Type 1 MIDI files (`.mid`) formatted for direct import into any professional DAW or hardware sequencer.
 

@@ -20,6 +20,14 @@ export function cancelMidiPortScope(port: MidiOutputPort, scope: MidiNoteScope):
   owners.get(port)?.cancel(scope)
 }
 
+export function disconnectMidiPort(port: MidiOutputPort): void {
+  owners.get(port)?.disconnect()
+}
+
+export function recoverMidiPort(port: MidiOutputPort): void {
+  owners.get(port)?.recover()
+}
+
 export class MidiPortQueue {
   private readonly port: MidiOutputPort & { clear(): void }
   private readonly environment: MidiQueueEnvironment
@@ -94,10 +102,11 @@ export class MidiPortQueue {
     }
   }
 
-  enqueue(input: MidiNoteIntent): void {
+  enqueue(input: MidiNoteIntent, current?: () => boolean): void {
     if (this.disposed || this.failed) throw new Error('MIDI port queue is unavailable.')
     const note = MidiNoteIntentSchema.parse(input)
     const now = this.environment.readClock().nowMs
+    if (current && !current()) throw new Error('MIDI dispatch was canceled.')
     if (this.submitted.some((event) => event.kind === 'panic' && event.timeMs >= now - this.timing.cancelGuardMs)) {
       throw new Error('MIDI panic cleanup is still pending.')
     }
@@ -124,6 +133,7 @@ export class MidiPortQueue {
       )
     })
     if (removed.size) this.cancelIds(removed)
+    if (current && !current()) throw new Error('MIDI dispatch was canceled.')
     for (const entry of replacement) {
       const old = this.notes.get(entry.eventId)
       if (old) old.note = entry
@@ -178,6 +188,10 @@ export class MidiPortQueue {
 
   private drain(): void {
     if (this.disposed || this.failed) return
+    if (this.port.state !== 'connected' || this.port.connection !== 'open') {
+      this.disconnect()
+      return
+    }
     const clock = this.environment.readClock()
     if (!clock.running || clock.epoch !== this.epoch) {
       this.epoch = clock.epoch
@@ -235,6 +249,84 @@ export class MidiPortQueue {
     )
   }
 
+  endAt(scope: MidiNoteScope, timeMs: number): void {
+    if (this.disposed || this.failed) return
+    const canceled = new Set<string>()
+    let affected = false
+    for (const { note } of this.notes.values()) {
+      if (!matchesMidiScope(note, scope)) continue
+      affected = true
+      if (note.onTimeMs >= timeMs) canceled.add(note.eventId)
+      else note.offTimeMs = Math.min(note.offTimeMs, timeMs)
+    }
+    if (affected) this.rebuild(canceled)
+  }
+
+  disconnect(): void {
+    if (this.disposed || this.failed) return
+    this.failed = true
+    this.stopWakeup?.()
+    this.stopWakeup = undefined
+    try {
+      this.port.clear()
+      const now = this.environment.readClock().nowMs
+      const plan = planMidiPortClear(
+        [...this.notes.values()],
+        this.submitted,
+        new Set(),
+        now,
+        this.timing.cancelGuardMs
+      )
+      this.notes = new Map(
+        [
+          ...plan.retained.filter((entry) => entry.onSubmitted),
+          ...plan.releases.map((note) => ({ note, onSubmitted: true, offSubmitted: false, releaseOnly: true }))
+        ].map((entry) => [entry.note.eventId, entry])
+      )
+    } catch {
+      /* Preserve conservative release ownership when a disconnected driver cannot clear. */
+    }
+  }
+
+  get portId(): string {
+    return this.port.id
+  }
+
+  recoverTo(port: MidiOutputPort): MidiPortQueue {
+    if (port === this.port) {
+      this.recover()
+      return this
+    }
+    const next = MidiPortQueue.own(port, this.environment, this.timing)
+    const now = this.environment.readClock().nowMs
+    const obligations = [...this.notes.values()].filter((entry) => entry.onSubmitted)
+    if (obligations.length) {
+      next.failed = false
+      next.rebuild(new Set())
+      for (const { note } of obligations) {
+        // Reconnected handles have no old ledger; secure known attacks without replaying them.
+        next.notes.set(note.eventId, {
+          note: { ...note, offTimeMs: Math.max(now, note.onTimeMs) },
+          onSubmitted: true,
+          offSubmitted: false,
+          releaseOnly: true
+        })
+        next.usedChannels.set(note.channel, note)
+      }
+      next.arm()
+      next.pump()
+    }
+    this.notes.clear()
+    this.submitted = []
+    return next
+  }
+
+  recover(): void {
+    if (this.disposed || this.port.state !== 'connected' || this.port.connection !== 'open') return
+    this.failed = false
+    this.cancel({})
+  }
+
   releaseScope(scope: MidiNoteScope): void {
     this.cancel(scope)
   }
@@ -259,7 +351,7 @@ export class MidiPortQueue {
   }
 
   private cancelIds(ids: Set<string>): void {
-    if (this.disposed || !ids.size) return
+    if (this.disposed || this.failed || !ids.size) return
     this.rebuild(ids)
   }
 

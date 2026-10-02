@@ -55,6 +55,7 @@ export const useMixerStore = defineStore('mixer', () => {
       isChordSolo: isChordSolo.value,
       isBusCompressorActive: isBusCompressorActive.value
     })
+    engine.syncOutputAudibility()
     syncDiagnostics(engine)
   }
 
@@ -94,6 +95,7 @@ export const useMixerStore = defineStore('mixer', () => {
       isChordMuted.value = muted
       engine?.effectsRack.setChordMute(muted)
     }
+    engine?.syncOutputAudibility()
   }
 
   function setSolo(channel: 'lead' | 'chord', solo: boolean): void {
@@ -105,6 +107,7 @@ export const useMixerStore = defineStore('mixer', () => {
       isChordSolo.value = solo
       engine?.effectsRack.setChordSolo(solo)
     }
+    engine?.syncOutputAudibility()
   }
 
   function toggleSolo(channel: 'lead' | 'chord'): void {

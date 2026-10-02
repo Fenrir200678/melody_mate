@@ -77,8 +77,13 @@ export class NativeInstrument implements InstrumentHost {
   }
 
   playNote(id: string, pitches: string | string[], duration: number | string, time: number, velocity: number): void {
+    // Loop-clipped numeric gates may be shorter than the notation/preview minimum.
+    const holdSeconds =
+      typeof duration === 'number' ? duration : durationToSeconds(duration, Tone.getTransport().bpm.value)
+    if (!Number.isFinite(holdSeconds) || holdSeconds <= 0)
+      throw new RangeError('Note gate must be positive and finite.')
     this.noteOn(id, pitches, time, velocity)
-    const end = time + durationToSeconds(duration, Tone.getTransport().bpm.value)
+    const end = time + holdSeconds
     const delayMs = Math.max(0, (end - this.context.currentTime - 0.05) * 1000)
     const timer = setTimeout(() => {
       this.releaseTimers.delete(id)
