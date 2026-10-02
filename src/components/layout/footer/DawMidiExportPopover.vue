@@ -7,11 +7,12 @@
       :active="isExportOpen"
       :aria-expanded="isExportOpen"
       aria-haspopup="true"
+      aria-label="Export MIDI"
       title="Export Project as MIDI File"
       @click="isExportOpen = !isExportOpen"
     >
       <Download class="text-daw-signal h-3.5 w-3.5" />
-      <span>Export MIDI</span>
+      <span class="hidden lg:inline">Export MIDI</span>
       <ChevronUp class="text-daw-text-muted h-3 w-3 transition-transform" :class="{ 'rotate-180': isExportOpen }" />
     </DawButton>
 

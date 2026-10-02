@@ -32,6 +32,7 @@
       <div class="flex min-h-0 flex-1 flex-col overflow-hidden">
         <DawPianoRoll v-bind="pianoRollProps" v-on="pianoRollEvents" />
       </div>
+      <SoundMixDock v-if="uiStore.isSoundDockOpen" />
       <ChordStudioDock v-if="uiStore.isChordStudioOpen" />
       <RhythmStudioDock v-if="uiStore.isRhythmStudioOpen" />
       <ArpStudioDock v-if="uiStore.isArpStudioOpen" @close="uiStore.setArpStudioOpen(false)" />
@@ -82,6 +83,7 @@
   import GeneratorPanel from '@/components/generator/GeneratorPanel.vue'
   import DawPianoRoll from '@/components/pianoroll/DawPianoRoll.vue'
 
+  const SoundMixDock = defineAsyncComponent(() => import('@/components/layout/SoundMixDock.vue'))
   const ChordStudioDock = defineAsyncComponent(() => import('@/components/generator/harmony/ChordStudioDock.vue'))
   const RhythmStudioDock = defineAsyncComponent(() => import('@/components/generator/melody/RhythmStudioDock.vue'))
   const ArpStudioDock = defineAsyncComponent(() => import('@/components/generator/melody/ArpStudioDock.vue'))
@@ -156,14 +158,18 @@
     if (restoreFocus) document.getElementById(trigger)?.focus()
   }
 
-  watch(isWide, (wide) => {
-    if (wide) {
-      uiStore.setLeftSidebar(uiStore.wideLeftSidebarOpen)
-      uiStore.setRightSidebar(uiStore.wideRightSidebarOpen)
-    } else {
-      closeCompactPanels()
-    }
-  })
+  watch(
+    isWide,
+    (wide) => {
+      if (wide) {
+        uiStore.setLeftSidebar(uiStore.wideLeftSidebarOpen)
+        uiStore.setRightSidebar(uiStore.wideRightSidebarOpen)
+      } else {
+        closeCompactPanels()
+      }
+    },
+    { immediate: true }
+  )
 
   watch(activeCompactDrawer, (drawer) => {
     if (!drawer) return
@@ -182,9 +188,21 @@
     { immediate: true }
   )
 
+  watch(
+    () => uiStore.activeStudioDock,
+    (dock, previous) => {
+      if (previous === 'sound' && dock === null && !uiStore.activeModal) {
+        document.getElementById('sound-mix-toggle')?.focus()
+      }
+    },
+    { flush: 'post' }
+  )
+
   function onEscape(event: KeyboardEvent): void {
+    if (event.defaultPrevented) return
     if (isWide.value || (!uiStore.isLeftSidebarOpen && !uiStore.isRightSidebarOpen)) return
     event.preventDefault()
+    event.stopPropagation()
     closeCompactPanels(true)
   }
 </script>

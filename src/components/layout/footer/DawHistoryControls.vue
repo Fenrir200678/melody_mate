@@ -38,7 +38,7 @@
 
   // Undo/redo follows the piano roll's active track or rhythm context
   const activeHistoryStore = computed(() => {
-    if (uiStore.activeHistoryContext === 'rhythm' && uiStore.isRhythmStudioOpen) return rhythmStore
+    if (uiStore.activeHistoryContext === 'rhythm') return rhythmStore
     return uiStore.activeTrack === 'chords' ? harmonyStore : melodyStore
   })
 </script>

@@ -207,6 +207,12 @@ Here is a glimpse of features, workflows and concepts currently on the radar for
 - **Step-Gate & Rhythmic Masking:** 16-step rhythmic pattern trance-gate grid for rhythmic chopping and gate sequencing.
 - **Arp Style Quick Profiles:** Curated instant presets for iconic pattern archetypes (_80s Bassline_, _Rolling Trance 16th_, _Ambient Cascade_, _Pluck Ostinato_).
 
+### Audio Buffer/Latency Settings
+
+- Let the user choose audio buffer size or latency settings.
+- Offer presets for "Optimal Performance" (lowest latency), "Balanced", and "Maximum Stability" (highest latency).
+- Explain the trade-offs in simple terms (e.g., "Lower latency = more responsive but may cause crackles on slow computers").
+
 If you have any suggestions, feature requests, or feedback, please feel free to open an issue or contribute to the discussion on the project's repository.
 
 ## License

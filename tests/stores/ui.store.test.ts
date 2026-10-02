@@ -1,4 +1,5 @@
 import { createPinia, setActivePinia } from 'pinia'
+import { nextTick } from 'vue'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { installMockLocalStorage } from '../helpers/storage-mock'
@@ -9,7 +10,133 @@ import {
   DEFAULT_UI_PREFERENCES,
   UI_PREFERENCES_VERSION
 } from '../../src/config/ui-defaults'
+import { UI_STORAGE_KEY } from '../../src/composables/uiStorage'
 import { useUiStore } from '../../src/stores/ui.store'
+
+describe('useUiStore sound dock', () => {
+  beforeEach(() => {
+    installMockLocalStorage()
+    setActivePinia(createPinia())
+  })
+
+  it('shares the exclusive studio slot and preserves track and history context', () => {
+    const store = useUiStore()
+    store.setActiveTrack('chords')
+    store.setActiveHistoryContext('chord')
+
+    store.setSoundDockOpen(true)
+    expect(store.activeStudioDock).toBe('sound')
+    expect(store.isSoundDockOpen).toBe(true)
+    expect(store.isChordStudioOpen).toBe(false)
+    expect(store.activeTrack).toBe('chords')
+    expect(store.activeHistoryContext).toBe('chord')
+
+    store.setRhythmStudioOpen(true)
+    expect(store.activeStudioDock).toBe('rhythm')
+    expect(store.isSoundDockOpen).toBe(false)
+
+    store.setSoundDockOpen(true)
+    expect(store.activeStudioDock).toBe('sound')
+    expect(store.isRhythmStudioOpen).toBe(false)
+    expect(store.activeTrack).toBe('melody')
+    expect(store.activeHistoryContext).toBe('rhythm')
+  })
+
+  it('does not close another selected studio when sound receives a close request', () => {
+    const store = useUiStore()
+    store.setChordStudioOpen(true)
+
+    store.setSoundDockOpen(false)
+
+    expect(store.activeStudioDock).toBe('chord')
+    expect(store.isChordStudioOpen).toBe(true)
+  })
+
+  it.each(['chord', 'rhythm', 'arp'] as const)(
+    'replaces %s with sound and back without keeping two docks open',
+    (dock) => {
+      const store = useUiStore()
+      const open = {
+        chord: store.setChordStudioOpen,
+        rhythm: store.setRhythmStudioOpen,
+        arp: store.setArpStudioOpen
+      }[dock]
+      open(true)
+      const track = store.activeTrack
+      const history = store.activeHistoryContext
+      store.toggleSoundDock()
+      expect(store.activeStudioDock).toBe('sound')
+      expect(store.activeTrack).toBe(track)
+      expect(store.activeHistoryContext).toBe(history)
+      open(false)
+      expect(store.isSoundDockOpen).toBe(true)
+      open(true)
+      expect(store.activeStudioDock).toBe(dock)
+      expect(store.isSoundDockOpen).toBe(false)
+    }
+  )
+
+  it('clamps sound height and resets an active sound dock to configured defaults', () => {
+    const store = useUiStore()
+    store.setSoundDockHeight(DEFAULT_UI_DIMENSIONS.soundDock.minHeight - 1)
+    expect(store.soundDockHeight).toBe(DEFAULT_UI_DIMENSIONS.soundDock.minHeight)
+    store.setSoundDockHeight(DEFAULT_UI_DIMENSIONS.soundDock.maxHeight + 1)
+    expect(store.soundDockHeight).toBe(DEFAULT_UI_DIMENSIONS.soundDock.maxHeight)
+    store.setSoundDockOpen(true)
+    store.reset()
+    expect(store.activeStudioDock).toBe(DEFAULT_UI_PREFERENCES.activeStudioDock)
+    expect(store.soundDockHeight).toBe(DEFAULT_UI_DIMENSIONS.soundDock.defaultHeight)
+  })
+
+  it('toggles sound selection off and resets its height from UI defaults', () => {
+    const store = useUiStore()
+    store.setSoundDockOpen(true)
+    store.toggleSoundDock()
+    expect(store.activeStudioDock).toBeNull()
+
+    store.setSoundDockHeight(DEFAULT_UI_DIMENSIONS.soundDock.maxHeight)
+    store.resetSoundDockHeight()
+    expect(store.soundDockHeight).toBe(DEFAULT_UI_DIMENSIONS.soundDock.defaultHeight)
+  })
+
+  it('persists and restores the selected sound dock and its height', async () => {
+    const { storage } = installMockLocalStorage()
+    const store = useUiStore()
+    store.setSoundDockOpen(true)
+    store.setSoundDockHeight(DEFAULT_UI_DIMENSIONS.soundDock.minHeight)
+    await nextTick()
+
+    expect(JSON.parse(storage.getItem(UI_STORAGE_KEY) ?? '{}')).toMatchObject({
+      version: UI_PREFERENCES_VERSION,
+      activeStudioDock: 'sound',
+      soundDockHeight: DEFAULT_UI_DIMENSIONS.soundDock.minHeight
+    })
+
+    setActivePinia(createPinia())
+    const restoredStore = useUiStore()
+    expect(restoredStore.activeStudioDock).toBe('sound')
+    expect(restoredStore.isSoundDockOpen).toBe(true)
+    expect(restoredStore.soundDockHeight).toBe(DEFAULT_UI_DIMENSIONS.soundDock.minHeight)
+  })
+
+  it('discards prior-version dock state and falls back to the configured defaults', () => {
+    const { storage } = installMockLocalStorage()
+    storage.setItem(
+      UI_STORAGE_KEY,
+      JSON.stringify({
+        version: UI_PREFERENCES_VERSION - 1,
+        activeStudioDock: 'sound',
+        soundDockHeight: DEFAULT_UI_DIMENSIONS.soundDock.maxHeight
+      })
+    )
+
+    setActivePinia(createPinia())
+    const store = useUiStore()
+    expect(store.activeStudioDock).toBe(DEFAULT_UI_PREFERENCES.activeStudioDock)
+    expect(store.isSoundDockOpen).toBe(DEFAULT_UI_PREFERENCES.activeStudioDock === 'sound')
+    expect(store.soundDockHeight).toBe(DEFAULT_UI_DIMENSIONS.soundDock.defaultHeight)
+  })
+})
 
 describe('useUiStore velocity lane', () => {
   beforeEach(() => {
@@ -216,6 +343,19 @@ describe('useUiStore sidebars', () => {
     expect(store.wideRightSidebarOpen).toBe(true)
   })
 
+  it('resets compact drawers closed while restoring configured wide sidebar preferences', () => {
+    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1024 })
+    const store = useUiStore()
+    store.setLeftSidebar(true)
+    store.setSoundDockOpen(true)
+    store.reset()
+    expect(store.isLeftSidebarOpen).toBe(false)
+    expect(store.isRightSidebarOpen).toBe(false)
+    expect(store.wideLeftSidebarOpen).toBe(DEFAULT_UI_PREFERENCES.isLeftSidebarOpen)
+    expect(store.wideRightSidebarOpen).toBe(DEFAULT_UI_PREFERENCES.isRightSidebarOpen)
+    expect(store.activeStudioDock).toBe(DEFAULT_UI_PREFERENCES.activeStudioDock)
+  })
+
   it('toggles sidebars correctly', () => {
     Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1440 })
     const store = useUiStore()
@@ -253,6 +393,7 @@ describe('useUiStore sidebars', () => {
 describe('useUiStore defaults and reset', () => {
   beforeEach(() => {
     installMockLocalStorage()
+    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1440 })
     setActivePinia(createPinia())
   })
 
@@ -289,7 +430,7 @@ describe('useUiStore defaults and reset', () => {
     expect(store.playFromLoopStart).toBe(DEFAULT_UI_PREFERENCES.playFromLoopStart)
     expect(store.isLeftSidebarOpen).toBe(DEFAULT_UI_PREFERENCES.isLeftSidebarOpen)
     expect(store.isRightSidebarOpen).toBe(DEFAULT_UI_PREFERENCES.isRightSidebarOpen)
-    expect(store.isSoundDockOpen).toBe(DEFAULT_UI_PREFERENCES.isSoundDockOpen)
+    expect(store.isSoundDockOpen).toBe(DEFAULT_UI_PREFERENCES.activeStudioDock === 'sound')
     expect(store.activeStudioDock).toBe(DEFAULT_UI_PREFERENCES.activeStudioDock)
 
     expect(store.leftSidebarWidth).toBe(DEFAULT_UI_DIMENSIONS.leftSidebar.defaultWidth)
@@ -338,7 +479,7 @@ describe('useUiStore defaults and reset', () => {
     expect(store.playFromLoopStart).toBe(DEFAULT_UI_PREFERENCES.playFromLoopStart)
     expect(store.isLeftSidebarOpen).toBe(DEFAULT_UI_PREFERENCES.isLeftSidebarOpen)
     expect(store.isRightSidebarOpen).toBe(DEFAULT_UI_PREFERENCES.isRightSidebarOpen)
-    expect(store.isSoundDockOpen).toBe(DEFAULT_UI_PREFERENCES.isSoundDockOpen)
+    expect(store.isSoundDockOpen).toBe(DEFAULT_UI_PREFERENCES.activeStudioDock === 'sound')
     expect(store.activeStudioDock).toBe(DEFAULT_UI_PREFERENCES.activeStudioDock)
     expect(store.soundDockHeight).toBe(DEFAULT_UI_DIMENSIONS.soundDock.defaultHeight)
     expect(store.chordStudioHeight).toBe(DEFAULT_UI_DIMENSIONS.chordStudio.defaultHeight)
@@ -377,7 +518,7 @@ describe('useUiStore defaults and reset', () => {
     expect(store.isVelocityLaneOpen).toBe(DEFAULT_UI_PREFERENCES.isVelocityLaneOpen)
     expect(store.isLeftSidebarOpen).toBe(DEFAULT_UI_PREFERENCES.isLeftSidebarOpen)
     expect(store.isRightSidebarOpen).toBe(DEFAULT_UI_PREFERENCES.isRightSidebarOpen)
-    expect(store.isSoundDockOpen).toBe(DEFAULT_UI_PREFERENCES.isSoundDockOpen)
+    expect(store.isSoundDockOpen).toBe(DEFAULT_UI_PREFERENCES.activeStudioDock === 'sound')
     expect(store.activeStudioDock).toBe(DEFAULT_UI_PREFERENCES.activeStudioDock)
   })
 

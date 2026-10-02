@@ -17,7 +17,6 @@ export interface PersistedUiPreferences {
   version?: number
   isLeftSidebarOpen?: boolean
   isRightSidebarOpen?: boolean
-  isSoundDockOpen?: boolean
   activeStudioDock?: StudioDock
   rhythmStudioHeight?: number
   arpStudioHeight?: number

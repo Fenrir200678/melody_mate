@@ -1,6 +1,7 @@
 <template>
   <section
     id="rhythm-studio-dock"
+    ref="dockRef"
     class="rhythm-studio border-daw-border bg-daw-panel flex min-h-0 shrink-0 flex-col overflow-hidden border-t"
     :style="{ height: `${effectiveHeight}px` }"
     aria-labelledby="rhythm-studio-title"
@@ -13,7 +14,7 @@
       :model-value="effectiveHeight"
       orientation="horizontal"
       side="bottom"
-      :min="RHYTHM_STUDIO_MIN_HEIGHT"
+      :min="minDockHeight"
       :max="maxDockHeight"
       :default-value="RHYTHM_STUDIO_DEFAULT_HEIGHT"
       label="Resize Rhythm Studio"
@@ -54,17 +55,13 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+  import { computed, onBeforeUnmount, ref, useTemplateRef, watch } from 'vue'
+  import { DEFAULT_UI_DIMENSIONS } from '@/config/ui-defaults'
+  import { useStudioDockSize } from '@/composables/useStudioDockSize'
   import DawResizeHandle from '@/components/common/DawResizeHandle.vue'
   import { useMelodyStore } from '@/stores/melody.store'
   import { useRhythmStore } from '@/stores/rhythm.store'
-  import {
-    RHYTHM_STUDIO_DEFAULT_HEIGHT,
-    RHYTHM_STUDIO_MAX_HEIGHT,
-    RHYTHM_STUDIO_MIN_HEIGHT,
-    STUDIO_MIN_ROLL_HEIGHT,
-    useUiStore
-  } from '@/stores/ui.store'
+  import { RHYTHM_STUDIO_DEFAULT_HEIGHT, useUiStore } from '@/stores/ui.store'
   import RhythmPatternGrid from './rhythm-studio/RhythmPatternGrid.vue'
   import RhythmSaveModal from './rhythm-studio/RhythmSaveModal.vue'
   import RhythmStudioHeader from './rhythm-studio/RhythmStudioHeader.vue'
@@ -75,29 +72,14 @@
   const uiStore = useUiStore()
   const melodyStore = useMelodyStore()
 
-  const maxDockHeight = ref(RHYTHM_STUDIO_MAX_HEIGHT)
-  const effectiveHeight = computed(() =>
-    Math.max(RHYTHM_STUDIO_MIN_HEIGHT, Math.min(uiStore.rhythmStudioHeight, maxDockHeight.value))
+  const dockRef = useTemplateRef<HTMLElement>('dockRef')
+  const { effectiveHeight, minDockHeight, maxDockHeight } = useStudioDockSize(
+    dockRef,
+    () => uiStore.rhythmStudioHeight,
+    DEFAULT_UI_DIMENSIONS.rhythmStudio
   )
 
-  function updateMaxDockHeight(): void {
-    const shell = document.querySelector<HTMLElement>('.daw-shell')
-    const header = document.querySelector<HTMLElement>('.daw-header')
-    const footer = document.querySelector<HTMLElement>('.daw-footer')
-    const available =
-      shell && header && footer
-        ? shell.clientHeight - header.clientHeight - footer.clientHeight - STUDIO_MIN_ROLL_HEIGHT
-        : RHYTHM_STUDIO_MAX_HEIGHT
-    maxDockHeight.value = Math.max(RHYTHM_STUDIO_MIN_HEIGHT, Math.min(RHYTHM_STUDIO_MAX_HEIGHT, available))
-  }
-
-  onMounted(() => {
-    updateMaxDockHeight()
-    window.addEventListener('resize', updateMaxDockHeight)
-  })
-
   onBeforeUnmount(() => {
-    window.removeEventListener('resize', updateMaxDockHeight)
     store.stopPreview()
   })
 

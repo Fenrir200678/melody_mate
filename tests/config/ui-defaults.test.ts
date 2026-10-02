@@ -81,11 +81,10 @@ describe('UI defaults configuration', () => {
     it('uses valid dock status defaults', () => {
       expect(typeof DEFAULT_UI_PREFERENCES.isLeftSidebarOpen).toBe('boolean')
       expect(typeof DEFAULT_UI_PREFERENCES.isRightSidebarOpen).toBe('boolean')
-      expect(typeof DEFAULT_UI_PREFERENCES.isSoundDockOpen).toBe('boolean')
       expect(typeof DEFAULT_UI_PREFERENCES.isVelocityLaneOpen).toBe('boolean')
 
       if (DEFAULT_UI_PREFERENCES.activeStudioDock !== null) {
-        expect(['chord', 'rhythm', 'arp']).toContain(DEFAULT_UI_PREFERENCES.activeStudioDock)
+        expect(['chord', 'rhythm', 'arp', 'sound']).toContain(DEFAULT_UI_PREFERENCES.activeStudioDock)
       } else {
         expect(DEFAULT_UI_PREFERENCES.activeStudioDock).toBeNull()
       }

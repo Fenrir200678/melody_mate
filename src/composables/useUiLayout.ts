@@ -37,8 +37,8 @@ export function useUiLayout(options: UseUiLayoutOptions) {
   const wideLeftSidebarOpen = ref(isLeftSidebarOpen.value)
   const wideRightSidebarOpen = ref(isRightSidebarOpen.value)
 
-  const isSoundDockOpen = ref<boolean>(preferences?.isSoundDockOpen ?? DEFAULT_UI_PREFERENCES.isSoundDockOpen)
   const activeStudioDock = ref<StudioDock>(preferences?.activeStudioDock ?? DEFAULT_UI_PREFERENCES.activeStudioDock)
+  const isSoundDockOpen = computed(() => activeStudioDock.value === 'sound')
   const isChordStudioOpen = computed(() => activeStudioDock.value === 'chord')
   const isRhythmStudioOpen = computed(() => activeStudioDock.value === 'rhythm')
   const isArpStudioOpen = computed(() => activeStudioDock.value === 'arp')
@@ -141,11 +141,11 @@ export function useUiLayout(options: UseUiLayoutOptions) {
   }
 
   function toggleSoundDock(): void {
-    isSoundDockOpen.value = !isSoundDockOpen.value
+    setSoundDockOpen(!isSoundDockOpen.value)
   }
 
   function setSoundDockOpen(open: boolean): void {
-    isSoundDockOpen.value = open
+    activeStudioDock.value = open ? 'sound' : isSoundDockOpen.value ? null : activeStudioDock.value
   }
 
   function setSoundDockHeight(height: number): void {
@@ -270,11 +270,10 @@ export function useUiLayout(options: UseUiLayoutOptions) {
   }
 
   function resetLayout(): void {
-    isLeftSidebarOpen.value = DEFAULT_UI_PREFERENCES.isLeftSidebarOpen
-    isRightSidebarOpen.value = DEFAULT_UI_PREFERENCES.isRightSidebarOpen
+    isLeftSidebarOpen.value = isWideViewport() && DEFAULT_UI_PREFERENCES.isLeftSidebarOpen
+    isRightSidebarOpen.value = isWideViewport() && DEFAULT_UI_PREFERENCES.isRightSidebarOpen
     wideLeftSidebarOpen.value = DEFAULT_UI_PREFERENCES.isLeftSidebarOpen
     wideRightSidebarOpen.value = DEFAULT_UI_PREFERENCES.isRightSidebarOpen
-    isSoundDockOpen.value = DEFAULT_UI_PREFERENCES.isSoundDockOpen
     activeStudioDock.value = DEFAULT_UI_PREFERENCES.activeStudioDock
     resetSoundDockHeight()
     resetChordStudioHeight()
@@ -290,7 +289,6 @@ export function useUiLayout(options: UseUiLayoutOptions) {
     [
       wideLeftSidebarOpen,
       wideRightSidebarOpen,
-      isSoundDockOpen,
       activeStudioDock,
       leftSidebarWidth,
       rightSidebarWidth,
@@ -304,7 +302,6 @@ export function useUiLayout(options: UseUiLayoutOptions) {
     ([
       leftOpen,
       rightOpen,
-      soundOpen,
       studioDock,
       leftWidth,
       rightWidth,
@@ -318,7 +315,6 @@ export function useUiLayout(options: UseUiLayoutOptions) {
       saveUiPreferences({
         isLeftSidebarOpen: leftOpen,
         isRightSidebarOpen: rightOpen,
-        isSoundDockOpen: soundOpen,
         activeStudioDock: studioDock,
         leftSidebarWidth: leftWidth,
         rightSidebarWidth: rightWidth,

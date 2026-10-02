@@ -79,7 +79,7 @@ Unlike simple randomizers or playback-only tools, Melody Mate v2 operates as an 
   - **Right Sidebar (`ExpressionPanel.vue`):** Collapsible and resizable (min 200px, max 420px). Hosts Pitch, Harmony, Feel, and Analysis modules.
 - **DawFooter:**
   - Note count chip and transport playback status.
-  - Studio triggers: Rhythm Studio (`R`), Arp Studio (`A`), Chord Studio (`C`), Sound & Mix popover (`S`).
+  - Studio triggers: Rhythm Studio (`R`), Arp Studio (`A`), Chord Studio (`C`), Sound & Mix dock (`S`).
   - History controls: Undo (`Ctrl+Z`), Redo (`Ctrl+Y`).
   - Project reset modal: clean localStorage purge and default state restore.
   - Export MIDI popover with download options.
@@ -253,7 +253,7 @@ Melody Mate v2 avoids unmusical random noise by combining probabilistic transiti
 
 ## 7. Dedicated Studio Docks
 
-Melody Mate v2 includes three dedicated full-featured studio environments docked below the piano roll:
+Melody Mate v2 includes three creation studios and a Sound & Mix workspace dock sharing one slot below the piano roll:
 
 ### 7.1 Arp Studio (`ArpStudioDock.vue`)
 
@@ -397,7 +397,7 @@ Melody Mate v2 features an onboard audio engine that requires no external plugin
 
 ### 11.2 Dual Channel Strips (Melody & Chord Tracks)
 
-Accessible via the **Sound & Mix** popover (`S`):
+Accessible via the **Sound & Mix** workspace dock (`S`):
 
 - Dedicated channel strips for **Melody (Lead)** and **Chords (Accompaniment)**.
 - Track Solo (`S`) and Mute (`M`) buttons.
@@ -407,6 +407,9 @@ Accessible via the **Sound & Mix** popover (`S`):
 - **8 Sound Shaping Micro-Knobs per Track:**
   - Row 1 (Envelope): Attack (`Atk`), Decay (`Dec`), Sustain (`Sus`), Release (`Rel`).
   - Row 2 (Filter & Effects): Filter Cutoff (`Cutoff`), Delay Send (`Delay`), Chorus Send (`Chorus`), Reverb Send (`Reverb`).
+
+- **Workspace dock lifecycle:** Sound shares the mutually exclusive `activeStudioDock` selection with Chord, Rhythm, and Arp; its open state is derived. It does not change active track or undo context. Close, `S`, and Escape restore focus to the footer trigger; selectors/modals handle Escape first. Dock closure leaves transport playback running.
+- **Layout:** `SoundMixDock.vue` mounts one `SynthRack` in the center viewport with header, Close, shared `DawResizeHandle`, and bounded content scrolling. All studio docks use `useStudioDockSize` to observe available workspace height and avoid competing minimums on short windows. Sound defaults and persisted preferred height are centralized in `ui-defaults.ts`; the versioned development preference reset drops the previous independent Sound boolean. Global Panic lives exactly once in the persistent footer. Below 1024px, Reset Settings and Export MIDI use named icon triggers and master status omits its meter bar/heading to keep all footer actions reachable. No Web MIDI or routing controls are implemented here.
 
 ### 11.3 Calibrated Factory Sound Presets
 
@@ -523,7 +526,7 @@ Melody Mate v2 provides professional MIDI export formatted for immediate use in 
 |                           | `R`                    | Toggle Rhythm Studio Dock                 |
 |                           | `A`                    | Toggle Arp Studio Dock                    |
 |                           | `C`                    | Toggle Chord Studio Dock                  |
-|                           | `S`                    | Toggle Sound & Mix Popover                |
+|                           | `S`                    | Toggle Sound & Mix Dock                   |
 |                           | `?`                    | Open Keyboard Shortcuts Modal             |
 | **Viewport & Zoom**       | `+` / `=`              | Zoom In Horizontally                      |
 |                           | `-`                    | Zoom Out Horizontally                     |

@@ -71,15 +71,32 @@
       />
     </DawButton>
 
-    <!-- Sound & Mix Popover Trigger & Card -->
-    <DawSoundMixPopover />
+    <DawButton
+      id="sound-mix-toggle"
+      appearance="surface"
+      variant="signal"
+      size="md"
+      :active="uiStore.isSoundDockOpen"
+      :aria-expanded="uiStore.isSoundDockOpen"
+      aria-controls="sound-mix-dock"
+      aria-label="Toggle Sound and Mix"
+      title="Toggle Sound & Mix (S)"
+      @click="uiStore.toggleSoundDock()"
+    >
+      <AudioLines class="text-daw-signal h-3.5 w-3.5" aria-hidden="true" />
+      <span class="hidden xl:inline">Sound &amp; Mix</span>
+      <ChevronUp
+        class="text-daw-text-muted h-3 w-3 transition-transform"
+        :class="{ 'rotate-180': uiStore.isSoundDockOpen }"
+        aria-hidden="true"
+      />
+    </DawButton>
   </div>
 </template>
 
 <script setup lang="ts">
   import { AudioLines, ChevronUp, ListMusic, Music2 } from '@lucide/vue'
   import DawButton from '@/components/common/DawButton.vue'
-  import DawSoundMixPopover from './DawSoundMixPopover.vue'
   import { useHarmonyStore } from '@/stores/harmony.store'
   import { useMelodyStore } from '@/stores/melody.store'
   import { useUiStore } from '@/stores/ui.store'

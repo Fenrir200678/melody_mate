@@ -8,10 +8,11 @@
       size="md"
       :active="isResetOpen"
       :icon="RotateCcw"
+      aria-label="Reset Settings"
       title="Reset all settings to their defaults"
       @click="isResetOpen = true"
     >
-      Reset Settings
+      <span class="hidden lg:inline">Reset Settings</span>
     </DawButton>
 
     <!-- Reset Settings Confirmation Modal -->

@@ -1,6 +1,7 @@
 <template>
   <section
     id="arp-studio-dock"
+    ref="dockRef"
     class="border-daw-border bg-daw-panel flex min-h-0 shrink-0 flex-col overflow-hidden border-t select-none"
     :style="{ height: `${effectiveHeight}px` }"
     aria-labelledby="arp-studio-title"
@@ -11,7 +12,7 @@
       :model-value="effectiveHeight"
       orientation="horizontal"
       side="bottom"
-      :min="ARP_STUDIO_MIN_HEIGHT"
+      :min="minDockHeight"
       :max="maxDockHeight"
       :default-value="ARP_STUDIO_DEFAULT_HEIGHT"
       label="Resize Arp Studio"
@@ -59,18 +60,14 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+  import { onBeforeUnmount, useTemplateRef, watch } from 'vue'
   import { ArrowUpDown, X } from '@lucide/vue'
   import DawIconButton from '@/components/common/DawIconButton.vue'
+  import { DEFAULT_UI_DIMENSIONS } from '@/config/ui-defaults'
+  import { useStudioDockSize } from '@/composables/useStudioDockSize'
   import DawResizeHandle from '@/components/common/DawResizeHandle.vue'
   import { useMelodyStore } from '@/stores/melody.store'
-  import {
-    ARP_STUDIO_DEFAULT_HEIGHT,
-    ARP_STUDIO_MAX_HEIGHT,
-    ARP_STUDIO_MIN_HEIGHT,
-    STUDIO_MIN_ROLL_HEIGHT,
-    useUiStore
-  } from '@/stores/ui.store'
+  import { ARP_STUDIO_DEFAULT_HEIGHT, useUiStore } from '@/stores/ui.store'
   import ArpStudioActions from './arp-studio/ArpStudioActions.vue'
   import ArpStudioChords from './arp-studio/ArpStudioChords.vue'
   import ArpStudioControls from './arp-studio/ArpStudioControls.vue'
@@ -79,26 +76,12 @@
   const emit = defineEmits<{ close: [] }>()
   const uiStore = useUiStore()
   const melodyStore = useMelodyStore()
-  const maxDockHeight = ref(ARP_STUDIO_MAX_HEIGHT)
-  const effectiveHeight = computed(() =>
-    Math.max(ARP_STUDIO_MIN_HEIGHT, Math.min(uiStore.arpStudioHeight, maxDockHeight.value))
+  const dockRef = useTemplateRef<HTMLElement>('dockRef')
+  const { effectiveHeight, minDockHeight, maxDockHeight } = useStudioDockSize(
+    dockRef,
+    () => uiStore.arpStudioHeight,
+    DEFAULT_UI_DIMENSIONS.arpStudio
   )
-
-  function updateMaxDockHeight(): void {
-    const shell = document.querySelector<HTMLElement>('.daw-shell')
-    const header = document.querySelector<HTMLElement>('.daw-header')
-    const footer = document.querySelector<HTMLElement>('.daw-footer')
-    const available =
-      shell && header && footer
-        ? shell.clientHeight - header.clientHeight - footer.clientHeight - STUDIO_MIN_ROLL_HEIGHT
-        : ARP_STUDIO_MAX_HEIGHT
-    maxDockHeight.value = Math.max(ARP_STUDIO_MIN_HEIGHT, Math.min(ARP_STUDIO_MAX_HEIGHT, available))
-  }
-
-  onMounted(() => {
-    updateMaxDockHeight()
-    window.addEventListener('resize', updateMaxDockHeight)
-  })
 
   // Any input or model change replaces the candidate and ends a running audition of the old one.
   watch(
@@ -112,7 +95,6 @@
   )
 
   onBeforeUnmount(() => {
-    window.removeEventListener('resize', updateMaxDockHeight)
     melodyStore.stopArpAudition()
     melodyStore.discardArpCandidate()
   })

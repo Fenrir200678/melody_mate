@@ -15,7 +15,7 @@
       role="status"
       aria-label="Master output status"
     >
-      <span class="text-daw-text-muted">MASTER</span>
+      <span class="text-daw-text-muted hidden lg:inline">MASTER</span>
       <span class="footer-master-meter" aria-hidden="true">
         <span :style="{ width: `${masterMeterPercent}%` }" />
       </span>

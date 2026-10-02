@@ -1,5 +1,5 @@
 <template>
-  <div ref="triggerRef" class="relative inline-flex">
+  <div ref="triggerRef" class="relative inline-flex" @keydown.esc="closeOnEscape">
     <slot :is-open="isOpen" :toggle="toggle" :open="open" :close="close" />
 
     <Teleport to="body">
@@ -19,7 +19,7 @@
           :style="popoverStyle"
           data-daw-popover
           tabindex="-1"
-          @keydown.esc.stop="close"
+          @keydown.esc="closeOnEscape"
         >
           <slot name="content" :close="close" />
         </div>
@@ -125,6 +125,14 @@
 
   function close(): void {
     isOpen.value = false
+  }
+
+  function closeOnEscape(event: KeyboardEvent): void {
+    if (!isOpen.value) return
+    event.preventDefault()
+    event.stopPropagation()
+    close()
+    triggerRef.value?.querySelector<HTMLElement>('button, [tabindex="0"]')?.focus()
   }
 
   function toggle(): void {

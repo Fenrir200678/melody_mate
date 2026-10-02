@@ -5,6 +5,7 @@ import { computeLoopRangeFromSelection } from '../core/transport/loop.range'
 import { useAudioStore } from '../stores/audio.store'
 import { useHarmonyStore } from '../stores/harmony.store'
 import { useMelodyStore } from '../stores/melody.store'
+import { useRhythmStore } from '../stores/rhythm.store'
 import { useProjectStore } from '../stores/project.store'
 import { useUiStore } from '../stores/ui.store'
 import { SHORTCUT_DEFINITIONS } from './shortcutDefinitions'
@@ -55,6 +56,7 @@ export function useKeyboardShortcuts(options: KeyboardShortcutsOptions = {}) {
   const melodyStore = useMelodyStore()
   const harmonyStore = useHarmonyStore()
   const projectStore = useProjectStore()
+  const rhythmStore = useRhythmStore()
   const uiStore = useUiStore()
 
   const targetWindow = options.window ?? (typeof window !== 'undefined' ? window : (globalThis as unknown as Window))
@@ -190,16 +192,19 @@ export function useKeyboardShortcuts(options: KeyboardShortcutsOptions = {}) {
       if (key === 'z') {
         e.preventDefault()
         if (e.shiftKey) {
-          track.redo()
+          if (uiStore.activeHistoryContext === 'rhythm') rhythmStore.redo()
+          else track.redo()
         } else {
-          track.undo()
+          if (uiStore.activeHistoryContext === 'rhythm') rhythmStore.undo()
+          else track.undo()
         }
         return true
       }
 
       if (key === 'y' && !e.shiftKey) {
         e.preventDefault()
-        track.redo()
+        if (uiStore.activeHistoryContext === 'rhythm') rhythmStore.redo()
+        else track.redo()
         return true
       }
 
@@ -377,9 +382,6 @@ export function useKeyboardShortcuts(options: KeyboardShortcutsOptions = {}) {
       case 'c':
         uiStore.toggleChordStudio()
         return true
-      case 's':
-        uiStore.toggleSoundDock()
-        return true
       case '?':
       case 'f1':
         e.preventDefault()
@@ -451,8 +453,13 @@ export function useKeyboardShortcuts(options: KeyboardShortcutsOptions = {}) {
   }
 
   function handleKeyDown(e: KeyboardEvent): void {
-    if (e.isComposing) return
-    if ((e.target as Element | null)?.closest?.('#rhythm-studio-dock')) return
+    if (e.isComposing || e.defaultPrevented || uiStore.activeModal) return
+    if (
+      (e.target as Element | null)?.closest?.(
+        '[role="dialog"], [data-daw-popover], [aria-haspopup="listbox"][aria-expanded="true"]'
+      )
+    )
+      return
 
     const targetDoc = targetWindow?.document ?? (typeof document !== 'undefined' ? document : null)
     if (isInputElement(targetDoc?.activeElement ?? null)) {
@@ -463,6 +470,13 @@ export function useKeyboardShortcuts(options: KeyboardShortcutsOptions = {}) {
 
     const key = e.key.toLowerCase()
     const isModifier = hasPrimaryModifier(e)
+
+    if (key === 's' && !isModifier && !e.altKey && !e.shiftKey) {
+      e.preventDefault()
+      uiStore.toggleSoundDock()
+      return
+    }
+    if ((e.target as Element | null)?.closest?.('#rhythm-studio-dock')) return
 
     if (handleTransport(e, key, isModifier)) return
     if (handleTrackAndSound(e, key, isModifier)) return

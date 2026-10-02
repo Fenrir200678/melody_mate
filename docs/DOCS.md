@@ -313,9 +313,9 @@ Calculates real-time music theory metrics on the active melody:
 
 ---
 
-## 6. The Three Studio Docks
+## 6. The Studio Docks
 
-Melody Mate v2 features three dedicated studio environments docked beneath the piano roll. Open them via shortcut keys (`C`, `A`, `R`) or footer buttons. Each dock can be resized vertically (min 200px, max 480px) and closed with `Escape`.
+Melody Mate v2 features three creation studios plus Sound & Mix sharing one dock slot beneath the piano roll. Open them via shortcut keys (`C`, `A`, `R`, `S`) or footer buttons. Opening one replaces the previous dock. Use the top separator to resize vertically and the header Close action to close. Preferred heights restore on reload; short windows clamp the visible height to keep the piano roll usable.
 
 ### Chord Studio (`C`)
 
@@ -425,9 +425,11 @@ A full 16th-note step sequencer for designing custom rhythmic foundations.
 
 ---
 
-## 7. Sound & Mix Rack (`S`)
+## 7. Sound & Mix Dock (`S`)
 
-Press `S` or click the Sound button in the footer to open the Sound & Mix popover. Melody Mate v2 features an onboard hybrid audio engine: Tone.js schedules transport timing and FM synthesis, while native Web Audio API audio graphs deliver high-performance subtractive synthesis.
+Press `S` or click Sound & Mix in the footer to open the resizable Sound & Mix workspace dock. Melody Mate v2 features an onboard hybrid audio engine: Tone.js schedules transport timing and FM synthesis, while native Web Audio API audio graphs deliver high-performance subtractive synthesis.
+
+Sound & Mix replaces any open Rhythm, Arp, or Chord Studio in the slot beneath the piano roll. It preserves the active track and undo context, and its sound and mix values survive dock switches. Drag the top separator or use its arrow keys to resize; double-click resets the height. The preferred height and selected dock restore on reload. Close, `S`, or `Escape` returns focus to the footer trigger without stopping playback. If a preset popup or modal is open, `Escape` closes that first. On short windows the content scrolls and the dock height shrinks to preserve piano-roll space.
 
 <!-- Screenshot Placeholder: Sound & Mix Rack with Channel Strips and Master Limiter -->
 
@@ -483,7 +485,7 @@ Melody Mate v2 incorporates studio-grade protection processing on the master ste
   - Tabular numeric decibel readouts (`dBFS`).
 - **Sample Sanitization:** Real-time DSP sanitization replaces non-finite floating-point samples (`NaN` or `Infinity`) with silence, preventing audio engine crashes.
 - **Glitch-Resistant Audio Buffer & Interface Protection:** Melody Mate automatically standardizes on $\le 48\text{ kHz}$ audio processing with balanced buffer sizing (`latencyHint: 'balanced'`) and 100 ms scheduling lookahead. When connecting studio audio interfaces configured to 96 kHz or 192 kHz, or when running under Windows 11 WASAPI shared mode, the audio engine prevents buffer underruns, pops/crackles, and audio stream dropouts while maintaining sample-accurate playhead tracking and responsive note auditioning.
-- **Global Panic Button:** If an audio feedback loop occurs or an external MIDI note sticks, click the Panic button to immediately terminate all active voices, reset synthesizer nodes, and clear delay and reverb buffers.
+- **Global Panic Button:** Always available in the footer, even with Sound & Mix closed. Panic silences internal voices and clears effect tails. Use it to stop unwanted sustained sound immediately. On narrow laptops Reset Settings and Export MIDI use icon buttons with the same accessible names and tooltips; Panic keeps its text label.
 
 ---
 
@@ -615,7 +617,7 @@ Melody Mate v2 is built for fast desktop and laptop operation. All major functio
 | `R`       | Toggle Rhythm Studio    | Open or close the Rhythm Studio dock         |
 | `A`       | Toggle Arp Studio       | Open or close the Arp Studio dock            |
 | `C`       | Toggle Chord Studio     | Open or close the Chord Studio dock          |
-| `S`       | Toggle Sound & Mix      | Open or close the Sound & Mix popover        |
+| `S`       | Toggle Sound & Mix      | Open or close the Sound & Mix workspace dock |
 | `?`       | Keyboard Shortcuts Help | Display global keyboard shortcuts modal      |
 
 ### Viewport & Zoom Shortcuts

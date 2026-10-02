@@ -3,8 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
 import { STEPS_PER_BAR } from '@/core/schemas/project.schema'
 import { useAudioStore } from '@/stores/audio.store'
+import { useHarmonyStore } from '@/stores/harmony.store'
 import { useMelodyStore } from '@/stores/melody.store'
 import { useProjectStore } from '@/stores/project.store'
+import { useRhythmStore } from '@/stores/rhythm.store'
 import { useUiStore } from '@/stores/ui.store'
 
 interface MockKeyboardEventOptions {
@@ -17,6 +19,7 @@ interface MockKeyboardEventOptions {
   repeat?: boolean
   isComposing?: boolean
   target?: unknown
+  defaultPrevented?: boolean
 }
 
 describe('useKeyboardShortcuts - Zoom & Viewport', () => {
@@ -27,6 +30,7 @@ describe('useKeyboardShortcuts - Zoom & Viewport', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     uiStore = useUiStore()
+    uiStore.setSoundDockOpen(false)
     keyListeners = []
 
     mockWindow = {
@@ -41,7 +45,7 @@ describe('useKeyboardShortcuts - Zoom & Viewport', () => {
   })
 
   function dispatchKey(options: MockKeyboardEventOptions) {
-    let defaultPrevented = false
+    let defaultPrevented = options.defaultPrevented ?? false
     const event = {
       key: options.key,
       code: options.code ?? '',
@@ -241,11 +245,99 @@ describe('useKeyboardShortcuts - Zoom & Viewport', () => {
 
     it('toggles the sound & mix dock via "s"', () => {
       useKeyboardShortcuts({ window: mockWindow })
+      uiStore.setActiveTrack('chords')
+      uiStore.setActiveHistoryContext('rhythm')
       expect(uiStore.isSoundDockOpen).toBe(false)
       dispatchKey({ key: 's' })
       expect(uiStore.isSoundDockOpen).toBe(true)
+      expect(uiStore.activeStudioDock).toBe('sound')
+      expect(uiStore.activeTrack).toBe('chords')
+      expect(uiStore.activeHistoryContext).toBe('rhythm')
       dispatchKey({ key: 's' })
       expect(uiStore.isSoundDockOpen).toBe(false)
+      expect(uiStore.activeTrack).toBe('chords')
+      expect(uiStore.activeHistoryContext).toBe('rhythm')
+    })
+
+    it('lets Escape close sound before clearing the active piano-roll selection', () => {
+      const melodyStore = useMelodyStore()
+      melodyStore.setNotes(
+        [{ id: 'note', pitch: 'C4', midi: 60, step: 0, durationSteps: 2, velocity: 92, isMuted: false }],
+        false
+      )
+      melodyStore.setSelectedNoteIds(['note'])
+      uiStore.setSoundDockOpen(true)
+      useKeyboardShortcuts({ window: mockWindow })
+
+      expect(dispatchKey({ key: 'Escape' }).defaultPrevented).toBe(true)
+      expect(uiStore.isSoundDockOpen).toBe(false)
+      expect(melodyStore.selectedNoteIds).toEqual(['note'])
+
+      dispatchKey({ key: 'Escape' })
+      expect(melodyStore.selectedNoteIds).toEqual([])
+    })
+
+    it('ignores shortcuts already consumed by a modal, dialog, or popover', () => {
+      useKeyboardShortcuts({ window: mockWindow })
+
+      uiStore.openAbout()
+      dispatchKey({ key: 's' })
+      expect(uiStore.isSoundDockOpen).toBe(false)
+      uiStore.closeAbout()
+
+      const containedTarget = { closest: vi.fn(() => ({})) }
+      dispatchKey({ key: 's', target: containedTarget })
+      expect(uiStore.isSoundDockOpen).toBe(false)
+
+      dispatchKey({ key: 's', defaultPrevented: true })
+      expect(uiStore.isSoundDockOpen).toBe(false)
+    })
+
+    it('keeps the Sound dock open while a native select owns keyboard focus', () => {
+      uiStore.setSoundDockOpen(true)
+      const winWithSelect = {
+        ...mockWindow,
+        document: { activeElement: { tagName: 'SELECT' } }
+      } as unknown as Window
+      useKeyboardShortcuts({ window: winWithSelect })
+      dispatchKey({ key: 'Escape' })
+      dispatchKey({ key: 's' })
+      expect(uiStore.isSoundDockOpen).toBe(true)
+    })
+
+    it('routes undo and redo to Rhythm history without changing the selected track', () => {
+      const harmonyStore = useHarmonyStore()
+      const rhythmStore = useRhythmStore()
+      const rhythmUndo = vi.spyOn(rhythmStore, 'undo')
+      const rhythmRedo = vi.spyOn(rhythmStore, 'redo')
+      const harmonyUndo = vi.spyOn(harmonyStore, 'undo')
+      const harmonyRedo = vi.spyOn(harmonyStore, 'redo')
+      uiStore.setActiveTrack('chords')
+      uiStore.setActiveHistoryContext('rhythm')
+      uiStore.setSoundDockOpen(true)
+      useKeyboardShortcuts({ window: mockWindow })
+
+      dispatchKey({ key: 'z', ctrlKey: true })
+      dispatchKey({ key: 'z', ctrlKey: true, shiftKey: true })
+      dispatchKey({ key: 'y', ctrlKey: true })
+
+      expect(rhythmUndo).toHaveBeenCalledOnce()
+      expect(rhythmRedo).toHaveBeenCalledTimes(2)
+      expect(harmonyUndo).not.toHaveBeenCalled()
+      expect(harmonyRedo).not.toHaveBeenCalled()
+      expect(uiStore.activeTrack).toBe('chords')
+      expect(uiStore.activeHistoryContext).toBe('rhythm')
+    })
+
+    it('opens Sound from a focused Rhythm Studio control without changing its undo context', () => {
+      uiStore.setRhythmStudioOpen(true)
+      useKeyboardShortcuts({ window: mockWindow })
+      dispatchKey({
+        key: 's',
+        target: { closest: (selector: string) => (selector === '#rhythm-studio-dock' ? {} : null) }
+      })
+      expect(uiStore.activeStudioDock).toBe('sound')
+      expect(uiStore.activeHistoryContext).toBe('rhythm')
     })
 
     it('toggles audition and velocity lane without changing the selected tool', () => {

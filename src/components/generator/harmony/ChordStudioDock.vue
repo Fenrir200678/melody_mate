@@ -1,6 +1,7 @@
 <template>
   <section
     id="chord-studio-dock"
+    ref="dockRef"
     class="border-daw-border bg-daw-panel flex shrink-0 flex-col overflow-hidden border-t select-none"
     :style="{ height: `${effectiveHeight}px` }"
     aria-label="Chord Studio"
@@ -12,7 +13,7 @@
       :model-value="effectiveHeight"
       orientation="horizontal"
       side="bottom"
-      :min="CHORD_STUDIO_MIN_HEIGHT"
+      :min="minDockHeight"
       :max="maxDockHeight"
       :default-value="CHORD_STUDIO_DEFAULT_HEIGHT"
       label="Resize Chord Studio"
@@ -70,9 +71,11 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, onMounted, onUnmounted, ref } from 'vue'
+  import { ref, useTemplateRef } from 'vue'
   import { Music2, X } from '@lucide/vue'
   import DawIconButton from '@/components/common/DawIconButton.vue'
+  import { DEFAULT_UI_DIMENSIONS } from '@/config/ui-defaults'
+  import { useStudioDockSize } from '@/composables/useStudioDockSize'
   import DawResizeHandle from '@/components/common/DawResizeHandle.vue'
   import ChordProgressionSelector from './ChordProgressionSelector.vue'
   import ChordStudioPalette from './ChordStudioPalette.vue'
@@ -80,12 +83,7 @@
   import { useProjectStore } from '@/stores/project.store'
   import type { ChordMode } from '@/core/theory/chord.engine'
   import { DEFAULT_CHORD_PALETTE } from '@/config/ui-defaults'
-  import {
-    CHORD_STUDIO_DEFAULT_HEIGHT,
-    CHORD_STUDIO_MAX_HEIGHT,
-    CHORD_STUDIO_MIN_HEIGHT,
-    useUiStore
-  } from '@/stores/ui.store'
+  import { CHORD_STUDIO_DEFAULT_HEIGHT, useUiStore } from '@/stores/ui.store'
 
   const uiStore = useUiStore()
   const projectStore = useProjectStore()
@@ -97,28 +95,10 @@
     uiStore.setActiveHistoryContext('chord')
   }
 
-  const maxDockHeight = ref(CHORD_STUDIO_MAX_HEIGHT)
-  const effectiveHeight = computed(() =>
-    Math.max(CHORD_STUDIO_MIN_HEIGHT, Math.min(uiStore.chordStudioHeight, maxDockHeight.value))
+  const dockRef = useTemplateRef<HTMLElement>('dockRef')
+  const { effectiveHeight, minDockHeight, maxDockHeight } = useStudioDockSize(
+    dockRef,
+    () => uiStore.chordStudioHeight,
+    DEFAULT_UI_DIMENSIONS.chordStudio
   )
-
-  const MIN_PIANO_ROLL_HEIGHT = 280
-
-  function updateMaxDockHeight(): void {
-    if (typeof window === 'undefined') return
-    const shell = document.querySelector('.daw-shell')
-    const header = document.querySelector('.daw-header')
-    const footer = document.querySelector('.daw-footer')
-    const available =
-      shell && header && footer
-        ? shell.clientHeight - header.clientHeight - footer.clientHeight - MIN_PIANO_ROLL_HEIGHT
-        : CHORD_STUDIO_MAX_HEIGHT
-    maxDockHeight.value = Math.max(CHORD_STUDIO_MIN_HEIGHT, Math.min(CHORD_STUDIO_MAX_HEIGHT, available))
-  }
-
-  onMounted(() => {
-    updateMaxDockHeight()
-    window.addEventListener('resize', updateMaxDockHeight)
-  })
-  onUnmounted(() => window.removeEventListener('resize', updateMaxDockHeight))
 </script>

@@ -45,7 +45,7 @@ export type {
   WidthDimensionConfig
 }
 
-export const UI_PREFERENCES_VERSION = 1
+export const UI_PREFERENCES_VERSION = 2
 
 export const GENERATOR_PANEL_MODULE_KEYS = ['rhythm', 'motif', 'contour', 'variation', 'takes'] as const
 
@@ -111,7 +111,6 @@ export const DEFAULT_UI_PREFERENCES: UiPreferencesDefaults = {
   playFromLoopStart: true,
   isLeftSidebarOpen: true,
   isRightSidebarOpen: true,
-  isSoundDockOpen: false,
   activeStudioDock: null,
   isVelocityLaneOpen: false
 } as const
@@ -130,7 +129,7 @@ export const DEFAULT_UI_DIMENSIONS: UiDimensionsConfig = {
   soundDock: {
     minHeight: 184,
     maxHeight: 480,
-    defaultHeight: 275
+    defaultHeight: 352
   },
   chordStudio: {
     minHeight: 250,
