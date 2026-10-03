@@ -141,10 +141,11 @@ Melody Mate v2 is explicitly engineered for desktop and laptop environments. Mob
 - Follow Playhead (`F`): Auto-scrolls the viewport to keep the moving playhead in view during playback.
 - Note auditioning toggle: Enable or mute acoustic preview when clicking or dragging notes.
 
-### 4.5 Dual-Track Support
+### 4.5 Dual-Track Support & Responsive Toolbar Layout
 
 - Toggle between **Melody Track** and **Chord Track** via the toolbar or `Tab` key.
 - Switching to the Chord Track allows direct editing of individual chord voicing notes on the canvas.
+- **Single-Row Responsive Toolbar:** Dynamically transitions tool (`Select`, `Lasso`, `Pencil`, `Eraser`, `Hand`) and monitoring (`Audition`, `Follow`) buttons into sleek 24px icon-only controls on compact containers (≤ 1040px), progressively hides micro-labels (≤ 768px), and abbreviates track names (≤ 520px), preventing multi-line wrapping and preserving full vertical workspace.
 
 ### 4.6 Resizable Velocity Lane
 

@@ -1,7 +1,7 @@
 <template>
   <header class="roll-toolbar select-none">
     <!-- Left Group: Editing & Creation (Track, Tools, Grid) -->
-    <div class="roll-toolbar-primary flex items-center gap-3">
+    <div class="roll-toolbar-primary flex shrink-0 items-center gap-1.5 sm:gap-2 xl:gap-3">
       <!-- Track Selector (Melody / Chords) -->
       <div
         class="rounded-chip bg-daw-panel border-daw-border inline-flex shrink-0 items-center border p-0.5"
@@ -15,9 +15,11 @@
           variant="signal"
           :active="activeTrack === 'melody'"
           title="Edit Melody Track (Tab)"
+          aria-label="Edit Melody Track"
           @click="activeTrack = 'melody'"
         >
-          Melody
+          <span class="roll-toolbar-track-name-full">Melody</span>
+          <span class="roll-toolbar-track-name-short">Mel</span>
         </DawButton>
 
         <DawButton
@@ -26,16 +28,18 @@
           variant="chord"
           :active="activeTrack === 'chords'"
           title="Edit Chord Track (Tab)"
+          aria-label="Edit Chord Track"
           @click="activeTrack = 'chords'"
         >
-          Chords
+          <span class="roll-toolbar-track-name-full">Chords</span>
+          <span class="roll-toolbar-track-name-short">Chd</span>
         </DawButton>
       </div>
 
-      <div class="roll-toolbar-divider bg-daw-border h-4 w-px" />
+      <div class="roll-toolbar-divider bg-daw-border h-4 w-px shrink-0" />
 
       <!-- Smart Tools Group -->
-      <div class="tool-group flex items-center gap-1" role="toolbar" aria-label="Editing Tools">
+      <div class="tool-group flex shrink-0 items-center gap-0.5 sm:gap-1" role="toolbar" aria-label="Editing Tools">
         <DawButton
           :icon="MousePointer"
           appearance="ghost"
@@ -107,17 +111,18 @@
         </DawButton>
       </div>
 
-      <div class="roll-toolbar-divider bg-daw-border h-4 w-px" />
+      <div class="roll-toolbar-divider bg-daw-border h-4 w-px shrink-0" />
 
       <!-- Grid Snapping -->
-      <div class="flex items-center gap-1.5">
+      <div class="roll-toolbar-grid flex shrink-0 items-center gap-1 sm:gap-1.5">
         <label for="snap-grid-select" class="roll-toolbar-grid-label text-daw-text-muted font-mono text-xs"
           >Grid:</label
         >
         <select
           id="snap-grid-select"
           aria-label="Grid resolution"
-          class="bg-daw-surface border-daw-border text-daw-text rounded-control focus:border-daw-signal cursor-pointer border px-2 py-1 font-mono text-xs transition-colors focus:outline-none"
+          :title="`Grid snap resolution: ${snapStep === 1 ? '1/16' : snapStep === 2 ? '1/8' : '1/4'}`"
+          class="bg-daw-surface border-daw-border text-daw-text rounded-control focus:border-daw-signal cursor-pointer border px-1.5 py-1 font-mono text-xs transition-colors focus:outline-none sm:px-2"
           :value="snapStep"
           @change="onSnapChange"
         >
@@ -129,9 +134,13 @@
     </div>
 
     <!-- Right Group: Monitoring & Viewport Controls -->
-    <div class="roll-toolbar-secondary flex items-center gap-3">
+    <div class="roll-toolbar-secondary flex shrink-0 items-center gap-1.5 sm:gap-2 xl:gap-3">
       <!-- Live Monitoring Duo (Audition & Follow) -->
-      <div class="flex items-center gap-3">
+      <div
+        class="monitoring-group flex shrink-0 items-center gap-1 sm:gap-1.5"
+        role="group"
+        aria-label="Monitoring Controls"
+      >
         <!-- Audition Toggle (Acoustic Feedback) -->
         <DawButton
           appearance="ghost"
@@ -139,7 +148,7 @@
           size="sm"
           :active="isAuditionEnabled"
           :icon="isAuditionEnabled ? Headphones : HeadphoneOff"
-          class="tool-btn"
+          class="tool-btn monitoring-btn"
           :title="isAuditionEnabled ? 'Audition Note Preview: Active (U)' : 'Audition Note Preview: Muted (U)'"
           aria-label="Toggle Audition Note Preview"
           @click="isAuditionEnabled = !isAuditionEnabled"
@@ -154,7 +163,7 @@
           size="sm"
           :active="isFollowEnabled"
           :icon="isFollowEnabled ? LocateFixed : LocateOff"
-          class="tool-btn"
+          class="tool-btn monitoring-btn"
           :title="
             isFollowEnabled
               ? 'Auto Scroll Active (view follows playhead)'
@@ -167,10 +176,11 @@
         </DawButton>
       </div>
 
-      <div class="roll-toolbar-divider bg-daw-border h-4 w-px" />
+      <div class="roll-toolbar-divider bg-daw-border h-4 w-px shrink-0" />
 
       <!-- View Navigation & Zoom Controls -->
       <PianoRollZoomControls
+        class="shrink-0"
         @zoom-in-horizontal="emit('zoomIn')"
         @zoom-out-horizontal="emit('zoomOut')"
         @zoom-in-vertical="emit('zoomInVertical')"
@@ -182,23 +192,18 @@
 
       <!-- Velocity Lane Toggle (melody-only bottom editor) -->
       <template v-if="activeTrack === 'melody'">
-        <div class="roll-toolbar-divider bg-daw-border h-4 w-px" />
+        <div class="roll-toolbar-divider bg-daw-border h-4 w-px shrink-0" />
 
-        <button
-          type="button"
-          class="rounded-control flex shrink-0 cursor-pointer items-center justify-center border p-1.5 transition-colors"
-          :class="
-            isVelocityLaneOpen
-              ? 'bg-daw-surface text-daw-signal border-daw-border hover:border-daw-signal'
-              : 'bg-daw-panel text-daw-text-muted border-daw-border hover:text-daw-text'
-          "
-          :aria-pressed="isVelocityLaneOpen"
+        <DawIconButton
+          :icon="AudioLines"
+          size="sm"
+          appearance="panel"
+          variant="signal"
+          :active="isVelocityLaneOpen"
           :title="isVelocityLaneOpen ? 'Collapse Velocity Lane' : 'Expand Velocity Lane'"
           aria-label="Toggle Velocity Lane"
           @click="isVelocityLaneOpen = !isVelocityLaneOpen"
-        >
-          <AudioLines class="h-3.5 w-3.5" />
-        </button>
+        />
       </template>
     </div>
   </header>
@@ -221,6 +226,7 @@
   import type { PianoRollTrack } from '@/composables/pianoroll/usePianoRollCanvas'
   import { DEFAULT_UI_PREFERENCES } from '@/config/ui-defaults'
   import DawButton from '@/components/common/DawButton.vue'
+  import DawIconButton from '@/components/common/DawIconButton.vue'
   import PianoRollZoomControls from './PianoRollZoomControls.vue'
 
   const activeTool = defineModel<ToolMode>('activeTool', { default: DEFAULT_UI_PREFERENCES.activeTool })

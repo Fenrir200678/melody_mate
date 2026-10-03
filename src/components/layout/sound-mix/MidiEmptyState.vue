@@ -76,18 +76,6 @@
         disabledReason || 'Web MIDI is not supported in this browser. Please use Chrome, Edge, or Opera.'
       }}</span>
     </div>
-
-    <!-- Supported Platforms / Targets -->
-    <div class="text-daw-text-muted text-micro flex flex-wrap items-center justify-center gap-x-2.5 font-mono">
-      <span class="text-daw-text-muted/60">Supported:</span>
-      <span>macOS IAC</span>
-      <span>·</span>
-      <span>Windows loopMIDI</span>
-      <span>·</span>
-      <span>USB Synths</span>
-      <span>·</span>
-      <span>DAWs</span>
-    </div>
   </div>
 </template>
 

@@ -123,6 +123,15 @@ Toggle active editing between tracks using the toolbar buttons or by pressing `T
 - **Melody Track (Signal Blue `#5b8dff`):** Displays lead notes. This track connects to the main Generator, Variation suite, and the bottom Velocity Lane.
 - **Chord Track (Chord Purple `#9b6bff`):** Displays chord voicing notes. Switch to the Chord Track to edit individual notes inside chord blocks directly on the canvas grid.
 
+### Responsive Toolbar Layout
+
+The Piano Roll toolbar adapts dynamically to narrower screen widths and laptop viewports while strictly maintaining a single-row studio layout:
+
+- **Wide Viewports:** Displays full text labels on all editing tools (`Select`, `Lasso`, `Pencil`, `Eraser`, `Hand`), monitoring buttons (`Audition`, `Follow`), and field tags (`Track:`, `Grid:`).
+- **Compact Viewports (≤ 1040px):** Automatically collapses editing and monitoring text into sleek 24px icon buttons with rich hover tooltips and keyboard shortcuts, reclaiming over 300px of horizontal room.
+- **Ultra-Compact Viewports (≤ 768px):** Hides static micro-labels (`Track:`, `Grid:`) and tightens spacing to avoid multi-line wrapping even with sidebars open.
+- **Micro Viewports (≤ 520px):** Transitions track chips to short labels (`Mel`, `Chd`) and hides separators to keep all controls accessible in a single bar.
+
 ### Visual Feedback & Guidance Layers
 
 - **Scale Highlighting:** Valid scale rows are subtly illuminated, while non-scale chromatic rows are darkened. This provides an immediate visual guide for in-key note placement.
