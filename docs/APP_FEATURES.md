@@ -538,16 +538,19 @@ Tone scheduling semantics were checked through Context7's [Tone Transport docume
 
 ### Sound & Mix dock MIDI output controls and routing UI (Task 68)
 
-- `MidiOutputPanel.vue` mounts inside `SoundMixDock.vue` when the header view switcher selects `MIDI Output`. It organizes the top action bar, reactive status banner, track routing matrix, and collapsible setup guide into a focused workstation surface.
+- `MidiOutputPanel.vue` mounts inside `SoundMixDock.vue` when the header view switcher selects `MIDI Output`. It organizes the top action bar, reactive status banner, dual-track side-by-side routing matrix, and collapsible setup guide into a focused workstation surface.
+- **Side-by-Side Dual Track Matrix:** Melody Track and Chords Track route cards are presented side-by-side in a two-column desktop grid mirroring the channel strip design of the Sound & Mix view.
+- **Top Action Bar & Panic Function:** Top toolbar provides instant access to **Refresh ports**, a dedicated **Panic (All Notes Off)** button to immediately stop hung notes across all active ports, **Disable MIDI**, and the **Send previews to MIDI** toggle.
+- **Welcoming Empty State (`MidiEmptyState.vue`):** When Web MIDI is disabled, displays a modern connect screen with feature highlights and a single-click **Enable Web MIDI** button instead of disabled form fields.
 - `MidiTrackRoute.vue` renders dedicated route configuration cards for Lead and Chords tracks:
-  - 3-way segmented mode selector: `Internal`, `MIDI`, and `Both`.
-  - Port dropdown with automatic truncation for long device strings, disambiguation by manufacturer/detail, and retained disconnected target display.
+  - Header with role indicator dot, track title, real-time **TX Activity LED** (flashing on test note and active playback transmission), status badge, and **Test Note** button.
+  - 3-way segmented mode selector: `Internal`, `MIDI`, and `Both`. In `Internal` mode, a clean bypassed banner explains internal routing.
+  - Port dropdown with cable icon, automatic truncation for long device strings, disambiguation by manufacturer/detail, and retained disconnected target display.
   - Channel selector (1–16) with inline conflict detection preventing duplicate port/channel assignments.
-  - Continuous micro-timing offset knob (`DawKnob`) backed by direct numeric entry (-50 ms to +50 ms).
-  - Single-click **Test note** button emitting a bounded audition note with explicit auto-release.
+  - Continuous micro-timing offset knob (`DawKnob`) with center detent and direct double-click editing (-200 ms to +200 ms latency compensation).
 - `MidiConnectionStatus.vue` renders reactive status badges and full-width recovery banners for connection states: `Ready`, `Connecting…`, `No ports`, `Off`, `Unavailable`, `Denied`, and `Disconnected`.
 - `Send previews to MIDI` toggle allows optional external auditioning of piano roll notes, chord voicings, arpeggios, and takes. External previews and test notes are automatically disabled and locked during active transport playback to prevent voice collisions with the song timeline.
-- Collapsible inline guide outlines audio return architecture, macOS IAC setup, Ableton Live track routing, loopback drivers, and persistent footer Panic access.
+- **Modular Setup Guide (`MidiSetupGuide.vue`):** Collapsible 3-column reference guide covering macOS IAC Driver, Windows loopMIDI, and DAW/hardware signal flow with step-by-step instructions.
 
 ### MIDI setup guides and release validation (Task 69)
 

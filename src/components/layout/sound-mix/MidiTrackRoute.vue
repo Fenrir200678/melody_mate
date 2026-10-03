@@ -1,25 +1,27 @@
 <template>
   <div
-    class="border-daw-border bg-daw-surface rounded-control flex flex-col gap-2.5 border p-3 transition-colors"
+    class="border-daw-border bg-daw-surface rounded-control flex flex-col justify-between gap-3 border p-3.5 transition-colors"
     :class="{ 'border-daw-danger/50': conflictError || isDisconnected }"
   >
-    <!-- Top row: Track header, Mode segmented, Status badge, Test note -->
-    <div class="flex flex-wrap items-center justify-between gap-2.5">
+    <!-- Header: Track identity, TX LED, Status, Test note -->
+    <div class="flex flex-wrap items-center justify-between gap-2">
       <div class="flex items-center gap-2">
         <span class="role-dot" :class="`dot-${variant}`" aria-hidden="true" />
         <span class="text-daw-text text-2xs font-semibold">{{ title }}</span>
-      </div>
 
-      <!-- Route mode segmented: Internal / MIDI / Both -->
-      <div class="flex items-center gap-2">
-        <DawSegmented
-          :model-value="route.mode"
-          :options="MIDI_ROUTE_MODE_OPTIONS"
-          size="xs"
-          :variant="variant"
-          aria-label="Output destination"
-          @update:model-value="onModeChange"
-        />
+        <!-- TX Activity LED -->
+        <span
+          class="rounded-chip text-micro flex items-center gap-1 border px-1.5 py-0.5 font-mono font-medium transition-colors"
+          :class="isTxActive ? txActiveClasses : 'border-daw-border/60 bg-daw-panel text-daw-text-muted/60'"
+          :title="isTxActive ? 'Transmitting MIDI data' : 'MIDI transmitter idle'"
+        >
+          <span
+            class="h-1.5 w-1.5 rounded-full transition-colors"
+            :class="isTxActive ? txDotClasses : 'bg-daw-text-muted/30'"
+            aria-hidden="true"
+          />
+          <span>TX</span>
+        </span>
 
         <!-- Status badge -->
         <span
@@ -29,105 +31,120 @@
         >
           {{ statusBadge.label }}
         </span>
-
-        <!-- Test note action -->
-        <DawButton
-          size="xs"
-          appearance="panel"
-          :icon="Volume2"
-          :disabled="isTestDisabled"
-          :disabled-reason="testDisabledReason"
-          aria-label="Send test note"
-          @click="onTestNote"
-        >
-          {{ isTesting ? 'Sending…' : 'Test note' }}
-        </DawButton>
       </div>
+
+      <!-- Test note action -->
+      <DawButton
+        size="xs"
+        appearance="panel"
+        :icon="Volume2"
+        :disabled="isTestDisabled"
+        :disabled-reason="testDisabledReason"
+        aria-label="Send test note to this track"
+        @click="onTestNote"
+      >
+        {{ isTesting ? 'Sending…' : 'Test Note' }}
+      </DawButton>
     </div>
 
-    <!-- Controls row: Port select, Channel picker, Timing offset -->
-    <div
-      class="border-daw-border/50 grid grid-cols-1 gap-2.5 border-t pt-2.5 sm:grid-cols-[1fr_auto_auto] sm:items-center"
-      :class="{ 'pointer-events-none opacity-40': route.mode === 'internal' }"
-    >
-      <!-- Port Selector -->
-      <div class="flex min-w-0 flex-col gap-1">
-        <label :for="`midi-port-${track}`" class="text-daw-text-muted text-micro font-mono"> MIDI Port </label>
-        <select
-          :id="`midi-port-${track}`"
-          class="border-daw-border bg-daw-panel text-daw-text rounded-chip focus:border-daw-signal text-2xs h-6 w-full cursor-pointer truncate border px-2 font-mono focus:outline-none disabled:cursor-not-allowed"
-          :value="route.port?.id ?? ''"
-          :disabled="route.mode === 'internal' || !midiStore.snapshot.enabled"
-          :aria-label="`${title} MIDI output port`"
-          @change="onPortChange(($event.target as HTMLSelectElement).value)"
-        >
-          <option value="">-- No port selected --</option>
-          <option
-            v-for="output in availableOutputs"
-            :key="output.id"
-            :value="output.id"
-            :title="formatFullPortTitle(output)"
-          >
-            {{ formatPortLabel(output, availableOutputs) }}
-          </option>
-          <!-- Keep desired port visible if disconnected -->
-          <option
-            v-if="isPortMissingFromOutputs && route.port"
-            :value="route.port.id"
-            disabled
-            :title="formatFullPortTitle(route.port)"
-          >
-            {{ formatPortLabel(route.port) }} (Disconnected)
-          </option>
-        </select>
-      </div>
+    <!-- Mode Selector: Internal / MIDI / Both -->
+    <div class="border-daw-border/50 flex items-center justify-between gap-2 border-t pt-2.5">
+      <span class="text-daw-text-muted text-micro font-mono uppercase tracking-wider">Destination</span>
+      <DawSegmented
+        :model-value="route.mode"
+        :options="MIDI_ROUTE_MODE_OPTIONS"
+        size="xs"
+        :variant="variant"
+        aria-label="Output destination"
+        @update:model-value="onModeChange"
+      />
+    </div>
 
-      <!-- Channel Selector -->
-      <div class="flex flex-col gap-1">
-        <label :for="`midi-ch-${track}`" class="text-daw-text-muted text-micro font-mono"> Channel </label>
-        <select
-          :id="`midi-ch-${track}`"
-          class="border-daw-border bg-daw-panel text-daw-text rounded-chip focus:border-daw-signal text-2xs h-6 w-20 cursor-pointer border px-2 font-mono focus:outline-none disabled:cursor-not-allowed"
-          :value="route.channel"
-          :disabled="route.mode === 'internal'"
-          :aria-label="`${title} MIDI channel`"
-          @change="onChannelChange(Number(($event.target as HTMLSelectElement).value))"
-        >
-          <option v-for="ch in MIDI_CHANNEL_OPTIONS" :key="ch.value" :value="ch.value">
-            {{ ch.label }}
-          </option>
-        </select>
-      </div>
+    <!-- Route Controls Body -->
+    <div v-if="route.mode === 'internal'" class="border-daw-border/50 bg-daw-panel/40 rounded-control border border-dashed p-4 text-center">
+      <p class="text-daw-text-muted text-micro font-mono leading-relaxed">
+        Audio routes to the internal synthesizer engine.<br />
+        Select <strong class="text-daw-text">MIDI</strong> or <strong class="text-daw-text">Both</strong> to stream to external ports.
+      </p>
+    </div>
 
-      <!-- Timing Offset Knob & Direct Numeric Input -->
-      <div class="flex items-center gap-2">
-        <DawKnob
-          v-model="offsetValue"
-          label="Offset"
-          unit="ms"
-          size="xs"
-          :min="MIDI_OUTPUT_BOUNDS.offsetMs.min"
-          :max="MIDI_OUTPUT_BOUNDS.offsetMs.max"
-          :step="1"
-          :default-value="0"
-          :variant="variant"
-          :disabled="route.mode === 'internal'"
-          @change="onOffsetChange"
-        />
+    <div v-else class="flex flex-col gap-3">
+      <!-- Port and Channel Row -->
+      <div class="grid grid-cols-[1fr_auto] items-end gap-2.5">
+        <!-- Port Selector -->
+        <div class="flex min-w-0 flex-col gap-1">
+          <label :for="`midi-port-${track}`" class="text-daw-text-muted text-micro font-mono uppercase tracking-wider">
+            MIDI Port
+          </label>
+          <div class="relative flex items-center">
+            <Cable class="text-daw-text-muted pointer-events-none absolute left-2 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <select
+              :id="`midi-port-${track}`"
+              class="border-daw-border bg-daw-panel text-daw-text rounded-chip focus:border-daw-signal text-2xs h-7 w-full cursor-pointer truncate border pl-7 pr-2 font-mono focus:outline-none disabled:cursor-not-allowed"
+              :value="route.port?.id ?? ''"
+              :disabled="!midiStore.snapshot.enabled"
+              :aria-label="`${title} MIDI output port`"
+              @change="onPortChange(($event.target as HTMLSelectElement).value)"
+            >
+              <option value="">-- No port selected --</option>
+              <option
+                v-for="output in availableOutputs"
+                :key="output.id"
+                :value="output.id"
+                :title="formatFullPortTitle(output)"
+              >
+                {{ formatPortLabel(output, availableOutputs) }}
+              </option>
+              <option
+                v-if="isPortMissingFromOutputs && route.port"
+                :value="route.port.id"
+                disabled
+                :title="formatFullPortTitle(route.port)"
+              >
+                {{ formatPortLabel(route.port) }} (Disconnected)
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Channel Selector -->
         <div class="flex flex-col gap-1">
-          <label :for="`midi-offset-${track}`" class="text-daw-text-muted text-micro font-mono"> ms </label>
-          <input
-            :id="`midi-offset-${track}`"
-            type="number"
-            class="border-daw-border bg-daw-panel text-daw-text rounded-chip focus:border-daw-signal text-micro h-5 w-14 border px-1 text-center font-mono focus:outline-none disabled:cursor-not-allowed"
-            :value="route.offsetMs"
+          <label :for="`midi-ch-${track}`" class="text-daw-text-muted text-micro font-mono uppercase tracking-wider">
+            Channel
+          </label>
+          <select
+            :id="`midi-ch-${track}`"
+            class="border-daw-border bg-daw-panel text-daw-text rounded-chip focus:border-daw-signal text-2xs h-7 w-20 cursor-pointer border px-2 font-mono focus:outline-none disabled:cursor-not-allowed"
+            :value="route.channel"
+            :aria-label="`${title} MIDI channel`"
+            @change="onChannelChange(Number(($event.target as HTMLSelectElement).value))"
+          >
+            <option v-for="ch in MIDI_CHANNEL_OPTIONS" :key="ch.value" :value="ch.value">
+              {{ ch.label }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Timing Offset Knob & Latency Info -->
+      <div class="border-daw-border/40 bg-daw-panel/30 rounded-control flex items-center justify-between border px-3 py-1.5">
+        <div class="flex items-center gap-3">
+          <DawKnob
+            v-model="offsetValue"
+            label="Offset"
+            unit="ms"
+            size="xs"
             :min="MIDI_OUTPUT_BOUNDS.offsetMs.min"
             :max="MIDI_OUTPUT_BOUNDS.offsetMs.max"
-            step="1"
-            :disabled="route.mode === 'internal'"
-            :aria-label="`${title} timing offset in milliseconds`"
-            @change="onOffsetChange(Number(($event.target as HTMLInputElement).value))"
+            :step="1"
+            :default-value="0"
+            :variant="variant"
+            @change="onOffsetChange"
           />
+          <div class="flex flex-col">
+            <span class="text-daw-text text-micro font-mono font-medium">Timing Offset</span>
+            <span class="text-daw-text-muted text-micro font-mono">Latency compensation (±200 ms)</span>
+          </div>
         </div>
       </div>
     </div>
@@ -135,10 +152,10 @@
     <!-- Inline conflict warning or route error -->
     <div
       v-if="conflictError || inlineErrorMessage"
-      class="text-daw-danger border-daw-danger/30 bg-daw-danger/10 rounded-chip text-micro flex items-center gap-1.5 border px-2.5 py-1 font-mono"
+      class="text-daw-danger border-daw-danger/30 bg-daw-danger/10 rounded-chip text-micro flex items-center gap-1.5 border px-2.5 py-1.5 font-mono"
       role="alert"
     >
-      <AlertTriangle class="h-3 w-3 shrink-0" aria-hidden="true" />
+      <AlertTriangle class="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       <span>{{ conflictError || inlineErrorMessage }}</span>
     </div>
   </div>
@@ -146,7 +163,7 @@
 
 <script setup lang="ts">
   import { computed, ref } from 'vue'
-  import { AlertTriangle, Volume2 } from '@lucide/vue'
+  import { AlertTriangle, Cable, Volume2 } from '@lucide/vue'
   import DawButton from '@/components/common/DawButton.vue'
   import DawKnob from '@/components/common/DawKnob.vue'
   import DawSegmented from '@/components/common/DawSegmented.vue'
@@ -194,6 +211,21 @@
     const status = midiStore.snapshot.routes[props.track]?.status
     return status === 'disconnected' || isPortMissingFromOutputs.value
   })
+
+  const isTxActive = computed(() => {
+    if (isTesting.value) return true
+    return audioStore.isPlaying && route.value.mode !== 'internal' && !!route.value.port && !isDisconnected.value
+  })
+
+  const txActiveClasses = computed(() =>
+    props.variant === 'chord'
+      ? 'border-daw-chord/40 bg-daw-chord/15 text-daw-chord'
+      : 'border-daw-signal/40 bg-daw-signal/15 text-daw-signal'
+  )
+
+  const txDotClasses = computed(() =>
+    props.variant === 'chord' ? 'bg-daw-chord shadow-sm animate-pulse' : 'bg-daw-signal shadow-sm animate-pulse'
+  )
 
   const statusBadge = computed(() => {
     const rawStatus = midiStore.snapshot.routes[props.track]?.status ?? 'not-enabled'
@@ -260,7 +292,6 @@
     if (newMode === route.value.mode) return
     let port = route.value.port
 
-    // When switching to MIDI or Both and no port is assigned yet, select first available output
     if (newMode !== 'internal' && !port && availableOutputs.value.length > 0) {
       const first = availableOutputs.value[0]
       if (first) port = { id: first.id, name: first.name, manufacturer: first.manufacturer }

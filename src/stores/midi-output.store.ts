@@ -47,6 +47,7 @@ export const useMidiOutputStore = defineStore('midi-output', () => {
       output?.suspend()
       return manager.disable()
     },
+    panic: () => getRuntime().panic(),
     refresh: () => manager.refresh(),
     open: (track: MidiTrackKey, portId: string) => manager.open(track, portId),
     close: (track: MidiTrackKey) => manager.close(track)

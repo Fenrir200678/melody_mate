@@ -1,25 +1,12 @@
 <template>
   <div class="flex h-full min-h-0 flex-col gap-3 overflow-y-auto p-3" aria-label="MIDI Output routing workstation">
-    <!-- Top Bar: Global actions, connection status & preview toggle -->
+    <!-- Top Bar: Global actions, Panic, connection status & preview toggle -->
     <div
-      class="border-daw-border bg-daw-panel rounded-control flex flex-wrap items-center justify-between gap-3 border p-2.5"
+      class="border-daw-border bg-daw-panel rounded-control flex flex-wrap items-center justify-between gap-3 border px-3 py-2"
     >
       <!-- Connection & Port controls -->
       <div class="flex flex-wrap items-center gap-2">
-        <DawButton
-          v-if="!snapshot.enabled"
-          size="sm"
-          variant="signal"
-          :icon="Plug"
-          :disabled="isRequesting || snapshot.status === 'unsupported' || snapshot.status === 'insecure-context'"
-          :disabled-reason="enableDisabledReason"
-          aria-label="Enable Web MIDI access"
-          @click="onEnableMidi"
-        >
-          {{ isRequesting ? 'Connecting…' : 'Enable MIDI' }}
-        </DawButton>
-
-        <template v-else>
+        <template v-if="snapshot.enabled">
           <DawButton
             size="sm"
             appearance="panel"
@@ -30,6 +17,19 @@
           >
             Refresh ports
           </DawButton>
+
+          <!-- Panic / All Notes Off -->
+          <DawButton
+            size="sm"
+            appearance="panel"
+            :icon="ZapOff"
+            aria-label="Send All Notes Off to all MIDI ports"
+            title="Panic: Instantly stops and silences all sounding notes on all MIDI ports"
+            @click="onPanic"
+          >
+            {{ isPanicking ? 'Silenced' : 'Panic' }}
+          </DawButton>
+
           <DawButton
             size="sm"
             appearance="ghost"
@@ -40,10 +40,14 @@
             Disable MIDI
           </DawButton>
         </template>
+
+        <template v-else>
+          <span class="text-daw-text-muted text-2xs font-mono font-medium">MIDI Output Disabled</span>
+        </template>
       </div>
 
       <!-- Preview toggle -->
-      <div class="flex items-center gap-3">
+      <div v-if="snapshot.enabled" class="flex items-center gap-3">
         <DawToggle
           v-model="sendPreviews"
           appearance="switch"
@@ -53,78 +57,53 @@
           :disabled="isPlaybackActive"
           :disabled-reason="isPlaybackActive ? 'Previews disabled during transport playback' : undefined"
           aria-label="Send previews to external MIDI"
-          title="Previews always play internally. Enable this to also send them to MIDI."
+          title="Previews always play internally. Enable this to also stream audition notes to MIDI."
         />
       </div>
     </div>
 
-    <!-- Overall connection banner if not ready or when attention needed -->
-    <MidiConnectionStatus v-if="!isReadyAndAvailable" />
+    <!-- Empty State: Displayed when Web MIDI is not yet enabled -->
+    <MidiEmptyState
+      v-if="!snapshot.enabled"
+      :is-connecting="isRequesting"
+      :is-unsupported="snapshot.status === 'unsupported' || snapshot.status === 'insecure-context'"
+      :disabled-reason="enableDisabledReason"
+      @enable="onEnableMidi"
+    />
 
-    <!-- Routing Matrix for Tracks -->
-    <div class="flex flex-col gap-2.5">
-      <MidiTrackRoute track="lead" title="Melody track" variant="signal" />
-      <MidiTrackRoute track="chord" title="Chords track" variant="chord" />
-    </div>
+    <template v-else>
+      <!-- Overall connection banner if not ready or when attention needed -->
+      <MidiConnectionStatus v-if="!isReadyAndAvailable" />
+
+      <!-- Dual Track Routing Matrix: Side-by-side on desktop/laptop -->
+      <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <MidiTrackRoute track="lead" title="Melody Track" variant="signal" />
+        <MidiTrackRoute track="chord" title="Chords Track" variant="chord" />
+      </div>
+    </template>
 
     <!-- Collapsible Setup & Signal Flow Guide -->
-    <details class="border-daw-border bg-daw-panel rounded-control group text-2xs border">
-      <summary
-        class="text-daw-text-muted hover:text-daw-text flex cursor-pointer items-center justify-between p-2.5 font-mono font-medium select-none"
-      >
-        <span class="flex items-center gap-1.5">
-          <Info class="text-daw-signal h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span>MIDI routing &amp; DAW signal flow guide</span>
-        </span>
-        <ChevronDown class="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-180" aria-hidden="true" />
-      </summary>
-      <div
-        class="border-daw-border text-daw-text-muted text-micro flex flex-col gap-2 border-t p-3 font-mono leading-relaxed"
-      >
-        <p>
-          <strong class="text-daw-text">No Audio Return:</strong> External MIDI outputs raw Note-On, Note-Off, and
-          Velocity events. Sound generation happens in your DAW or hardware synthesizer. Melody Mate channel faders, FX
-          sends, and master meters only affect internal audio.
-        </p>
-        <p>
-          <strong class="text-daw-text">DAW Setup (macOS):</strong> In
-          <code class="text-daw-signal">Audio MIDI Setup</code>, double-click the
-          <code class="text-daw-signal">IAC Driver</code>, check &ldquo;Device is online&rdquo;, and select the IAC bus
-          here. In Ableton, enable the <code class="text-daw-signal">Track</code> input button in MIDI preferences (Sync
-          and Remote are not needed), set track input to the IAC bus, and arm the track.
-        </p>
-        <p>
-          <strong class="text-daw-text">DAW Setup (Windows / Linux):</strong> Configure a virtual loopback MIDI driver
-          (e.g. loopMIDI or ALSA Sequencer) to route notes into your DAW.
-        </p>
-        <p>
-          <strong class="text-daw-text">Port Origin &amp; Docs:</strong> MIDI ports originate in your operating system,
-          connected USB hardware, or DAW virtual inputs, not inside the browser. Detailed setup instructions are in
-          <code class="text-daw-signal">docs/MIDI_OUTPUT.md</code>.
-        </p>
-        <p>
-          <strong class="text-daw-text">Transport Safety:</strong> Test notes and external audition previews are
-          intentionally muted during transport playback to guarantee zero voice overlap with the song schedule.
-        </p>
-      </div>
-    </details>
+    <MidiSetupGuide />
   </div>
 </template>
 
 <script setup lang="ts">
   import { computed, onMounted, ref } from 'vue'
-  import { ChevronDown, Info, Plug, RotateCw } from '@lucide/vue'
+  import { RotateCw, ZapOff } from '@lucide/vue'
   import DawButton from '@/components/common/DawButton.vue'
   import DawToggle from '@/components/common/DawToggle.vue'
   import { useAudioStore } from '@/stores/audio.store'
   import { useMidiOutputStore } from '@/stores/midi-output.store'
   import MidiConnectionStatus from './MidiConnectionStatus.vue'
+  import MidiEmptyState from './MidiEmptyState.vue'
+  import MidiSetupGuide from './MidiSetupGuide.vue'
   import MidiTrackRoute from './MidiTrackRoute.vue'
 
   const midiStore = useMidiOutputStore()
   const audioStore = useAudioStore()
 
   const isRequesting = ref(false)
+  const isPanicking = ref(false)
 
   onMounted(() => {
     // Ensure runtime is instantiated for active setting updates
@@ -165,5 +144,14 @@
 
   async function onRefreshPorts(): Promise<void> {
     await midiStore.refresh()
+  }
+
+  function onPanic(): void {
+    if (isPanicking.value) return
+    isPanicking.value = true
+    midiStore.panic()
+    setTimeout(() => {
+      isPanicking.value = false
+    }, 600)
   }
 </script>
