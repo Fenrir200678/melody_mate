@@ -2,7 +2,7 @@
 
 Melody Mate v2 is a generative MIDI workstation and melodic sketchpad designed for music producers, beatmakers and composers. It runs entirely in the browser and helps you create musically coherent melodies, basslines, arpeggios and chord progressions without relying on generic randomizers or cloud subscriptions.
 
-Once you have an idea you like, you can edit it directly on an interactive canvas piano roll, audition it using the built-in synthesizer engine and export clean multi-track MIDI directly into your DAW (Ableton Live, FL Studio, Logic Pro, Studio One, Cubase, Bitwig, or Reaper).
+Once you have an idea you like, you can edit it directly on an interactive canvas piano roll, audition it using the built-in synthesizer engine, stream live MIDI to your DAW or hardware synthesizer, and export clean multi-track MIDI directly into your DAW (Ableton Live, FL Studio, Logic Pro, Studio One, Cubase, Bitwig, or Reaper).
 
 <!-- Screenshot Placeholder: Full workspace view with piano roll, sidebars and docks -->
 
@@ -106,6 +106,18 @@ You do not have to regenerate an entire track just to fix one awkward measure. T
 - Master output protection: Optional Bus Compressor, AudioWorklet stereo RMS/Peak meters and an always on AudioWorklet lookahead brickwall peak limiter that prevents distortion and loud volume spikes.
 - Global Panic button to silence all voices immediately.
 
+### Direct MIDI Output (Experimental)
+
+Play Melody and Chords through your own DAW instruments or hardware synthesizers in real time via Web MIDI, and record the incoming notes directly in your DAW.
+
+- **Setup:** Open Sound & Mix (`S`), switch to **MIDI Output**, and click **Enable Web MIDI**. Access requires a browser with [Web MIDI support](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/requestMIDIAccess), MIDI permission, and HTTPS or `localhost`.
+- **Independent routing:** Choose **Internal**, **MIDI**, or **Both** for each track, with separate output ports, MIDI channels (1–16), and timing offsets. Use an existing virtual MIDI bus for DAW routing, such as macOS IAC or Windows loopMIDI, or connect a hardware MIDI interface or USB synthesizer.
+- **Connection tools:** **Test Note**, **Refresh ports**, live TX indicators, and **Panic** help check and manage your routes. Optional **Send previews to MIDI** adds external auditions while playback is stopped or paused; internal previews remain available.
+
+Live output sends Note-On, Note-Off, and velocity events. MIDI Clock and automatic DAW transport synchronization are not provided: match your DAW's BPM and start recording manually. Sound comes from the receiving instrument; Melody Mate's internal mixer and effects do not control its audio.
+
+See the [MIDI Output & DAW Integration Guide](docs/MIDI_OUTPUT.md) for platform setup and troubleshooting. Standard MIDI file export remains available independently of live MIDI access.
+
 ### Multi-Track MIDI Export
 
 - Exports standard `.mid` files directly from your browser.
@@ -195,7 +207,6 @@ Here is a glimpse of features, workflows and concepts currently on the radar for
 ### Track Architecture & Live I/O
 
 - **Dedicated Bassline & Arpeggio Tracks:** Move beyond shared preview layers to independent multi-track lane architectures with dedicated generators, sound patches, and mute/solo controls.
-- **Direct Web MIDI Output:** Stream generative MIDI in real time directly to external hardware synthesizers or your desktop DAW.
 - **Progressive Web App (PWA):** Offline-first caching and standalone desktop app installability.
 
 ### Generator & Music Theory Enhancements
