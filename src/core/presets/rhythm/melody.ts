@@ -115,7 +115,7 @@ export const MELODY_RHYTHMS: readonly RhythmPreset[] = [
     name: 'Dark Lament',
     category: 'melody',
     subdivision: '16n',
-    description: 'A slow, mournful, and spacious emotional progression.',
+    description: 'A half note, dotted quarter, and closing eighth note for spacious melodic phrasing.',
     steps: [
       { isNote: true, durationSteps: 8 },
       { isNote: true, durationSteps: 6 },

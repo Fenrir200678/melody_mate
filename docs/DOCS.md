@@ -169,11 +169,14 @@ Press `B` to show or hide the left Generator panel. The panel width is resizable
 
 Controls the rhythmic structure and placement of melody notes:
 
-- **Preset Mode:** Choose from over 40 production-ready rhythmic templates grouped by style:
-  - _Melody:_ EDM Anthem, Synthwave Lead, Melancholic Lead, Syncopated Pop, Arp Lead, Dark Lament, and driving hooks.
-  - _Bass:_ Driving 8ths, Offbeat Bass, Funky Groove, Rolling 16ths.
-  - _World:_ Afrobeat Pulse, Bossa Nova Feel, Tresillo rhythms.
-  - _Phrases & Basic:_ Straight quarters, eighth-note pairs, dotted figures.
+- **Preset Mode:** Choose from 100 rhythmic templates in three selection categories: _Melody_ (51), _Bass_ (33), and _World_ (16). Basic pulses and longer phrases are included in Melody and Bass.
+  - _Dark electronic & synth styles:_ EBM Machine Pulse, EBM Body Drive, EBM Sequencer Lock, Dark Electro Interlock, Dark Electro Burst & Response, Dark Techno Chug, Dark Techno Three-Step Sequence, Industrial Stop-Start Bass, Coldwave Sparse Bass, Darkwave Longing Phrase, Darksynth Chase, and synthpop hooks and bass phrases.
+  - _Other grooves:_ Disco Pickup Bass, Deep House Pocket, Garage Skipping Bass, Funk Rest Pocket, Hip-Hop Space Bass, Drum & Bass Push, Dub Answer Bass, House Piano Push, Trance Release Arp, Electro-Funk Hook, R&B Answer Phrase, and Indie Pop Lift.
+  - _Space & phrasing:_ Ambient Breath, Cinematic Slow Build, Pop Two-Bar Release, Pickup Hook, Sustained Phrase, and Two-Bar Question & Answer complement straight eighths, sixteenths, and dotted figures.
+  - _World:_ Tresillo, Cinquillo, Son and Rumba Clave in both 3:2 and 2:3 orientations, plus Bossa Nova, Samba, Maqsum, Habanera, and Afrobeat-, Highlife-, Soca-, Baião-, tango-milonga-, and dembow-inspired lines.
+  - Patterns span one, two, or four 4/4 bars. Longer phrases repeat their complete cycle from project start; a partial work range keeps that phase and clips notes at its end. Open Rhythm Studio (`R`) and use **Copy preset** to inspect or adapt their entries and rests.
+  - Style names suggest musical uses for a single melody or bass line. Presets set entries, durations, and rests; tempo, pitch, sound, accents, and project swing remain separate controls. For clipped electronic sequences, start with a short Note Length and low Breath / Rest Probability to preserve the written pulse.
+  - Selecting a _Bass_ preset automatically uses the bass-trained Markov model for pitch transitions. _Melody_ and _World_ presets use the melody-trained model. Random preset selection chooses the matching model after picking the rhythm. Your octave range and sound settings remain under your control.
 - **Random Preset Toggle:** Automatically selects a new rhythm preset on every generation run, encouraging rapid exploration of diverse rhythmic ideas.
 - **Euclidean Mode (Bjorklund Algorithm):** Generates mathematically balanced rhythmic pulses:
   - _Pulses:_ Number of active hits distributed evenly across the measure.
@@ -182,6 +185,7 @@ Controls the rhythmic structure and placement of melody notes:
   - _Subdivision:_ Sets resolution to quarter (`4n`), eighth (`8n`), sixteenth (`16n`), or thirty-second (`32n`) notes.
   - _SVG Circular Visualizer:_ Live clock-face diagram rendering active triggers and rests.
 - **Custom Mode:** Directly links the generator to your user-sequenced pattern from Rhythm Studio (`R`).
+  - Custom and Euclidean rhythms use the melody-trained model, including when the last selected factory preset was a Bass preset. If the requested model is unavailable, generation uses its synthetic scale model.
 
 ### Motif Module
 

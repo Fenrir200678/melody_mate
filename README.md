@@ -47,6 +47,8 @@ You do not have to regenerate an entire track just to fix one awkward measure. T
 
 ### Musical Melody Generation
 
+**About rhythm presets:** Genre-labeled presets define note timing, durations, and rests; they are not prewritten melodies or basslines. A House preset for example provides a rhythmic starting point, but does not automatically generate a melody or bassline suited to a House track: pitches are generated from your key, scale, chords, the selected Markov model, and other generator settings. The same rhythm can work across many genres, with harmony, register, tempo, sound design, and your edits shaping the result.
+
 - **Markov Chain Engine:** Tunable step memory (Orders 1, 2, 3 and 4) trained on scale motions, arpeggios and authentic cadences.
 - **Music Theory Heuristics:**
   - Leap-then-Step rule balances wide jumps with stepwise counter-motion.

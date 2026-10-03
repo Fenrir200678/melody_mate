@@ -29,6 +29,25 @@ describe('factory rhythm phrasing', () => {
   it('places son and rumba clave across two 4/4 bars with the delayed rumba stroke', () => {
     expect(onsets('son-clave', 0, 32).map(([step]) => step)).toEqual([0, 6, 12, 20, 24])
     expect(onsets('rumba-clave', 0, 32).map(([step]) => step)).toEqual([0, 6, 14, 20, 24])
+    expect(onsets('son-clave-2-3', 0, 32).map(([step]) => step)).toEqual([4, 8, 16, 22, 28])
+    expect(onsets('rumba-clave-2-3', 0, 32).map(([step]) => step)).toEqual([4, 8, 16, 22, 30])
+  })
+
+  it('lets the techno three-step sequence cross the barline before resetting after two bars', () => {
+    expect(onsets('dark-techno-three-step', 13, 38)).toEqual([
+      [15, 2],
+      [18, 2],
+      [21, 2],
+      [24, 2],
+      [27, 2],
+      [30, 1],
+      [32, 2],
+      [35, 2]
+    ])
+  })
+
+  it('places the Maqsum opening response on the first offbeat rather than beat two', () => {
+    expect(onsets('arabic-maqsum', 0, 16).map(([step]) => step)).toEqual([0, 2, 6, 8, 12])
   })
 
   it('keeps pickups off the downbeat and resolves into the following bar', () => {

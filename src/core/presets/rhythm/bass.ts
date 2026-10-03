@@ -112,7 +112,7 @@ export const BASS_RHYTHMS: readonly RhythmPreset[] = [
     name: 'Gothic March',
     category: 'bass',
     subdivision: '16n',
-    description: 'A slow, somber, and heavy procession anchoring darkwave compositions.',
+    description: 'A dotted quarter and eighth note followed by two quarter notes for a darkwave-inspired bass march.',
     steps: [
       { isNote: true, durationSteps: 6 },
       { isNote: true, durationSteps: 2 },
@@ -178,7 +178,7 @@ export const BASS_RHYTHMS: readonly RhythmPreset[] = [
     name: 'Solemn Drone',
     category: 'bass',
     subdivision: '16n',
-    description: 'Slow, minimalist pulse for deep, resonant, and atmospheric bass.',
+    description: 'Two half-note entries per bar for a slow-moving, drone-like bass pulse.',
     steps: [
       { isNote: true, durationSteps: 8 },
       { isNote: true, durationSteps: 8 }

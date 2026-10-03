@@ -30,9 +30,6 @@ export function useMelodyGeneration(
       const seed = takesStore.resolveGenerationSeed()
       const rng = createRng(seed)
 
-      // Lazily fetched and cached by the service; null keeps the synthetic prior.
-      const trainedModel = await loadTrainedModel('melody')
-
       const activeChords = harmonyStore.useChords && harmonyStore.chords.length > 0 ? harmonyStore.chords : undefined
       if (generatorParams.value.rhythmMode === 'preset' && generatorParams.value.randomRhythmPreset) {
         const randomId = pickRandomRhythmPresetId(undefined, rng)
@@ -41,22 +38,25 @@ export function useMelodyGeneration(
         }
       }
 
-      const rhythmPreset =
-        generatorParams.value.rhythmMode === 'preset'
-          ? getRhythmPresetById(generatorParams.value.rhythmPresetId)
-          : undefined
+      // Model loading can yield to UI edits, so the selected role and generation
+      // inputs must describe the same request, including a randomized preset.
+      const generator = { ...generatorParams.value }
+      const project = projectStore.toConfig()
+      const rhythmPreset = generator.rhythmMode === 'preset' ? getRhythmPresetById(generator.rhythmPresetId) : undefined
+      const customPattern = generator.rhythmMode === 'custom' ? rhythmStore.pattern : undefined
+      const trainedModel = await loadTrainedModel(rhythmPreset?.category === 'bass' ? 'bass' : 'melody')
 
       const generated = generateMelody({
-        project: projectStore.toConfig(),
-        generator: generatorParams.value,
+        project,
+        generator,
         chords: activeChords,
-        chordAdherence: generatorParams.value.chordAdherence ?? harmonyStore.adherence,
+        chordAdherence: generator.chordAdherence ?? harmonyStore.adherence,
         rhythmPreset,
-        customPattern: generatorParams.value.rhythmMode === 'custom' ? rhythmStore.pattern : undefined,
-        startWithRoot: generatorParams.value.startWithRoot,
-        endWithRoot: generatorParams.value.endWithRoot,
-        minOctave: generatorParams.value.minOctave,
-        maxOctave: generatorParams.value.maxOctave,
+        customPattern,
+        startWithRoot: generator.startWithRoot,
+        endWithRoot: generator.endWithRoot,
+        minOctave: generator.minOctave,
+        maxOctave: generator.maxOctave,
         rangeStartStep,
         rangeEndStep,
         trainedModel,
@@ -66,12 +66,12 @@ export function useMelodyGeneration(
       replaceNotesInScope(generated, { startStep: rangeStartStep, endStep: rangeEndStep })
       takesStore.captureTake(
         generated,
-        generatorParams.value,
+        generator,
         {
-          key: projectStore.key,
-          scale: projectStore.scale,
-          bpm: projectStore.bpm,
-          bars: projectStore.bars,
+          key: project.key,
+          scale: project.scale,
+          bpm: project.bpm,
+          bars: project.bars,
           rangeStartStep,
           rangeEndStep
         },

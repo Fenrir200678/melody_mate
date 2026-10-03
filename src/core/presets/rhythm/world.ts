@@ -94,10 +94,10 @@ export const WORLD_RHYTHMS: readonly RhythmPreset[] = [
     name: 'Arabic Maqsum',
     category: 'world',
     subdivision: '16n',
-    description: 'Middle Eastern folk syncopation (Dum-Tak, es-Tak, Dum-Tak cadence).',
+    description: 'Maqsum-inspired line entering on beat one, the offbeats of one and two, then beats three and four.',
     steps: [
-      { isNote: true, durationSteps: 4 },
       { isNote: true, durationSteps: 2 },
+      { isNote: true, durationSteps: 4 },
       { isNote: true, durationSteps: 2 },
       { isNote: true, durationSteps: 4 },
       { isNote: true, durationSteps: 4 }

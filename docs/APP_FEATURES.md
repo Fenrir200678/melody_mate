@@ -177,8 +177,10 @@ The Work Range system lets producers isolate any section of the composition for 
 Melody Mate v2 avoids unmusical random noise by combining probabilistic transition matrices with classical music theory heuristics:
 
 - **Markov Chain Engine:**
-  - N-gram model with selectable order (Order 1, Order 2, Order 3) for tunable phrase predictability versus exploratory branching.
-  - Pre-trained on scale intervals, triad arpeggios, turning ornaments, and classical authentic cadences.
+  - N-gram model with selectable orders 1–4 for tunable phrase predictability versus exploratory branching.
+  - Normal generation loads the offline-trained `bass` artifact for active Bass-category rhythm presets and the `melody` artifact for Melody/World presets and Custom/Euclidean modes. Random rhythm selection precedes model-role resolution; an inactive saved Bass preset does not affect Custom/Euclidean generation. Arp Studio independently uses the `arp` artifact.
+  - Model artifacts are validated, loaded on demand, cached, and encoded as tonic-relative chroma transitions. If the requested role cannot load, the generator uses a synthetic scale model built from scale movement, triad arpeggios, ornaments, and cadences. The prior influences pitch selection alongside musical heuristics; it does not change rhythm, octave range, or sound settings.
+  - Generation snapshots parameters, project configuration, and rhythm inputs before awaiting the artifact so preset/model pairing and captured Take settings remain consistent during UI edits.
 - **Music Theory Heuristics:**
   - **Leap-then-Step:** Counterbalances large melodic leaps (thirds or greater) with immediate stepwise motion in the opposite direction. Penalizes repeated leaps in the same direction.
   - **Contour Planning:** Directs melodic trajectories across the phrase:
@@ -225,11 +227,14 @@ Melody Mate v2 avoids unmusical random noise by combining probabilistic transiti
 
 ### 6.4 Rhythm Engine Modes
 
-- **Preset Mode:** Over 40 production-ready rhythm patterns categorized into:
-  - `melody`: EDM Anthem, Synthwave Lead, Melancholic Lead, Syncopated Pop, Arp Lead, Dark Lament, and more.
-  - `bass`: Driving 8ths, Offbeat Bass, Funky Groove, Rolling 16ths.
-  - `world`: Afrobeat Pulse, Bossa Nova Feel, Tresillo.
-  - `phrases` & `basic`: Straight quarters, 8th pairs, dotted figures.
+- **Preset Mode:** 100 distinct factory rhythm patterns in `src/core/presets/rhythm/`, categorized into:
+  - `melody` (51): Basic eighth/sixteenth pulses, EDM and pop hooks, sparse and sustained phrases, EBM leads, dark electro bursts, dark techno stabs and a two-bar three-step sequence, industrial/minimal wave/darkwave/darksynth motifs, synthpop responses, house/trance/breakbeat/electro-funk/R&B/indie/jazz-inspired lines, ambient spacing, and a four-bar cinematic build.
+  - `bass` (33): Quarter and offbeat pulses, acid/funk/reggae/Motown/metal patterns, clipped EBM cells, dark electro and dark techno sequences, industrial stop-start, coldwave spacing, synthpop phrasing, and disco/deep house/garage/hip-hop/drum and bass/dub/indie grooves.
+  - `world` (16): Tresillo, Cinquillo, two-bar Son and Rumba Clave in both 3:2 and 2:3 orientations, Bossa Nova, Samba, Maqsum, Habanera, and single-line adaptations inspired by Afrobeat, Highlife, Soca, Baião, tango-milonga, and dembow.
+  - The expansion adds 24 dark electronic and synth-oriented patterns plus 26 complementary groove, phrase, and World patterns to the original 50. `basic` and `phrases` are source banks, not additional UI categories.
+  - Factory data uses explicit note/rest spans on the eighth- or sixteenth-note grid. Each cycle covers one, two, or four complete 4/4 bars; generation repeats the whole cycle anchored to project start and clips notes at the work-range end. Rhythm Studio copying preserves the complete cycle.
+  - Presets specify rhythmic entries, durations, and rests only. Genre names indicate intended uses; pitches, velocities, sounds, tempo, and swing are controlled elsewhere. World adaptations represent single lines rather than complete percussion ensembles.
+  - Library checks enforce unique IDs, positive integral durations, full-bar cycles, and distinct generated onset/duration sequences across four bars, including subdivision normalization and repeated-cycle equivalence. Every factory preset is checked for equivalent generation and Rhythm Studio expansion.
   - Random preset toggle: Automatically selects a new rhythm preset on every generation run.
 - **Euclidean Rhythm Mode:**
   - Algorithmic pulse generation based on the Bjorklund algorithm.

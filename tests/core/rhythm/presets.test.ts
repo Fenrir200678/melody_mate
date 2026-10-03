@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { generateRhythmOnsets } from '@/core/generator/rhythm-onsets'
+import { GeneratorParamsSchema } from '@/core/schemas/generator.schema'
 import {
   getRhythmPresetById,
   getRhythmPresetCycleSteps,
@@ -13,10 +15,18 @@ describe('Rhythm Presets Library', () => {
     for (const category of ['melody', 'bass', 'world'] as const) {
       expect(getRhythmPresetsByCategory(category).length).toBeGreaterThan(0)
     }
-    const signatures = RHYTHM_PRESETS.map((preset) => {
-      const unit = preset.subdivision === '8n' ? 2 : 1
-      return JSON.stringify(preset.steps.map((step) => [step.isNote, step.durationSteps * unit]))
-    })
+    const generator = GeneratorParamsSchema.parse({ rhythmMode: 'preset', restProbability: 0 })
+    const signatures = RHYTHM_PRESETS.map((rhythmPreset) =>
+      JSON.stringify(
+        generateRhythmOnsets({
+          generator,
+          rhythmPreset,
+          rangeStartStep: 0,
+          rangeEndStep: 64,
+          rng: () => 0.5
+        })
+      )
+    )
     expect(new Set(signatures).size).toBe(RHYTHM_PRESETS.length)
   })
 
