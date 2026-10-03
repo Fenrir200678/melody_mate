@@ -90,11 +90,17 @@
           <strong class="text-daw-text">DAW Setup (macOS):</strong> In
           <code class="text-daw-signal">Audio MIDI Setup</code>, double-click the
           <code class="text-daw-signal">IAC Driver</code>, check &ldquo;Device is online&rdquo;, and select the IAC bus
-          here. In Ableton or Logic, set the track input to the IAC bus and arm the track.
+          here. In Ableton, enable the <code class="text-daw-signal">Track</code> input button in MIDI preferences (Sync
+          and Remote are not needed), set track input to the IAC bus, and arm the track.
         </p>
         <p>
           <strong class="text-daw-text">DAW Setup (Windows / Linux):</strong> Configure a virtual loopback MIDI driver
           (e.g. loopMIDI or ALSA Sequencer) to route notes into your DAW.
+        </p>
+        <p>
+          <strong class="text-daw-text">Port Origin &amp; Docs:</strong> MIDI ports originate in your operating system,
+          connected USB hardware, or DAW virtual inputs, not inside the browser. Detailed setup instructions are in
+          <code class="text-daw-signal">docs/MIDI_OUTPUT.md</code>.
         </p>
         <p>
           <strong class="text-daw-text">Transport Safety:</strong> Test notes and external audition previews are

@@ -506,7 +506,17 @@ Enabled external notes are released on Stop, Pause, Seek, loop changes, Clear an
 
 A route, channel or offset change replaces the old target only after preparation succeeds. MIDI Disable, pagehide, AudioContext suspension and clock timing loss cancel future external attacks. Device loss stops further sends; reconnect performs best-effort cleanup of known notes before an explicit Play/resume permits new output. Interrupted notes are never replayed. Normal edits and track cancellations send targeted Note-Offs; channel-wide safety controllers are reserved for global Panic.
 
-The clock bridge does not transmit MIDI Clock or synchronize a DAW transport. Lifecycle behavior is verified with deterministic port-buffer tests, including shared-port cancellation and late callbacks. Physical disconnects, browser crashes, hardware delivery and real device/DAW timing remain unverified; their acceptance belongs to Task 69.
+The clock bridge streams Note-On, Note-Off, and Velocity events according to the project's internal transport timeline. It does not transmit MIDI Clock or automatically slave-synchronize a DAW transport; DAW recording is triggered manually at matching project BPM. Complete setup instructions for all platforms are available in the [MIDI Output & DAW Integration Guide](MIDI_OUTPUT.md), and physical acceptance test results are cataloged in the [Release Validation Report](MIDI_OUTPUT_VALIDATION.md).
+
+### Quick DAW Integration Setup
+
+- **macOS IAC Driver:** Enable the IAC Driver in macOS **Audio MIDI Setup** (`Window` → `Show MIDI Studio` → double-click `IAC Driver` → check `Device is online`). In Melody Mate, click **Enable MIDI** and select `IAC Driver Bus 1`.
+- **Ableton Live 12:** Open **Settings** → **Link, Tempo & MIDI** → locate `Input: IAC Driver (Bus 1)` in the MIDI Ports table. Turn **ON** the **Track** button (`Sync` and `Remote` remain OFF). On a MIDI track, set `MIDI From` to `IAC Driver (Bus 1)`, choose the channel (`1` for Lead, `2` for Chords), set `Monitor` to **In** (or **Auto** with Record Arm), and load a virtual instrument.
+- **Apple Logic Pro:** Under Logic Settings → MIDI → Inputs, verify `IAC Driver Bus 1` (or `Logic Pro Virtual In`) is enabled. Create an Instrument track, set its MIDI input to the IAC bus and channel, and engage Input Monitoring.
+- **Cockos REAPER:** Under Preferences → Audio → MIDI Devices, right-click the virtual port and select `Enable input`. On a track, set input to `Input: MIDI` → port → channel, and enable Record Monitoring.
+- **Windows (loopMIDI):** Windows does not provide a default userland loopback driver. Install Tobias Erichsen's standard [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html), create a loopback port, and select it in Chrome/Edge and your Windows DAW.
+- **Hardware Synthesizers:** Plug in your class-compliant USB synth or MIDI interface. Click **Refresh ports**, choose the device, assign the channel matching your synthesizer, and set the track mode to **MIDI** (external only) or **Both** (layering). Use the **Offset** knob (-50 ms to +50 ms) to fine-tune hardware response against internal audio.
+- **Emergency Panic:** In case of hung notes on external hardware due to an unplugged cable, press the global **Panic** button in the persistent footer (or press `Esc`) to immediately purge all queues, release sounding notes, and broadcast All Notes Off (`CC 123`) and All Sound Off (`CC 120`).
 
 Click the **Export MIDI** button in the footer to open the export popover. Melody Mate v2 produces standard Type 1 MIDI files (`.mid`) formatted for direct import into any professional DAW or hardware sequencer.
 

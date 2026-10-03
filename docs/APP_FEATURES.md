@@ -534,6 +534,31 @@ Tone scheduling semantics were checked through Context7's [Tone Transport docume
 - Project reset releases app-owned external notes before applying `DEFAULT_MIDI_OUTPUT_SETTINGS`, disables output and invalidates stale opens. Unsupported audio document versions are discarded through the existing development reset without migration. Sound/mix restore is preserved; custom sound presets, takes and SMF exports contain no live-port data.
 - Focused schema, storage, store and runtime tests cover reload isolation, missing/ambiguous/exact-ID restoration, routing conflicts, dirty/autosave transitions, commit failure, sounding-note cleanup and pending-open cancellation. No MIDI UI or hardware verification is added.
 
+### Sound & Mix dock MIDI output controls and routing UI (Task 68)
+
+- `MidiOutputPanel.vue` mounts inside `SoundMixDock.vue` when the header view switcher selects `MIDI Output`. It organizes the top action bar, reactive status banner, track routing matrix, and collapsible setup guide into a focused workstation surface.
+- `MidiTrackRoute.vue` renders dedicated route configuration cards for Lead and Chords tracks:
+  - 3-way segmented mode selector: `Internal`, `MIDI`, and `Both`.
+  - Port dropdown with automatic truncation for long device strings, disambiguation by manufacturer/detail, and retained disconnected target display.
+  - Channel selector (1–16) with inline conflict detection preventing duplicate port/channel assignments.
+  - Continuous micro-timing offset knob (`DawKnob`) backed by direct numeric entry (-50 ms to +50 ms).
+  - Single-click **Test note** button emitting a bounded audition note with explicit auto-release.
+- `MidiConnectionStatus.vue` renders reactive status badges and full-width recovery banners for connection states: `Ready`, `Connecting…`, `No ports`, `Off`, `Unavailable`, `Denied`, and `Disconnected`.
+- `Send previews to MIDI` toggle allows optional external auditioning of piano roll notes, chord voicings, arpeggios, and takes. External previews and test notes are automatically disabled and locked during active transport playback to prevent voice collisions with the song timeline.
+- Collapsible inline guide outlines audio return architecture, macOS IAC setup, Ableton Live track routing, loopback drivers, and persistent footer Panic access.
+
+### MIDI setup guides and release validation (Task 69)
+
+- Comprehensive setup and DAW integration reference published in [`docs/MIDI_OUTPUT.md`](MIDI_OUTPUT.md), covering macOS IAC Driver, Logic Pro Virtual In, Ableton Live 12 (`Track` configuration without Sync/Remote), Cockos REAPER, Tobias Erichsen loopMIDI for Windows, and ALSA Sequencer/`snd-virmidi` for Linux.
+- Complete release validation report published in [`docs/MIDI_OUTPUT_VALIDATION.md`](MIDI_OUTPUT_VALIDATION.md), detailing the primary test bench audit:
+  - macOS 27.0.1 (Darwin 27.0.0 arm64, Apple Silicon).
+  - Google Chrome 153.0.8010.53 (arm64, Official Build).
+  - Ableton Live 12 Suite 12.4.6 (`12.4.6_2026-09-10_0de5c8fa9a`).
+  - CoreMIDI audit: 0 active destination endpoints, 0 active source endpoints, IAC Driver offline.
+- Validated multi-track safety contracts: Shared-port cancellation (Lead cancel cleans port without dropping sounding or scheduled Chord track notes), clock bridge sample anchoring with limiter lookahead compensation, late-event drop threshold (80 ms) preventing bursts, and transport preview lock.
+- Responsive dock verification confirmed in Google Chrome across desktop (1512x810), narrow laptop (1024x768), and restricted height (800x600) viewports with zero layout breakage or console errors.
+- Honest hardware gate sign-off: Software and automated lifecycle gates PASSED; physical hardware end-to-end delivery marked as **Open Acceptance** pending connection of a physical MIDI device or activation of the system IAC bus. Windows, Linux, and Firefox marked explicitly as **Unverified**.
+
 ### MIDI file export
 
 Melody Mate v2 provides professional MIDI export formatted for immediate use in external digital audio workstations:
