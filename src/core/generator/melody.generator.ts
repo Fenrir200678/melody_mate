@@ -30,7 +30,6 @@ export interface MelodyGeneratorOptions {
   endWithRoot?: boolean
   minOctave?: number
   maxOctave?: number
-  targetOctave?: number
   temperature?: number
   rng?: () => number
   rangeStartStep?: number
@@ -54,17 +53,12 @@ function getOrBuildMarkovTable(root: string, scaleName: string, order: number): 
   return table
 }
 
-function resolveRootCandidate(pool: CandidateNote[], rootPc: string, targetOctave: number): CandidateNote {
-  const rootPitch = `${rootPc}${targetOctave}`
-  return (
-    pool.find((c) => c.pitch === rootPitch) ?? {
-      pitch: rootPitch,
-      midi: pitchToMidi(rootPitch),
-      pitchClass: rootPc,
-      degree: 1,
-      isChordTone: true
-    }
-  )
+function resolveRootCandidate(pool: CandidateNote[], rootPc: string, centerMidi: number): CandidateNote {
+  return pool
+    .filter((candidate) => candidate.pitchClass === rootPc)
+    .reduce((best, candidate) =>
+      Math.abs(candidate.midi - centerMidi) < Math.abs(best.midi - centerMidi) ? candidate : best
+    )
 }
 
 /**
@@ -86,7 +80,6 @@ export function generateMelody(options: MelodyGeneratorOptions): AppNote[] {
   const maxOctave = options.maxOctave ?? generator.maxOctave ?? 5
   const loOctave = Math.min(minOctave, maxOctave)
   const hiOctave = Math.max(minOctave, maxOctave)
-  const targetOctave = options.targetOctave ?? Math.round((minOctave + maxOctave) / 2)
   const temperature = options.temperature ?? 1.0
   const chordAdherence = options.chordAdherence ?? generator.chordAdherence
   const rootPc = Note.pitchClass(project.key) || project.key
@@ -128,15 +121,12 @@ export function generateMelody(options: MelodyGeneratorOptions): AppNote[] {
 
   const minMidi = pitchToMidi(`C${loOctave}`)
   const maxMidi = pitchToMidi(`B${hiOctave}`)
-  const contourFrames = planContourFrames(
-    onsets,
-    totalSteps,
-    stepsPerBar,
-    minMidi,
-    maxMidi,
-    targetOctave,
-    generator.contour
+  const rootCandidate = resolveRootCandidate(
+    buildCandidatePool(project.key, effectiveScale, loOctave, hiOctave, []),
+    rootPc,
+    (minMidi + maxMidi) / 2
   )
+  const contourFrames = planContourFrames(onsets, totalSteps, stepsPerBar, minMidi, maxMidi, generator.contour)
 
   for (let i = 0; i < onsets.length; i++) {
     const onset = onsets[i]
@@ -159,7 +149,7 @@ export function generateMelody(options: MelodyGeneratorOptions): AppNote[] {
 
     if ((isFirstNote && startWithRoot) || (isLastNote && endWithRoot)) {
       // Deterministic root start/resolution
-      chosenCandidate = resolveRootCandidate(pool, rootPc, targetOctave)
+      chosenCandidate = pool.find((candidate) => candidate.midi === rootCandidate.midi) ?? rootCandidate
     } else {
       const contourFrame = contourFrames[i]
 
@@ -174,7 +164,6 @@ export function generateMelody(options: MelodyGeneratorOptions): AppNote[] {
         contourStrength: generator.contourStrength,
         minOctave: loOctave,
         maxOctave: hiOctave,
-        targetOctave,
         pentatonicMode: generator.pentatonicMode,
         chordAdherence,
         markovTable,
@@ -280,8 +269,8 @@ export function generateMelody(options: MelodyGeneratorOptions): AppNote[] {
 
   // 6. Final boundary constraints & schema verification
   const finalNotes: AppNote[] = []
-  const rootPitch = `${rootPc}${targetOctave}`
-  const rootMidi = pitchToMidi(rootPitch)
+  const rootPitch = rootCandidate.pitch
+  const rootMidi = rootCandidate.midi
 
   for (let idx = 0; idx < structuredNotes.length; idx++) {
     const n = structuredNotes[idx]

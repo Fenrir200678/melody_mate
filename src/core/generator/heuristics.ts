@@ -24,7 +24,6 @@ export interface HeuristicContext {
   contourStrength: number
   minOctave: number
   maxOctave: number
-  targetOctave: number
   pentatonicMode: boolean
   chordAdherence: number // 0.0 to 1.0
   markovTable?: MarkovTable
@@ -225,21 +224,16 @@ export function scoreRepetition(candidate: CandidateNote, history: CandidateNote
 }
 
 /**
- * Centered Gaussian distribution around the target octave register.
+ * Centered Gaussian distribution around the midpoint of the allowed register.
  * Returns -Infinity if candidate is outside [minMidi, maxMidi].
  */
-export function scoreRangeAwareness(
-  candidate: CandidateNote,
-  minMidi: number,
-  maxMidi: number,
-  targetOctave: number
-): number {
+export function scoreRangeAwareness(candidate: CandidateNote, minMidi: number, maxMidi: number): number {
   if (candidate.midi < minMidi || candidate.midi > maxMidi) {
     return -Infinity
   }
 
-  // Middle pitch of target octave (F# of target octave)
-  const centerMidi = pitchToMidi(`C${targetOctave}`) + 6
+  // A fractional MIDI midpoint avoids favoring the upper octave in even-octave ranges.
+  const centerMidi = (minMidi + maxMidi) / 2
   const sigma = 7.0 // ~one octave dispersion
 
   const distance = candidate.midi - centerMidi
@@ -336,7 +330,7 @@ export function evaluateAndPickCandidate(
   for (let i = 0; i < candidates.length; i++) {
     const cand = candidates[i]
 
-    const rangeScore = scoreRangeAwareness(cand, minMidi, maxMidi, context.targetOctave)
+    const rangeScore = scoreRangeAwareness(cand, minMidi, maxMidi)
     if (rangeScore === -Infinity) {
       scores[i] = -Infinity
       continue

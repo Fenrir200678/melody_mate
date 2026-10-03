@@ -21,12 +21,18 @@
             <span class="text-daw-signal text-micro">01</span>
             <span class="text-daw-text text-2xs">macOS (IAC Driver)</span>
           </div>
-          <ol class="text-daw-text-muted text-micro flex flex-col gap-1 font-mono leading-relaxed list-decimal pl-3.5">
+          <ol class="text-daw-text-muted text-micro flex list-decimal flex-col gap-1 pl-3.5 font-mono leading-relaxed">
             <li>
-              Open <code class="text-daw-signal font-semibold">Audio MIDI Setup</code> and show the MIDI Studio window.
+              Open <code class="text-daw-signal font-semibold">Audio MIDI Setup</code> and show the MIDI Studio window
+              (Window &gt; Show MIDI Studio or press <kbd>Cmd+2</kbd>).
             </li>
-            <li>Double-click <code class="text-daw-signal">IAC Driver</code> and check &ldquo;Device is online&rdquo;.</li>
-            <li>Select the IAC Bus above, set track input in your DAW, and arm the track.</li>
+            <li>
+              Double-click <code class="text-daw-signal">IAC Driver</code> and check &ldquo;Device is online&rdquo;.
+            </li>
+            <li>
+              Select the IAC Bus above (or click Refresh ports if nothing appears), set track input in your DAW and arm
+              the track.
+            </li>
           </ol>
         </div>
 
@@ -36,8 +42,20 @@
             <span class="text-daw-signal text-micro">02</span>
             <span class="text-daw-text text-2xs">Windows (loopMIDI)</span>
           </div>
-          <ol class="text-daw-text-muted text-micro flex flex-col gap-1 font-mono leading-relaxed list-decimal pl-3.5">
-            <li>Install and launch <code class="text-daw-signal font-semibold">loopMIDI</code> (free virtual cable).</li>
+          <ol class="text-daw-text-muted text-micro flex list-decimal flex-col gap-1 pl-3.5 font-mono leading-relaxed">
+            <li>
+              Install and launch a virtual loopback MIDI device like
+              <a
+                href="https://www.tobias-erichsen.de/software/loopmidi.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="loopMIDI virtual MIDI cable Download Link"
+                class="text-daw-signal font-semibold hover:underline"
+              >
+                loopMIDI
+              </a>
+              (free virtual cable).
+            </li>
             <li>Create virtual ports (e.g. &ldquo;MM Lead&rdquo; and &ldquo;MM Chords&rdquo;).</li>
             <li>Click &ldquo;Refresh ports&rdquo; above and assign ports to tracks.</li>
           </ol>
@@ -57,6 +75,19 @@
             <p>
               <strong class="text-daw-text">USB Hardware:</strong> Plug in your synthesizer or MIDI interface and hit
               &ldquo;Refresh ports&rdquo;.
+            </p>
+            <p>
+              <strong class="text-daw-danger">Experimental:</strong> Since I don't have a hardware synth, this has only
+              been tested on macOS 27 and Ableton Live 12 via IAC bus so far. I'd appreciate any
+              <a
+                href="https://github.com/Fenrir200678/melody_mate/issues"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Provide feedback"
+                class="text-daw-signal font-semibold hover:underline"
+                >feedback</a
+              >
+              here.
             </p>
           </div>
         </div>

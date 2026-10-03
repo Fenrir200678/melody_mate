@@ -252,7 +252,6 @@ describe('heuristics integration', () => {
         contourStrength: 0,
         minOctave: 4,
         maxOctave: 4,
-        targetOctave: 4,
         pentatonicMode: false,
         chordAdherence: 0,
         markovTable: table,

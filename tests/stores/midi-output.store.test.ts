@@ -1,7 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, disposePinia, setActivePinia } from 'pinia'
 import { isReactive } from 'vue'
+
+const { toneMock } = await vi.hoisted(async () => {
+  const { createToneMock } = await import('../helpers/tone-mock')
+  const created = createToneMock()
+  return { toneMock: created.toneMock }
+})
+vi.mock('tone', () => toneMock)
+
 import { useMidiOutputStore } from '../../src/stores/midi-output.store'
+import { DEFAULT_MIDI_ENABLED_ROUTE_MODE } from '../../src/config/defaults'
 import { AccessFake, PortFake } from '../audio/midi/port-fake'
 
 describe('MIDI output store snapshots', () => {
@@ -9,7 +18,10 @@ describe('MIDI output store snapshots', () => {
   beforeEach(() => {
     pinia = createPinia()
     setActivePinia(pinia)
+    const context = { ...toneMock.getContext(), lookAhead: 0.1, updateInterval: 0.05 }
+    toneMock.getContext.mockReturnValue(context as never)
   })
+
   afterEach(() => {
     disposePinia(pinia)
     vi.unstubAllGlobals()
@@ -73,4 +85,32 @@ describe('MIDI output store snapshots', () => {
     }
     expect(access.listeners.size).toBe(0)
   })
+
+  it('automatically routes tracks to MIDI when enabled with autoRoute and reverts on disable', async () => {
+    const port = new PortFake('default-port')
+    const access = new AccessFake(port)
+    const requestMIDIAccess = vi.fn(async () => access)
+    vi.stubGlobal('isSecureContext', true)
+    vi.stubGlobal('navigator', { requestMIDIAccess })
+    const store = useMidiOutputStore()
+
+    expect(store.settings.lead.mode).toBe('internal')
+    expect(store.settings.chord.mode).toBe('internal')
+
+    await store.enable({ autoRoute: true })
+
+    expect(store.settings.lead.mode).toBe(DEFAULT_MIDI_ENABLED_ROUTE_MODE)
+    expect(store.settings.lead.port?.id).toBe('default-port')
+    expect(store.settings.lead.channel).toBe(1)
+
+    expect(store.settings.chord.mode).toBe(DEFAULT_MIDI_ENABLED_ROUTE_MODE)
+    expect(store.settings.chord.port?.id).toBe('default-port')
+    expect(store.settings.chord.channel).toBe(2)
+
+    await store.disable()
+
+    expect(store.settings.lead.mode).toBe('internal')
+    expect(store.settings.chord.mode).toBe('internal')
+  })
 })
+

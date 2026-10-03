@@ -187,7 +187,7 @@ Melody Mate v2 avoids unmusical random noise by combining probabilistic transiti
     - Contour Strength fader (0% to 100%) controls how strictly pitches adhere to the planned curve.
   - **Metric Weighting & Beat Hierarchy:** Downbeats (beats 1 and 3) strongly prefer chord tones or scale pillars (root, fifth); offbeats receive greater rhythmic freedom for passing and auxiliary notes.
   - **Register Continuity:** Nearest-octave tracking keeps consecutive notes in adjacent registers, preventing jarring octave jumps.
-  - **Range Awareness:** Prevents melody notes from drifting into extreme sub-bass or piercing treble registers.
+  - **Range Awareness:** Applies Gaussian pitch weighting around the exact MIDI midpoint of the selected lower and upper bounds. Contour phrase windows share this midpoint, avoiding an upper-register bias for even octave spans. The bounds define available pitches; individual melodies can occupy a narrower range.
 
 ### 6.2 Motif & Structural Form Tools
 
@@ -216,8 +216,8 @@ Melody Mate v2 avoids unmusical random noise by combining probabilistic transiti
   - **Symmetric & Exotic:** Whole Tone, Whole-Half Diminished, Half-Whole Diminished, Hungarian Minor, Phrygian Dominant, Double Harmonic Major, Ichikosucho.
 - **Pitch Constraints:**
   - Configurable minimum and maximum octave bounds (C1 through B7) with octave span readout.
-  - **Start on Root:** Guarantees the melody begins on the key root note.
-  - **Resolve to Root:** Forces the final phrase to resolve cleanly onto the tonic note.
+  - **Start on Root:** Guarantees the melody begins on the in-range key root nearest the MIDI midpoint.
+  - **Resolve to Root:** Forces the final phrase to resolve onto the same central tonic within the selected pitch bounds.
   - **Pentatonic Hook Constraint:** Filters note selection through the 5-note pentatonic scale for pop and hook catchiness.
 
 ### 6.4 Rhythm Engine Modes
@@ -538,8 +538,8 @@ Tone scheduling semantics were checked through Context7's [Tone Transport docume
 
 ### Sound & Mix dock MIDI output controls and routing UI (Task 68)
 
-- `MidiOutputPanel.vue` mounts inside `SoundMixDock.vue` when the header view switcher selects `MIDI Output`. It organizes the top action bar, reactive status banner, dual-track side-by-side routing matrix, and collapsible setup guide into a focused workstation surface.
-- **Side-by-Side Dual Track Matrix:** Melody Track and Chords Track route cards are presented side-by-side in a two-column desktop grid mirroring the channel strip design of the Sound & Mix view.
+- `MidiOutputPanel.vue` mounts inside `SoundMixDock.vue` when the header view switcher selects `MIDI Output`. Labeled with an `(experimental)` badge in the dock title and empty state, it organizes the top action bar, reactive status banner, dual-track side-by-side routing matrix, and collapsible setup guide into a focused workstation surface.
+- **Side-by-Side Dual Track Matrix:** Melody Track and Chords Track route cards are presented side-by-side in a two-column desktop grid mirroring the channel strip design of the Sound & Mix view. Enabling MIDI in the dock automatically defaults both tracks to `MIDI` mode and assigns the first available MIDI device (channel 1 for Melody, channel 2 for Chords). Disabling MIDI reverts destinations to `Internal`.
 - **Top Action Bar & Panic Function:** Top toolbar provides instant access to **Refresh ports**, a dedicated **Panic (All Notes Off)** button to immediately stop hung notes across all active ports, **Disable MIDI**, and the **Send previews to MIDI** toggle.
 - **Welcoming Empty State (`MidiEmptyState.vue`):** When Web MIDI is disabled, displays a modern connect screen with feature highlights and a single-click **Enable Web MIDI** button instead of disabled form fields.
 - `MidiTrackRoute.vue` renders dedicated route configuration cards for Lead and Chords tracks:

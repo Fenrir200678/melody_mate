@@ -1,5 +1,4 @@
 import type { Contour } from '../schemas/generator.schema'
-import { pitchToMidi } from '../theory/scale.engine'
 
 export interface ContourFrame {
   progress: number
@@ -13,7 +12,6 @@ export function planContourFrames(
   stepsPerBar: number,
   minMidi: number,
   maxMidi: number,
-  targetOctave: number,
   contour: Contour
 ): ContourFrame[] {
   if (onsets.length === 0) return []
@@ -22,7 +20,7 @@ export function planContourFrames(
   const phraseCount = Math.max(1, Math.ceil(totalSteps / phraseSteps))
   const availableSpan = Math.max(0, maxMidi - minMidi)
   const contourSpan = Math.min(12, availableSpan)
-  const centerMidi = Math.max(minMidi, Math.min(maxMidi, pitchToMidi(`C${targetOctave}`) + 6))
+  const centerMidi = (minMidi + maxMidi) / 2
   const lowMidi = Math.max(minMidi, Math.min(maxMidi - contourSpan, centerMidi - contourSpan / 2))
 
   const phraseIndices = onsets.map((onset) => Math.min(phraseCount - 1, Math.floor(onset.step / phraseSteps)))

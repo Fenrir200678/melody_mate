@@ -150,13 +150,18 @@ describe('heuristics', () => {
   describe('scoreRangeAwareness', () => {
     it('returns -Infinity outside [minMidi, maxMidi]', () => {
       const outOfRange: CandidateNote = { pitch: 'C2', midi: 36, pitchClass: 'C', degree: 1, isChordTone: true }
-      expect(scoreRangeAwareness(outOfRange, 48, 72, 4)).toBe(-Infinity)
+      expect(scoreRangeAwareness(outOfRange, 48, 72)).toBe(-Infinity)
     })
 
-    it('scores near target octave center with high value', () => {
-      // Center of octave 4 is ~66 (F#4)
+    it('scores the register midpoint with high value', () => {
       const nearCenter: CandidateNote = { pitch: 'F#4', midi: 66, pitchClass: 'F#', degree: null, isChordTone: false }
-      expect(scoreRangeAwareness(nearCenter, 48, 72, 4)).toBeCloseTo(1.0)
+      expect(scoreRangeAwareness(nearCenter, 60, 72)).toBeCloseTo(1.0)
+    })
+
+    it('weights mirrored pitches equally across a two-octave register', () => {
+      const lower: CandidateNote = { pitch: 'F4', midi: 65, pitchClass: 'F', degree: 4, isChordTone: false }
+      const upper: CandidateNote = { pitch: 'F#5', midi: 78, pitchClass: 'F#', degree: null, isChordTone: false }
+      expect(scoreRangeAwareness(lower, 60, 83)).toBeCloseTo(scoreRangeAwareness(upper, 60, 83))
     })
   })
 
@@ -233,7 +238,6 @@ describe('heuristics', () => {
         contourStrength: 0.65,
         minOctave: 4,
         maxOctave: 4,
-        targetOctave: 4,
         pentatonicMode: false,
         chordAdherence: 1.0,
         temperature: 1.0
@@ -259,7 +263,6 @@ describe('heuristics', () => {
         contourStrength: 0.65,
         minOctave: 4,
         maxOctave: 4,
-        targetOctave: 4,
         pentatonicMode: false,
         chordAdherence: 1.0,
         temperature: 0.05

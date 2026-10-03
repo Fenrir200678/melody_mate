@@ -12,7 +12,10 @@
     </div>
 
     <div class="flex max-w-md flex-col gap-1">
-      <h3 class="text-daw-text text-sm font-semibold tracking-wide uppercase">Web MIDI Output Workstation</h3>
+      <h3 class="text-daw-text text-sm font-semibold tracking-wide uppercase">
+        Web MIDI Output Workstation
+        <span class="text-micro text-daw-text-muted font-mono font-normal tracking-normal lowercase">(experimental)</span>
+      </h3>
       <p class="text-daw-text-muted text-2xs font-mono leading-relaxed">
         Route live melody and chord progressions directly into hardware synthesizers, virtual MIDI loopback cables (IAC
         / loopMIDI), or your DAW.

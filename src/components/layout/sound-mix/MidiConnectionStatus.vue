@@ -36,7 +36,7 @@
         variant="signal"
         :icon="Plug"
         aria-label="Enable MIDI"
-        @click="midiStore.enable"
+        @click="onEnable"
       >
         Enable MIDI
       </DawButton>
@@ -62,6 +62,10 @@
 
   defineProps<{ compact?: boolean }>()
   const midiStore = useMidiOutputStore()
+
+  async function onEnable(): Promise<void> {
+    await midiStore.enable({ autoRoute: true })
+  }
 
   const snapshot = computed(() => midiStore.snapshot)
   const status = computed(() => snapshot.value.status)

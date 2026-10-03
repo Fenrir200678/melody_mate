@@ -57,7 +57,6 @@ export function useMelodyGeneration(
         endWithRoot: generatorParams.value.endWithRoot,
         minOctave: generatorParams.value.minOctave,
         maxOctave: generatorParams.value.maxOctave,
-        targetOctave: Math.round((generatorParams.value.minOctave + generatorParams.value.maxOctave) / 2),
         rangeStartStep,
         rangeEndStep,
         trainedModel,

@@ -16,6 +16,14 @@
         aria-label="Sound and Mix dock view"
         @update:model-value="$emit('update:view', $event)"
       />
+
+      <span
+        v-if="view === 'midi'"
+        class="border-daw-border bg-daw-surface text-daw-text-muted rounded-chip text-micro border px-1.5 py-0.5 font-mono lowercase"
+        title="Web MIDI output is currently experimental (tested on macOS with Ableton Live)"
+      >
+        (experimental)
+      </span>
     </div>
 
     <!-- Right: Status badge & close button -->

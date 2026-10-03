@@ -132,7 +132,7 @@
     if (isRequesting.value) return
     isRequesting.value = true
     try {
-      await midiStore.enable()
+      await midiStore.enable({ autoRoute: true })
     } finally {
       isRequesting.value = false
     }
@@ -144,6 +144,9 @@
 
   async function onRefreshPorts(): Promise<void> {
     await midiStore.refresh()
+    if (snapshot.value.enabled) {
+      await midiStore.applyDefaultRouting()
+    }
   }
 
   function onPanic(): void {

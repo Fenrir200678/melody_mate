@@ -133,7 +133,8 @@ describe('melody.generator', () => {
       generator: defaultGenerator,
       startWithRoot: true,
       endWithRoot: true,
-      targetOctave: 4
+      minOctave: 4,
+      maxOctave: 4
     })
 
     expect(notes.length).toBeGreaterThan(1)
@@ -156,7 +157,8 @@ describe('melody.generator', () => {
         startWithRoot: true,
         endWithRoot: true
       },
-      targetOctave: 4
+      minOctave: 4,
+      maxOctave: 4
     })
 
     expect(notes.length).toBeGreaterThan(1)
@@ -186,6 +188,53 @@ describe('melody.generator', () => {
       expect(n.midi).toBeGreaterThanOrEqual(minMidi)
       expect(n.midi).toBeLessThanOrEqual(maxMidi)
     })
+  })
+
+  it('uses both octaves across seeded melodies instead of favoring the upper octave', () => {
+    const generator = {
+      ...defaultGenerator,
+      minOctave: 4,
+      maxOctave: 5,
+      rhythmMode: 'preset' as const,
+      chordAdherence: 0.75,
+      startWithRoot: false,
+      endWithRoot: false,
+      velocityVariation: 0,
+      noteLength: 1,
+      accentStrength: 1
+    }
+    const rhythmPreset = RHYTHM_PRESETS.find((preset) => preset.id === 'pentatonic-hook')!
+    const notes = Array.from({ length: 64 }, (_, seed) =>
+      generateMelody({
+        project: defaultProject,
+        generator,
+        rhythmPreset,
+        chords: sampleChords,
+        rng: createRng(seed + 1)
+      })
+    ).flat()
+    const upperOctaveShare = notes.filter((note) => note.midi >= pitchToMidi('C5')).length / notes.length
+
+    expect(upperOctaveShare).toBeGreaterThan(0.35)
+    expect(upperOctaveShare).toBeLessThan(0.65)
+  })
+
+  it('keeps forced tonic notes nearest the register midpoint after motif transformations', () => {
+    const notes = generateMelody({
+      project: { ...defaultProject, key: 'B', scale: 'major' },
+      generator: {
+        ...defaultGenerator,
+        minOctave: 4,
+        maxOctave: 5,
+        startWithRoot: true,
+        endWithRoot: true,
+        motif: 'ABAB'
+      },
+      rng: createRng(914)
+    })
+
+    expect(notes[0].pitch).toBe('B4')
+    expect(notes[notes.length - 1].pitch).toBe('B4')
   })
 
   it('applies motif structure (ABAB) across bars', () => {
