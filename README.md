@@ -114,7 +114,7 @@ Play Melody and Chords through your own DAW instruments or hardware synthesizers
 - **Independent routing:** Choose **Internal**, **MIDI**, or **Both** for each track, with separate output ports, MIDI channels (1–16), and timing offsets. Use an existing virtual MIDI bus for DAW routing, such as macOS IAC or Windows loopMIDI, or connect a hardware MIDI interface or USB synthesizer.
 - **Connection tools:** **Test Note**, **Refresh ports**, live TX indicators, and **Panic** help check and manage your routes. Optional **Send previews to MIDI** adds external auditions while playback is stopped or paused; internal previews remain available.
 
-Live output sends Note-On, Note-Off, and velocity events. MIDI Clock and automatic DAW transport synchronization are not provided: match your DAW's BPM and start recording manually. Sound comes from the receiving instrument; Melody Mate's internal mixer and effects do not control its audio.
+Live output sends Note-On, Note-Off, and velocity events. MIDI Clock and automatic DAW transport synchronization are not provided yet (planned for a future update): match your DAW's BPM and start recording manually. Sound comes from the receiving instrument; Melody Mate's internal mixer and effects do not control its audio.
 
 See the [MIDI Output & DAW Integration Guide](docs/MIDI_OUTPUT.md) for platform setup and troubleshooting. Standard MIDI file export remains available independently of live MIDI access.
 
