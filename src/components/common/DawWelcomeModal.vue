@@ -79,12 +79,50 @@
               class="bg-daw-surface border-daw-border text-daw-signal rounded-chip text-micro border px-1 py-0.5 font-mono"
               >Space</kbd
             >
-            to play. Shape synth sounds in Sound & Mix (<kbd
+            to play. Shape synth sounds or route live MIDI in Sound & Mix (<kbd
               class="bg-daw-surface border-daw-border text-daw-signal rounded-chip text-micro border px-1 py-0.5 font-mono"
               >S</kbd
             >), then download clean multi-track MIDI into your DAW.
           </p>
         </div>
+      </div>
+
+      <!-- Direct MIDI Output Callout Card -->
+      <div
+        class="bg-daw-panel/60 border-daw-border rounded-panel flex flex-col items-start justify-between gap-3 border p-3.5 sm:flex-row sm:items-center"
+      >
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-2">
+            <Cable class="text-daw-signal h-3.5 w-3.5 shrink-0" />
+            <span class="text-daw-signal text-2xs font-mono font-bold tracking-wider uppercase">
+              Direct MIDI Output &amp; Routing
+            </span>
+            <span
+              class="border-daw-signal/30 bg-daw-signal/10 text-daw-signal rounded-chip text-micro border px-1.5 py-0.5 font-mono lowercase"
+            >
+              experimental
+            </span>
+          </div>
+          <p class="text-daw-text-muted font-ui text-2xs max-w-md leading-relaxed">
+            Stream generative melodies and chords directly to your DAW or hardware synths in real time via Web MIDI.
+            Configure independent ports, channels, and latency offsets in Sound & Mix (<kbd
+              class="bg-daw-surface border-daw-border text-daw-signal rounded-chip text-micro border px-1 py-0.5 font-mono"
+              >S</kbd
+            >).
+          </p>
+        </div>
+
+        <DawButton
+          size="sm"
+          appearance="surface"
+          variant="signal"
+          :icon="Cable"
+          class="shrink-0"
+          title="Open MIDI Output settings in Sound & Mix"
+          @click="openMidiRouting"
+        >
+          MIDI Routing
+        </DawButton>
       </div>
 
       <!-- Legacy Version Callout Card -->
@@ -159,7 +197,7 @@
 
 <script setup lang="ts">
   import { computed } from 'vue'
-  import { AudioWaveform, Download, ExternalLink, Sliders, Sparkles, Volume2 } from '@lucide/vue'
+  import { AudioWaveform, Cable, Download, ExternalLink, Sliders, Sparkles, Volume2 } from '@lucide/vue'
   import DawButton from '@/components/common/DawButton.vue'
   import DawModal from '@/components/common/DawModal.vue'
   import { APP_METADATA } from '@/config/defaults'
@@ -178,6 +216,12 @@
   function openShortcuts(): void {
     isOpen.value = false
     uiStore.openShortcuts()
+  }
+
+  function openMidiRouting(): void {
+    isOpen.value = false
+    uiStore.setSoundDockView('midi')
+    uiStore.setSoundDockOpen(true)
   }
 
   function close(): void {

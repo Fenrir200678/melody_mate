@@ -83,6 +83,9 @@ Unlike simple randomizers or playback-only tools, Melody Mate v2 operates as an 
   - History controls: Undo (`Ctrl+Z`), Redo (`Ctrl+Y`).
   - Project reset modal: clean localStorage purge and default state restore.
   - Export MIDI popover with download options.
+- **Onboarding & Help Modals:**
+  - **Welcome Modal (`DawWelcomeModal.vue`):** First-run onboarding modal presenting workstation branding, a 3-step quickstart guide, an experimental Direct MIDI Output & Routing callout with a one-click launcher into Sound & Mix, legacy v1 access link, audio activation notice, and a "Show on startup" preference toggle.
+  - **Keyboard Shortcuts Modal (`DawShortcutsModal.vue`):** Comprehensive reference card of global workstation keyboard bindings and interaction triggers.
 
 ### 3.4 Desktop Enforcement & Mobile Device Gate (`DawMobileGate`)
 

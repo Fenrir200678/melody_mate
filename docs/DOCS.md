@@ -32,9 +32,9 @@ By default, Melody Mate targets your entire arrangement. If you only want to gen
 
 Press `G` to generate a melody using the current settings in the left Generator panel. Alternatively, press `A` to open Arp Studio and create an arpeggiated line locked to your chord voicings. Review variations in the Take Rack, experiment with melodic contours, or nudge the Motif Variation fader to explore different phrasing styles.
 
-### Step 5: Audition, Shape Feel, and Export Multi-Track MIDI
+### Step 5: Audition, Route & Export Multi-Track MIDI
 
-Press `Space` to listen to your idea. Press `S` to open the Sound & Mix rack and dial in synthesizer presets, filter cutoffs, and effect sends. Tweak Swing and Timing Looseness in the header to give your groove a human feel. Finally, click the Export button in the footer to download a clean `.mid` file and drag it into your DAW.
+Press `Space` to listen to your idea. Press `S` to open the Sound & Mix rack to dial in synthesizer presets, filter cutoffs, and effect sends, or configure live Web MIDI output to stream lead and chord notes directly into external DAWs and hardware synths. Tweak Swing and Timing Looseness in the header to give your groove a human feel. Finally, click the Export button in the footer to download a clean `.mid` file and drag it into your DAW.
 
 ---
 
