@@ -128,8 +128,10 @@ export const useAudioSettingsStore = defineStore('audio-settings', () => {
       if (result.status !== 'loaded') {
         hydrationStatus.value = result.status
         hydrationError.value = 'error' in result ? result.error : null
-        if (result.status === 'invalid' || result.status === 'reset') applySnapshot(createDefaultProjectAudioSnapshot())
-        savedSnapshot.value = JSON.stringify(captureProjectAudioSnapshot())
+        if (result.status === 'invalid' || result.status === 'reset') {
+          applySnapshot(createDefaultProjectAudioSnapshot())
+          savedSnapshot.value = JSON.stringify(captureProjectAudioSnapshot())
+        }
         return result
       }
       if (!isProjectAudioDocumentPaired(result.document, useProjectStore().audioSavedAt)) {
