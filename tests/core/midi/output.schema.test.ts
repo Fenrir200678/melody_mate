@@ -6,6 +6,10 @@ import {
   validateMidiRouteConflict
 } from '../../../src/core/midi/output.schema'
 import type { MidiNoteIntent, MidiOutputSettings, OutputRouteMode } from '../../../src/core/midi/output.types'
+import {
+  createDefaultProjectAudioSnapshot,
+  ProjectAudioSnapshotSchema
+} from '../../../src/core/schemas/project-audio.schema'
 
 function routes(leadMode: OutputRouteMode = 'midi', chordMode: OutputRouteMode = 'both'): MidiOutputSettings {
   const port = { id: 'shared-port', name: 'IAC Bus', manufacturer: null }
@@ -33,6 +37,21 @@ function intent(): MidiNoteIntent {
 }
 
 describe('MIDI routing contract', () => {
+  it('validates desired routes inside audio snapshots and excludes transient MIDI state', () => {
+    const snapshot = { ...createDefaultProjectAudioSnapshot(), midi: routes() }
+    expect(ProjectAudioSnapshotSchema.parse(snapshot).midi).toEqual(snapshot.midi)
+    snapshot.midi.chord.channel = snapshot.midi.lead.channel
+    expect(ProjectAudioSnapshotSchema.safeParse(snapshot).success).toBe(false)
+    expect(ProjectAudioSnapshotSchema.safeParse({ ...snapshot, midi: { ...routes(), enabled: true } }).success).toBe(
+      false
+    )
+    expect(
+      ProjectAudioSnapshotSchema.safeParse({
+        ...snapshot,
+        midi: { ...routes(), lead: { ...routes().lead, port: { ...routes().lead.port, connection: 'open' } } }
+      }).success
+    ).toBe(false)
+  })
   it('hydrates independent tracks from central defaults', () => {
     const first = MidiOutputSettingsSchema.parse({})
     expect(first).toEqual(DEFAULT_MIDI_OUTPUT_SETTINGS)

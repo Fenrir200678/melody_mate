@@ -1,19 +1,105 @@
-import { beforeEach, describe, expect, it } from 'vitest'
-import { createPinia, setActivePinia } from 'pinia'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createPinia, disposePinia, setActivePinia } from 'pinia'
 import { useAudioSettingsStore } from '../../src/stores/audio-settings.store'
 import { useAudioStore } from '../../src/stores/audio.store'
 import { useMixerStore } from '../../src/stores/mixer.store'
 import { useProjectStore } from '../../src/stores/project.store'
-import { DEFAULT_AUDIO_SOUND_IDS } from '../../src/config/defaults'
+import {
+  AUDIO_SETTINGS_PERSISTENCE_DEBOUNCE_MS,
+  DEFAULT_AUDIO_SOUND_IDS,
+  DEFAULT_MIDI_OUTPUT_SETTINGS
+} from '../../src/config/defaults'
+import { useMidiOutputStore } from '../../src/stores/midi-output.store'
+import { AccessFake, PortFake } from '../audio/midi/port-fake'
+import { loadProjectAudioDocument } from '../../src/services/project-audio-storage'
 import { PROJECT_STORAGE_KEY } from '../../src/stores/project.store'
 import { installMockLocalStorage } from '../helpers/storage-mock'
 
 const storage = installMockLocalStorage()
 describe('audio settings store', () => {
+  let pinia: ReturnType<typeof createPinia>
   beforeEach(() => {
-    setActivePinia(createPinia())
+    pinia = createPinia()
+    setActivePinia(pinia)
+    vi.useFakeTimers()
     storage.storage.clear()
     storage.failWritesFor(null)
+  })
+  afterEach(() => {
+    disposePinia(pinia)
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+
+  it('restores desired MIDI settings across reload without permission, open ports or sends', async () => {
+    const port = new PortFake()
+    const access = new AccessFake(port)
+    const requestMIDIAccess = vi.fn(async () => access)
+    vi.stubGlobal('isSecureContext', true)
+    vi.stubGlobal('navigator', { requestMIDIAccess })
+    const settings = useAudioSettingsStore()
+    const midi = useMidiOutputStore()
+    const desired = {
+      lead: {
+        mode: 'midi' as const,
+        port: { id: port.id, name: port.name, manufacturer: port.manufacturer },
+        channel: 7,
+        offsetMs: -8,
+        sendPreviews: true
+      },
+      chord: { ...DEFAULT_MIDI_OUTPUT_SETTINGS.chord, mode: 'both' as const, channel: 9, offsetMs: 12 }
+    }
+    midi.restoreSettings(desired)
+    expect(settings.isDirty).toBe(true)
+    expect(settings.saveProjectAudio().ok).toBe(true)
+    expect(settings.isDirty).toBe(false)
+    disposePinia(pinia)
+    pinia = createPinia()
+    setActivePinia(pinia)
+
+    const restored = useAudioSettingsStore()
+    expect(restored.hydrateProjectAudio().status).toBe('loaded')
+    expect(useMidiOutputStore().getSettings()).toEqual(desired)
+    expect(useMidiOutputStore().snapshot.enabled).toBe(false)
+    expect(useMidiOutputStore().snapshot.routes.lead.desiredPortId).toBe(port.id)
+    expect(useMidiOutputStore().getRuntime().canDispatch('lead')).toBe(false)
+    expect(restored.isDirty).toBe(false)
+    await vi.advanceTimersByTimeAsync(AUDIO_SETTINGS_PERSISTENCE_DEBOUNCE_MS)
+    expect(requestMIDIAccess).not.toHaveBeenCalled()
+    expect(port.open).not.toHaveBeenCalled()
+    expect(port.send).not.toHaveBeenCalled()
+    expect(loadProjectAudioDocument()).toMatchObject({ document: { snapshot: { midi: desired } } })
+  })
+
+  it('autosaves desired route changes while enable, discovery and hotplug stay clean', async () => {
+    const port = new PortFake()
+    const access = new AccessFake(port)
+    vi.stubGlobal('isSecureContext', true)
+    vi.stubGlobal('navigator', { requestMIDIAccess: async () => access })
+    const settings = useAudioSettingsStore()
+    const midi = useMidiOutputStore()
+    expect(settings.saveProjectAudio().ok).toBe(true)
+    const revision = useProjectStore().audioSavedAt
+    await midi.enable()
+    await midi.open('lead', port.id)
+    access.outputs.set('new', new PortFake('new'))
+    access.change()
+    await midi.disable()
+    expect(settings.isDirty).toBe(false)
+    await vi.advanceTimersByTimeAsync(AUDIO_SETTINGS_PERSISTENCE_DEBOUNCE_MS)
+    expect(useProjectStore().audioSavedAt).toBe(revision)
+
+    await midi.setRoute('lead', { ...DEFAULT_MIDI_OUTPUT_SETTINGS.lead, channel: 5, offsetMs: 6 })
+    midi.setSendPreviews(true)
+    expect(settings.isDirty).toBe(true)
+    await vi.advanceTimersByTimeAsync(AUDIO_SETTINGS_PERSISTENCE_DEBOUNCE_MS)
+    expect(settings.isDirty).toBe(false)
+    expect(useProjectStore().audioSavedAt).toBeGreaterThan(revision)
+    expect(loadProjectAudioDocument()).toMatchObject({ document: { snapshot: { midi: midi.getSettings() } } })
+    useProjectStore().reset()
+    expect(midi.getSettings()).toEqual(DEFAULT_MIDI_OUTPUT_SETTINGS)
+    expect(midi.snapshot.enabled).toBe(false)
+    expect(settings.isDirty).toBe(true)
   })
   it('changes only the selected track and resets its controls with the sound default', () => {
     const settings = useAudioSettingsStore()
@@ -77,10 +163,14 @@ describe('audio settings store', () => {
   it('does not claim success when the project commit marker cannot be written', () => {
     const settings = useAudioSettingsStore()
     const project = useProjectStore()
+    expect(settings.saveProjectAudio().ok).toBe(true)
     const before = project.audioSavedAt
+    useMidiOutputStore().setSendPreviews(true)
     storage.failWritesFor(PROJECT_STORAGE_KEY)
     expect(settings.saveProjectAudio()).toMatchObject({ ok: false, stage: 'project-storage' })
     expect(project.audioSavedAt).toBe(before)
+    expect(settings.isDirty).toBe(true)
+    expect(settings.hydrateProjectAudio().status).toBe('unpaired')
   })
   it('automatically persists audio settings after debounced control updates', () => {
     const settings = useAudioSettingsStore()

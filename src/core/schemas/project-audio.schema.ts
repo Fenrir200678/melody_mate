@@ -1,8 +1,9 @@
 import { z } from 'zod'
-import { DEFAULT_AUDIO_SOUND_IDS } from '../../config/defaults'
+import { DEFAULT_AUDIO_SOUND_IDS, DEFAULT_MIDI_OUTPUT_SETTINGS } from '../../config/defaults'
+import { MidiOutputSettingsSchema } from '../midi/output.schema'
 import { defaultPreviewControls } from '../presets/preview-sounds'
 
-export const PROJECT_AUDIO_SNAPSHOT_VERSION = 3
+export const PROJECT_AUDIO_SNAPSHOT_VERSION = 4
 export const DEFAULT_MASTER_VOLUME = 0.9
 export const DEFAULT_LEAD_VOLUME = 0.9
 export const DEFAULT_CHORD_VOLUME = 0.75
@@ -31,6 +32,7 @@ export const ProjectAudioSnapshotSchema = z.strictObject({
   version: z.literal(PROJECT_AUDIO_SNAPSHOT_VERSION),
   lead: trackSchema,
   chord: trackSchema,
+  midi: MidiOutputSettingsSchema,
   master: z.strictObject({ volume: finite.min(0).max(1), busCompressorActive: z.boolean() })
 })
 
@@ -43,6 +45,7 @@ export function parseProjectAudioSnapshot(value: unknown): ProjectAudioSnapshot 
 export function createDefaultProjectAudioSnapshot(): ProjectAudioSnapshot {
   return parseProjectAudioSnapshot({
     version: PROJECT_AUDIO_SNAPSHOT_VERSION,
+    midi: structuredClone(DEFAULT_MIDI_OUTPUT_SETTINGS),
     lead: {
       soundId: DEFAULT_AUDIO_SOUND_IDS.lead,
       controls: defaultPreviewControls(DEFAULT_AUDIO_SOUND_IDS.lead),

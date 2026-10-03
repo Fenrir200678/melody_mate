@@ -28,7 +28,7 @@ describe('MIDI output store snapshots', () => {
     expect(store.snapshot.status).toBe('available')
     expect(isReactive(port)).toBe(false)
     expect(store.snapshot.outputs[0]).not.toBe(port)
-    expect(Object.keys(store.$state)).toEqual(['snapshot'])
+    expect(Object.keys(store.$state)).toEqual(['snapshot', 'settings'])
     await store.open('lead', port.id)
     expect(store.snapshot.routes.lead.status).toBe('ready')
     await store.disable()

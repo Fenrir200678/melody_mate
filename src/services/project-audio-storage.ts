@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { ProjectAudioSnapshotSchema, type ProjectAudioSnapshot } from '../core/schemas/project-audio.schema'
 
 export const PROJECT_AUDIO_STORAGE_KEY = 'melodymate_project_audio'
-export const PROJECT_AUDIO_DOCUMENT_VERSION = 3
+export const PROJECT_AUDIO_DOCUMENT_VERSION = 4
 
 /**
  * The project config and its audio snapshot are two documents, so the write order is the atomicity

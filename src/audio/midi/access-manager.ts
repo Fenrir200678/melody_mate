@@ -90,6 +90,18 @@ export class MidiAccessManager {
     this.cleanupHook = hook
   }
 
+  restoreDesiredPorts(ports: Record<MidiTrackKey, string | null>): void {
+    void this.disable()
+    for (const track of ['lead', 'chord'] as const) {
+      this.routes[track].state = {
+        ...midiStatus('not-enabled'),
+        desiredPortId: ports[track],
+        activePortId: null
+      }
+    }
+    this.publish()
+  }
+
   enable(): Promise<void> {
     if (this.disposed || this.enabled) return Promise.resolve()
     if (this.enabling) return this.enabling
@@ -152,6 +164,13 @@ export class MidiAccessManager {
         route.operation = undefined
         route.state = { ...route.state, ...midiStatus('disconnected') }
         void this.releaseLease(pending, track, 'disconnect')
+      }
+      if (!route.active && !route.pending && route.state.desiredPortId) {
+        const port = this.access.outputs.get(route.state.desiredPortId)
+        route.state = {
+          ...route.state,
+          ...midiStatus(port?.state === 'connected' ? 'available' : 'disconnected')
+        }
       }
     }
     this.status = Array.from(this.access.outputs.values()).some((port) => port.state === 'connected')

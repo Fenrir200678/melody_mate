@@ -102,6 +102,82 @@ afterEach(async () => {
 })
 
 describe('transport MIDI output lifecycle', () => {
+  it.each(['missing', 'ambiguous', 'exact'] as const)(
+    'restores a %s desired port by ID only and waits for explicit enable/resume',
+    async (match) => {
+      const first = new PortFake('first')
+      const second = new PortFake('second')
+      const ports = match === 'missing' ? [] : [first, second]
+      const { output, manager, enable } = fixture(...ports)
+      const desired = {
+        ...structuredClone(DEFAULT_MIDI_OUTPUT_SETTINGS),
+        lead: {
+          ...route(first, 5, -8),
+          port: { id: match === 'exact' ? first.id : 'retired-id', name: first.name, manufacturer: first.manufacturer },
+          sendPreviews: true
+        }
+      }
+      output.restoreSettings(desired)
+      expect(output.getSettings()).toEqual(desired)
+      expect(manager.getSnapshot().enabled).toBe(false)
+      expect(output.canDispatch('lead')).toBe(false)
+      expect(first.open).not.toHaveBeenCalled()
+      await enable()
+      expect(manager.getSnapshot().routes.lead).toMatchObject({
+        desiredPortId: desired.lead.port.id,
+        activePortId: null,
+        status: match === 'exact' ? 'available' : 'disconnected'
+      })
+      expect(first.open).not.toHaveBeenCalled()
+      expect(second.open).not.toHaveBeenCalled()
+      expect(first.send).not.toHaveBeenCalled()
+      await output.resume()
+      expect(output.canDispatch('lead')).toBe(match === 'exact')
+      expect(output.getSettings()).toEqual(desired)
+      expect(second.open).not.toHaveBeenCalled()
+      if (match !== 'exact') expect(first.open).not.toHaveBeenCalled()
+    }
+  )
+
+  it('releases sounding notes before reset applies defaults and removes send authorization', async () => {
+    const port = new PortFake()
+    const { output, manager, callbacks, time, enable } = fixture(port)
+    await enable()
+    await routeAndResume(output, 'lead', port, 1)
+    output.midi.enqueue(note('lead', 'reset-held', 1))
+    time.audioSeconds = 1.02
+    for (const callback of [...callbacks]) callback()
+    const settingsAtRelease: unknown[] = []
+    port.send.mockImplementation((bytes) => {
+      if (bytes[0] === 0x80) settingsAtRelease.push(output.getSettings())
+    })
+    output.restoreSettings(DEFAULT_MIDI_OUTPUT_SETTINGS)
+    expect(settingsAtRelease).toContainEqual({ ...DEFAULT_MIDI_OUTPUT_SETTINGS, lead: route(port, 1) })
+    expect(output.getSettings()).toEqual(DEFAULT_MIDI_OUTPUT_SETTINGS)
+    expect(manager.getSnapshot().enabled).toBe(false)
+    expect(manager.getOpenOutput('lead')).toBeUndefined()
+    expect(output.canDispatch('lead')).toBe(false)
+    const sendsAfterReset = port.send.mock.calls.length
+    time.audioSeconds = 5
+    for (const callback of [...callbacks]) callback()
+    expect(port.send.mock.calls.length).toBe(sendsAfterReset)
+  })
+
+  it('invalidates an in-flight route replacement when settings are reset', async () => {
+    const port = new PortFake()
+    port.openGate = deferred<void>()
+    const { output, manager, enable } = fixture(port)
+    await enable()
+    const pending = output.setRoute('lead', route(port, 4))
+    await vi.waitFor(() => expect(port.open).toHaveBeenCalledOnce())
+    output.restoreSettings(DEFAULT_MIDI_OUTPUT_SETTINGS)
+    port.openGate.resolve()
+    expect(await pending).toBe(false)
+    expect(output.getSettings()).toEqual(DEFAULT_MIDI_OUTPUT_SETTINGS)
+    expect(manager.getOpenOutput('lead')).toBeUndefined()
+    expect(output.canDispatch('lead')).toBe(false)
+  })
+
   it('atomically updates channel and offset on a shared port while preserving the other track Off', async () => {
     const port = new PortFake()
     const { output, enable, callbacks, time } = fixture(port)

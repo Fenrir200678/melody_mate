@@ -22,6 +22,7 @@ export class MidiTransportOutput implements TrackOutputRuntime {
   readonly previews: MidiPreviewOutput
   readonly midi: MidiOutputSession
   private settings: MidiOutputSettings = structuredClone(DEFAULT_MIDI_OUTPUT_SETTINGS)
+  private settingsListeners = new Set<(settings: MidiOutputSettings) => void>()
   private armed = new Set<MidiTrackKey>()
   private preparing = new Set<MidiTrackKey>()
   private operation = 0
@@ -86,6 +87,24 @@ export class MidiTransportOutput implements TrackOutputRuntime {
     return structuredClone(this.settings)
   }
 
+  subscribeSettings(listener: (settings: MidiOutputSettings) => void): () => void {
+    this.settingsListeners.add(listener)
+    listener(this.getSettings())
+    return () => this.settingsListeners.delete(listener)
+  }
+
+  private publishSettings(): void {
+    for (const listener of this.settingsListeners) listener(this.getSettings())
+  }
+
+  restoreSettings(settings: MidiOutputSettings): void {
+    const restored = MidiOutputSettingsSchema.parse(settings)
+    this.suspend()
+    this.access.restoreDesiredPorts({ lead: restored.lead.port?.id ?? null, chord: restored.chord.port?.id ?? null })
+    this.settings = restored
+    this.publishSettings()
+  }
+
   canDispatch(track: MidiTrackKey): boolean {
     return !this.disposed && this.armed.has(track) && !this.preparing.has(track) && !!this.access.getOpenOutput(track)
   }
@@ -145,6 +164,7 @@ export class MidiTransportOutput implements TrackOutputRuntime {
       this.armed.delete(track)
       await this.access.close(track)
     } else if (wasArmed) this.armed.add(track)
+    this.publishSettings()
     return true
   }
 
@@ -153,6 +173,7 @@ export class MidiTransportOutput implements TrackOutputRuntime {
       this.settings[track] = { ...this.settings[track], sendPreviews: enabled }
       if (!enabled) this.previews.cancelTrack(track, false)
     }
+    this.publishSettings()
   }
 
   async resume(): Promise<void> {
@@ -211,5 +232,6 @@ export class MidiTransportOutput implements TrackOutputRuntime {
     this.unsubscribe()
     this.previews.dispose()
     this.midi.dispose()
+    this.settingsListeners.clear()
   }
 }

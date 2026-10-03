@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
+import { computed, onScopeDispose, ref, watch } from 'vue'
 import {
   defaultPreviewControls,
   getFactorySound,
@@ -22,6 +22,7 @@ import {
 import { useAudioStore } from './audio.store'
 import { useMixerStore } from './mixer.store'
 import { useProjectStore } from './project.store'
+import { useMidiOutputStore } from './midi-output.store'
 
 export type ProjectAudioHydrationStatus = 'empty' | 'loaded' | 'invalid' | 'reset' | 'unpaired'
 export type ProjectAudioSaveResult =
@@ -35,8 +36,17 @@ export const useAudioSettingsStore = defineStore('audio-settings', () => {
   })
   const hydrationStatus = ref<ProjectAudioHydrationStatus>('empty')
   const hydrationError = ref<string | null>(null)
+  const midi = useMidiOutputStore()
+  const savedSnapshot = ref(JSON.stringify(createDefaultProjectAudioSnapshot()))
+  const isDirty = computed(() => JSON.stringify(captureProjectAudioSnapshot()) !== savedSnapshot.value)
   let isHydrating = false
+  let lastSaveRevision = 0
   let saveDebounceTimer: ReturnType<typeof setTimeout> | null = null
+  function cancelAutoSave(): void {
+    if (saveDebounceTimer) clearTimeout(saveDebounceTimer)
+    saveDebounceTimer = null
+  }
+  onScopeDispose(cancelAutoSave)
 
   function applyTrack(track: PreviewTrack): void {
     useAudioStore().setTrackSound(track, soundIds.value[track], controls.value[track])
@@ -64,6 +74,7 @@ export const useAudioSettingsStore = defineStore('audio-settings', () => {
     const mixer = useMixerStore()
     return parseProjectAudioSnapshot({
       version: PROJECT_AUDIO_SNAPSHOT_VERSION,
+      midi: midi.settings,
       lead: {
         soundId: soundIds.value.lead,
         controls: controls.value.lead,
@@ -84,6 +95,7 @@ export const useAudioSettingsStore = defineStore('audio-settings', () => {
 
   function applySnapshot(snapshot: ProjectAudioSnapshot): void {
     useAudioStore().stop()
+    midi.restoreSettings(snapshot.midi)
     const leadId = getPresetsForTrack('lead').some((preset) => preset.id === snapshot.lead.soundId)
       ? snapshot.lead.soundId
       : DEFAULT_AUDIO_SOUND_IDS.lead
@@ -109,6 +121,7 @@ export const useAudioSettingsStore = defineStore('audio-settings', () => {
   }
 
   function hydrateProjectAudio(): { status: ProjectAudioHydrationStatus; error?: string } {
+    cancelAutoSave()
     isHydrating = true
     try {
       const result = loadProjectAudioDocument()
@@ -116,6 +129,7 @@ export const useAudioSettingsStore = defineStore('audio-settings', () => {
         hydrationStatus.value = result.status
         hydrationError.value = 'error' in result ? result.error : null
         if (result.status === 'invalid' || result.status === 'reset') applySnapshot(createDefaultProjectAudioSnapshot())
+        savedSnapshot.value = JSON.stringify(captureProjectAudioSnapshot())
         return result
       }
       if (!isProjectAudioDocumentPaired(result.document, useProjectStore().audioSavedAt)) {
@@ -124,6 +138,7 @@ export const useAudioSettingsStore = defineStore('audio-settings', () => {
         return { status: 'unpaired' }
       }
       applySnapshot(result.document.snapshot)
+      savedSnapshot.value = JSON.stringify(captureProjectAudioSnapshot())
       hydrationStatus.value = 'loaded'
       hydrationError.value = null
       return { status: 'loaded' }
@@ -133,9 +148,17 @@ export const useAudioSettingsStore = defineStore('audio-settings', () => {
   }
 
   function saveProjectAudio(): ProjectAudioSaveResult {
+    cancelAutoSave()
     const project = useProjectStore()
-    const savedAt = Date.now()
-    const saved = saveProjectAudioDocument(captureProjectAudioSnapshot(), savedAt)
+    let snapshot: ProjectAudioSnapshot
+    try {
+      snapshot = captureProjectAudioSnapshot()
+    } catch (error) {
+      return { ok: false, stage: 'snapshot', error: error instanceof Error ? error.message : 'Invalid audio snapshot.' }
+    }
+    const savedAt = Math.max(Date.now(), project.audioSavedAt + 1, lastSaveRevision + 1)
+    lastSaveRevision = savedAt
+    const saved = saveProjectAudioDocument(snapshot, savedAt)
     if (!saved.ok) return { ok: false, stage: 'audio-storage', error: saved.error }
     const previousSavedAt = project.audioSavedAt
     project.setAudioSavedAt(savedAt)
@@ -144,6 +167,7 @@ export const useAudioSettingsStore = defineStore('audio-settings', () => {
       project.setAudioSavedAt(previousSavedAt)
       return { ok: false, stage: 'project-storage', error: projectSaved.error }
     }
+    savedSnapshot.value = JSON.stringify(snapshot)
     return { ok: true, savedAt }
   }
 
@@ -162,6 +186,7 @@ export const useAudioSettingsStore = defineStore('audio-settings', () => {
       [
         soundIds,
         controls,
+        () => midi.settings,
         () => mixer.leadVolume,
         () => mixer.chordVolume,
         () => mixer.masterVolume,
@@ -175,7 +200,8 @@ export const useAudioSettingsStore = defineStore('audio-settings', () => {
         if (!isHydrating) {
           scheduleAutoSave()
         }
-      }
+      },
+      { flush: 'sync' }
     )
   }
 
@@ -184,6 +210,7 @@ export const useAudioSettingsStore = defineStore('audio-settings', () => {
     controls,
     hydrationStatus,
     hydrationError,
+    isDirty,
     setSound,
     setControl,
     resetControls,

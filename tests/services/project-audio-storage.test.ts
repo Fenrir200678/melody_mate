@@ -44,6 +44,21 @@ describe('project audio storage', () => {
     expect(localStorage.getItem(PROJECT_AUDIO_STORAGE_KEY)).toBeNull()
   })
 
+  it('discards the previous audio snapshot version without migrating routes', () => {
+    const snapshot = createDefaultProjectAudioSnapshot()
+    const { midi: _midi, ...previous } = snapshot
+    localStorage.setItem(
+      PROJECT_AUDIO_STORAGE_KEY,
+      JSON.stringify({
+        documentVersion: PROJECT_AUDIO_DOCUMENT_VERSION - 1,
+        savedAt: 5,
+        snapshot: { ...previous, version: snapshot.version - 1 }
+      })
+    )
+    expect(loadProjectAudioDocument().status).toBe('reset')
+    expect(localStorage.getItem(PROJECT_AUDIO_STORAGE_KEY)).toBeNull()
+  })
+
   it('discards corrupt JSON instead of partially restoring it', () => {
     localStorage.setItem(PROJECT_AUDIO_STORAGE_KEY, '{broken')
 

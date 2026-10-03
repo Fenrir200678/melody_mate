@@ -9,6 +9,7 @@ import {
 } from '../core/schemas/project.schema'
 import { DEFAULT_PROJECT_SETTINGS, PROJECT_BAR_BOUNDS } from '../config/defaults'
 import { useAudioStore } from './audio.store'
+import { useMidiOutputStore } from './midi-output.store'
 import { defaultsFingerprint } from '../utils/defaults-fingerprint.utils'
 
 export const PROJECT_STORAGE_KEY = 'melodymate_project'
@@ -126,6 +127,7 @@ export const useProjectStore = defineStore('project', () => {
 
   function reset(): void {
     useAudioStore().stop()
+    useMidiOutputStore().reset()
     bpm.value = defaults.bpm
     key.value = defaults.key
     scale.value = defaults.scale
