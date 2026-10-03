@@ -1,53 +1,48 @@
 <template>
   <div class="flex h-full min-h-0 flex-col gap-3 overflow-y-auto p-3" aria-label="MIDI Output routing workstation">
-    <!-- Top Bar: Global actions, Panic, connection status & preview toggle -->
+    <!-- Top Bar: Global actions, Panic, connection status & preview toggle (shown when MIDI is enabled) -->
     <div
+      v-if="snapshot.enabled"
       class="border-daw-border bg-daw-panel rounded-control flex flex-wrap items-center justify-between gap-3 border px-3 py-2"
     >
       <!-- Connection & Port controls -->
       <div class="flex flex-wrap items-center gap-2">
-        <template v-if="snapshot.enabled">
-          <DawButton
-            size="sm"
-            appearance="panel"
-            :icon="RotateCw"
-            aria-label="Refresh connected MIDI devices"
-            title="Scan for newly connected MIDI devices"
-            @click="onRefreshPorts"
-          >
-            Refresh ports
-          </DawButton>
+        <DawButton
+          size="sm"
+          appearance="panel"
+          :icon="RotateCw"
+          aria-label="Refresh connected MIDI devices"
+          title="Scan for newly connected MIDI devices"
+          @click="onRefreshPorts"
+        >
+          Refresh ports
+        </DawButton>
 
-          <!-- Panic / All Notes Off -->
-          <DawButton
-            size="sm"
-            appearance="panel"
-            :icon="ZapOff"
-            aria-label="Send All Notes Off to all MIDI ports"
-            title="Panic: Instantly stops and silences all sounding notes on all MIDI ports"
-            @click="onPanic"
-          >
-            {{ isPanicking ? 'Silenced' : 'Panic' }}
-          </DawButton>
+        <!-- Panic / All Notes Off -->
+        <DawButton
+          size="sm"
+          appearance="panel"
+          :icon="ZapOff"
+          aria-label="Send All Notes Off to all MIDI ports"
+          title="Panic: Instantly stops and silences all sounding notes on all MIDI ports"
+          @click="onPanic"
+        >
+          {{ isPanicking ? 'Silenced' : 'Panic' }}
+        </DawButton>
 
-          <DawButton
-            size="sm"
-            appearance="ghost"
-            aria-label="Disable MIDI output"
-            title="Disconnect and disable external MIDI output"
-            @click="onDisableMidi"
-          >
-            Disable MIDI
-          </DawButton>
-        </template>
-
-        <template v-else>
-          <span class="text-daw-text-muted text-2xs font-mono font-medium">MIDI Output Disabled</span>
-        </template>
+        <DawButton
+          size="sm"
+          appearance="ghost"
+          aria-label="Disable MIDI output"
+          title="Disconnect and disable external MIDI output"
+          @click="onDisableMidi"
+        >
+          Disable MIDI
+        </DawButton>
       </div>
 
       <!-- Preview toggle -->
-      <div v-if="snapshot.enabled" class="flex items-center gap-3">
+      <div class="flex items-center gap-3">
         <DawToggle
           v-model="sendPreviews"
           appearance="switch"
@@ -69,6 +64,7 @@
       :is-unsupported="snapshot.status === 'unsupported' || snapshot.status === 'insecure-context'"
       :disabled-reason="enableDisabledReason"
       @enable="onEnableMidi"
+      @open-guide="onOpenGuide"
     />
 
     <template v-else>
@@ -83,7 +79,7 @@
     </template>
 
     <!-- Collapsible Setup & Signal Flow Guide -->
-    <MidiSetupGuide />
+    <MidiSetupGuide v-model:open="isGuideOpen" />
   </div>
 </template>
 
@@ -104,6 +100,13 @@
 
   const isRequesting = ref(false)
   const isPanicking = ref(false)
+  const isGuideOpen = ref(false)
+
+  function onOpenGuide(): void {
+    isGuideOpen.value = true
+    const el = document.getElementById('midi-setup-guide')
+    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }
 
   onMounted(() => {
     // Ensure runtime is instantiated for active setting updates

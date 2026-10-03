@@ -16,6 +16,7 @@ import { ALL_RHYTHM_PRESETS } from '../../src/core/presets/rhythm'
 import { ALL_BUILTIN_PRESETS } from '../../src/core/presets/synths'
 import { GeneratorParamsSchema } from '../../src/core/schemas/generator.schema'
 import { ProjectSchema, PROJECT_SCHEMA_VERSION } from '../../src/core/schemas/project.schema'
+import packageJson from '../../package.json'
 
 describe('core defaults configuration', () => {
   describe('DEFAULT_GENERATOR_PARAMS', () => {
@@ -121,6 +122,7 @@ describe('core defaults configuration', () => {
     it('defines non-empty application branding and version metadata', () => {
       expect(APP_METADATA.name).toBe('Melody Mate')
       expect(APP_METADATA.edition).toBe('DAW Edition')
+      expect(APP_METADATA.version).toBe(packageJson.version)
       expect(APP_METADATA.version).toMatch(/^\d+\.\d+\.\d+$/)
       expect(APP_METADATA.author).toBe('Fenrir')
       expect(APP_METADATA.copyright).toContain('Fenrir')

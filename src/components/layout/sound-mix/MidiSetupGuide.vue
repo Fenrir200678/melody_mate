@@ -1,5 +1,10 @@
 <template>
-  <details class="border-daw-border bg-daw-panel rounded-control group text-2xs border">
+  <details
+    id="midi-setup-guide"
+    :open="isOpen"
+    class="border-daw-border bg-daw-panel rounded-control group text-2xs border"
+    @toggle="onToggle"
+  >
     <summary
       class="text-daw-text-muted hover:text-daw-text flex cursor-pointer items-center justify-between p-2.5 font-mono font-medium select-none"
     >
@@ -98,4 +103,13 @@
 
 <script setup lang="ts">
   import { ChevronDown, Info } from '@lucide/vue'
+
+  const isOpen = defineModel<boolean>('open', { default: false })
+
+  function onToggle(e: Event): void {
+    const target = e.currentTarget as HTMLDetailsElement | null
+    if (target) {
+      isOpen.value = target.open
+    }
+  }
 </script>

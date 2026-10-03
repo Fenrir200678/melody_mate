@@ -21,6 +21,7 @@
  */
 import type { VariationSettings } from './config.types'
 import type { MidiOutputSettings } from '../core/midi/output.types'
+import { version as appVersion } from '../../package.json'
 
 export type { VariationSettings }
 
@@ -63,7 +64,7 @@ export const DEFAULT_PROJECT_BAR_OPTIONS = [1, 2, 4, 6, 8, 12, 16] as const
 export const APP_METADATA = {
   name: 'Melody Mate',
   edition: 'DAW Edition',
-  version: '2.0.1',
+  version: appVersion,
   author: 'Fenrir',
   copyright: '© 2025–2026 Fenrir',
   tagline: 'Generative MIDI melody and chord progression workstation',
