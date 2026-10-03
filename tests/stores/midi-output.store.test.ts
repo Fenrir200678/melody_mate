@@ -113,4 +113,3 @@ describe('MIDI output store snapshots', () => {
     expect(store.settings.chord.mode).toBe('internal')
   })
 })
-

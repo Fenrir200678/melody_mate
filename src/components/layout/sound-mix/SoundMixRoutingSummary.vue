@@ -18,15 +18,26 @@
         </button>
       </div>
 
-      <!-- Jump to MIDI routing tab -->
-      <button
-        type="button"
-        class="text-daw-text-muted hover:text-daw-signal text-micro shrink-0 cursor-pointer font-mono hover:underline focus-visible:outline-none"
-        title="Open MIDI routing settings"
-        @click="openMidiView"
-      >
-        Edit ↗
-      </button>
+      <!-- Actions: Switch to internal or open MIDI routing tab -->
+      <div class="flex shrink-0 items-center gap-2">
+        <button
+          v-if="route.mode !== 'internal'"
+          type="button"
+          class="text-daw-signal hover:text-daw-text text-micro cursor-pointer font-mono font-medium hover:underline focus-visible:outline-none"
+          title="Switch output back to Internal synthesizer"
+          @click="setToInternal"
+        >
+          Internal
+        </button>
+        <button
+          type="button"
+          class="text-daw-text-muted hover:text-daw-signal text-micro cursor-pointer font-mono hover:underline focus-visible:outline-none"
+          title="Open MIDI routing settings"
+          @click="openMidiView"
+        >
+          Edit ↗
+        </button>
+      </div>
     </div>
 
     <!-- MIDI-only hint: internal sound & fader do not affect external MIDI -->
@@ -69,5 +80,9 @@
 
   function openMidiView(): void {
     uiStore.setSoundDockView('midi')
+  }
+
+  async function setToInternal(): Promise<void> {
+    await midiStore.setRoute(props.track, { ...route.value, mode: 'internal' })
   }
 </script>

@@ -50,11 +50,7 @@ export const useMidiOutputStore = defineStore('midi-output', () => {
     }
     if (current.chord.mode === 'internal') {
       const nextChannel =
-        current.chord.channel === current.lead.channel
-          ? current.lead.channel === 1
-            ? 2
-            : 1
-          : current.chord.channel
+        current.chord.channel === current.lead.channel ? (current.lead.channel === 1 ? 2 : 1) : current.chord.channel
       await rt.setRoute('chord', {
         ...current.chord,
         mode: DEFAULT_MIDI_ENABLED_ROUTE_MODE,
@@ -100,4 +96,3 @@ export const useMidiOutputStore = defineStore('midi-output', () => {
     close: (track: MidiTrackKey) => manager.close(track)
   }
 })
-

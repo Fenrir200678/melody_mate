@@ -12,10 +12,10 @@
     </div>
 
     <!-- Dual Vertical Meter Canvas Container -->
-    <div ref="containerRef" class="relative min-h-22.5 w-full flex-1">
+    <div ref="containerRef" class="relative min-h-0 w-full flex-1 overflow-hidden">
       <canvas
         ref="canvasRef"
-        class="rounded-control block h-full w-full"
+        class="rounded-control absolute inset-0 block h-full w-full"
         aria-label="Stereo output peak, RMS and gain reduction meter"
         role="img"
       />
@@ -213,7 +213,7 @@
       ceilingDb: ceilingDb.value
     }
 
-    renderStereoMeter(canvas, meterState)
+    renderStereoMeter(canvas, meterState, containerRef.value?.clientWidth, containerRef.value?.clientHeight)
   }
 
   const { pause, resume } = useRafFn(() => {

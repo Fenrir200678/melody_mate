@@ -164,17 +164,27 @@ function createMeterGradient(ctx: CanvasRenderingContext2D, topY: number, bottom
 /**
  * Renders the dual vertical stereo peak/RMS meter with Gain Reduction into a canvas.
  */
-export function renderStereoMeter(canvas: HTMLCanvasElement, state: StereoMeterState): void {
+export function renderStereoMeter(
+  canvas: HTMLCanvasElement,
+  state: StereoMeterState,
+  containerWidth?: number,
+  containerHeight?: number
+): void {
   const ctx = canvas.getContext('2d')
   if (!ctx) return
 
-  const rect = canvas.getBoundingClientRect()
-  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1
-  const width = rect.width
-  const height = rect.height
+  let width = containerWidth
+  let height = containerHeight
+
+  if (width === undefined || height === undefined) {
+    const rect = canvas.getBoundingClientRect()
+    width = rect.width
+    height = rect.height
+  }
 
   if (width <= 0 || height <= 0) return
 
+  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1
   const pixelWidth = Math.floor(width * dpr)
   const pixelHeight = Math.floor(height * dpr)
 

@@ -63,20 +63,20 @@
       :is-connecting="isRequesting"
       :is-unsupported="snapshot.status === 'unsupported' || snapshot.status === 'insecure-context'"
       :disabled-reason="enableDisabledReason"
+      :has-external-routes="hasExternalRoutes"
       @enable="onEnableMidi"
+      @reset-internal="onResetInternal"
       @open-guide="onOpenGuide"
     />
 
-    <template v-else>
-      <!-- Overall connection banner if not ready or when attention needed -->
-      <MidiConnectionStatus v-if="!isReadyAndAvailable" />
+    <!-- Overall connection banner if not ready or when attention needed -->
+    <MidiConnectionStatus v-if="snapshot.enabled && !isReadyAndAvailable" />
 
-      <!-- Dual Track Routing Matrix: Side-by-side on desktop/laptop -->
-      <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <MidiTrackRoute track="lead" title="Melody Track" variant="signal" />
-        <MidiTrackRoute track="chord" title="Chords Track" variant="chord" />
-      </div>
-    </template>
+    <!-- Dual Track Routing Matrix: Side-by-side on desktop/laptop -->
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+      <MidiTrackRoute track="lead" title="Melody Track" variant="signal" />
+      <MidiTrackRoute track="chord" title="Chords Track" variant="chord" />
+    </div>
 
     <!-- Collapsible Setup & Signal Flow Guide -->
     <MidiSetupGuide v-model:open="isGuideOpen" />
@@ -139,6 +139,14 @@
     } finally {
       isRequesting.value = false
     }
+  }
+
+  const hasExternalRoutes = computed(
+    () => midiStore.settings.lead.mode !== 'internal' || midiStore.settings.chord.mode !== 'internal'
+  )
+
+  async function onResetInternal(): Promise<void> {
+    await midiStore.disable()
   }
 
   async function onDisableMidi(): Promise<void> {

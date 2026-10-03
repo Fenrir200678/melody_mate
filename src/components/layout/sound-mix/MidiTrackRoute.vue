@@ -49,7 +49,7 @@
 
     <!-- Mode Selector: Internal / MIDI / Both -->
     <div class="border-daw-border/50 flex items-center justify-between gap-2 border-t pt-2.5">
-      <span class="text-daw-text-muted text-micro font-mono uppercase tracking-wider">Destination</span>
+      <span class="text-daw-text-muted text-micro font-mono tracking-wider uppercase">Destination</span>
       <DawSegmented
         :model-value="route.mode"
         :options="MIDI_ROUTE_MODE_OPTIONS"
@@ -61,10 +61,14 @@
     </div>
 
     <!-- Route Controls Body -->
-    <div v-if="route.mode === 'internal'" class="border-daw-border/50 bg-daw-panel/40 rounded-control border border-dashed p-4 text-center">
+    <div
+      v-if="route.mode === 'internal'"
+      class="border-daw-border/50 bg-daw-panel/40 rounded-control border border-dashed p-4 text-center"
+    >
       <p class="text-daw-text-muted text-micro font-mono leading-relaxed">
         Audio routes to the internal synthesizer engine.<br />
-        Select <strong class="text-daw-text">MIDI</strong> or <strong class="text-daw-text">Both</strong> to stream to external ports.
+        Select <strong class="text-daw-text">MIDI</strong> or <strong class="text-daw-text">Both</strong> to stream to
+        external ports.
       </p>
     </div>
 
@@ -73,14 +77,17 @@
       <div class="grid grid-cols-[1fr_auto] items-end gap-2.5">
         <!-- Port Selector -->
         <div class="flex min-w-0 flex-col gap-1">
-          <label :for="`midi-port-${track}`" class="text-daw-text-muted text-micro font-mono uppercase tracking-wider">
+          <label :for="`midi-port-${track}`" class="text-daw-text-muted text-micro font-mono tracking-wider uppercase">
             MIDI Port
           </label>
           <div class="relative flex items-center">
-            <Cable class="text-daw-text-muted pointer-events-none absolute left-2 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <Cable
+              class="text-daw-text-muted pointer-events-none absolute left-2 h-3.5 w-3.5 shrink-0"
+              aria-hidden="true"
+            />
             <select
               :id="`midi-port-${track}`"
-              class="border-daw-border bg-daw-panel text-daw-text rounded-chip focus:border-daw-signal text-2xs h-7 w-full cursor-pointer truncate border pl-7 pr-2 font-mono focus:outline-none disabled:cursor-not-allowed"
+              class="border-daw-border bg-daw-panel text-daw-text rounded-chip focus:border-daw-signal text-2xs h-7 w-full cursor-pointer truncate border pr-2 pl-7 font-mono focus:outline-none disabled:cursor-not-allowed"
               :value="route.port?.id ?? ''"
               :disabled="!midiStore.snapshot.enabled"
               :aria-label="`${title} MIDI output port`"
@@ -109,7 +116,7 @@
 
         <!-- Channel Selector -->
         <div class="flex flex-col gap-1">
-          <label :for="`midi-ch-${track}`" class="text-daw-text-muted text-micro font-mono uppercase tracking-wider">
+          <label :for="`midi-ch-${track}`" class="text-daw-text-muted text-micro font-mono tracking-wider uppercase">
             Channel
           </label>
           <select
@@ -127,7 +134,9 @@
       </div>
 
       <!-- Timing Offset Knob & Latency Info -->
-      <div class="border-daw-border/40 bg-daw-panel/30 rounded-control flex items-center justify-between border px-3 py-1.5">
+      <div
+        class="border-daw-border/40 bg-daw-panel/30 rounded-control flex items-center justify-between border px-3 py-1.5"
+      >
         <div class="flex items-center gap-3">
           <DawKnob
             v-model="offsetValue"
