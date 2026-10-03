@@ -3,6 +3,9 @@ import type { ChordEvent } from '../../core/schemas/chord.schema'
 import type { AppNote } from '../../core/schemas/note.schema'
 import type { EventGenerationTracker } from '../../core/synth/event-generation'
 import { durationToSeconds, getStepDurationSeconds, normalizePitchOctave } from '../../core/transport/playback-timing'
+import { convertMidiPitches } from '../../core/midi/live-messages'
+import type { TrackOutputRouter } from '../output-router'
+import type { MidiPreviewEvent } from '../midi/preview-output'
 import { now as audioNow } from '../transport-adapter'
 
 export interface NotesAuditionOptions {
@@ -13,6 +16,7 @@ export interface NotesAuditionOptions {
 }
 
 export interface PreviewControllerDeps {
+  outputRouter?: TrackOutputRouter
   readonly generations: EventGenerationTracker
   getLeadPreviewSynth(): InstrumentHost | null
   getChordPreviewSynth(): InstrumentHost | null
@@ -43,6 +47,9 @@ export class PreviewController {
   }
 
   previewNote(pitch: string, duration = '8n', velocity = 0.8): void {
+    this.deps.outputRouter?.preview('note', 'lead', [
+      this.pitchEvent([pitch], audioNow(), durationToSeconds(duration), velocity)
+    ])
     const { generations } = this.deps
     const generation = generations.openGeneration('note-audition')
     const handle = generations.beginVoice('note-audition', generation, pitch)[0]
@@ -55,6 +62,9 @@ export class PreviewController {
     const { generations } = this.deps
     const generation = generations.openGeneration('chord-audition')
     const normalised = notes.map((note) => normalizePitchOctave(note, 3))
+    this.deps.outputRouter?.preview('chord', 'chord', [
+      this.pitchEvent(normalised, audioNow(), durationToSeconds(duration), velocity)
+    ])
     const handle = generations.beginVoice('chord-audition', generation, normalised.join(','))[0]
     this.deps.getChordPreviewSynth()?.playNote(handle?.id ?? '', normalised, duration, audioNow(), velocity)
     if (handle) this.deps.holdVoice(handle.id, durationToSeconds(duration))
@@ -64,7 +74,7 @@ export class PreviewController {
     this.stopNotesAudition()
     const playableNotes = notes.filter((note) => !note.isMuted)
     const leadSynth = this.deps.getLeadPreviewSynth()
-    if (playableNotes.length === 0 || !leadSynth) {
+    if (playableNotes.length === 0) {
       onFinish?.()
       return
     }
@@ -76,11 +86,22 @@ export class PreviewController {
     const firstStep = options.originStep ?? Math.min(...playableNotes.map((note) => note.step))
     let totalDuration = Math.max(0, (options.durationSteps ?? 0) * stepSeconds)
 
+    const startTime = audioNow()
+    this.deps.outputRouter?.preview(
+      'notes',
+      'lead',
+      playableNotes.map((note) => ({
+        midiNotes: [{ midi: note.midi, source: { kind: 'preview', sourceId: note.id } }],
+        onTimeSeconds: startTime + Math.max(0, (note.step - firstStep) * stepSeconds),
+        durationSeconds: Math.max(0.05, note.durationSteps * stepSeconds),
+        velocity: note.velocity / 127
+      }))
+    )
     for (const note of playableNotes) {
       const startOffset = (note.step - firstStep) * stepSeconds
       const duration = Math.max(0.05, note.durationSteps * stepSeconds)
       const play = () => {
-        if (!generations.isCurrent('take-audition', generation)) return
+        if (!leadSynth || !generations.isCurrent('take-audition', generation)) return
         const handle = generations.beginVoice('take-audition', generation, note.pitch)[0]
         if (!handle) return
         leadSynth.noteOn(handle.id, note.pitch, audioNow(), note.velocity / 127)
@@ -111,6 +132,7 @@ export class PreviewController {
   }
 
   stopNotesAudition(): void {
+    this.deps.outputRouter?.cancelPreview('notes')
     for (const timer of this.notesAuditionStartTimers) clearTimeout(timer)
     this.notesAuditionStartTimers = []
     for (const timer of this.notesAuditionReleaseTimers.values()) clearTimeout(timer)
@@ -153,7 +175,7 @@ export class PreviewController {
 
     this.stopProgressionPreview()
     const chordSynth = this.deps.getChordPreviewSynth()
-    if (!chords || chords.length === 0 || !chordSynth) {
+    if (!chords || chords.length === 0) {
       onFinish?.()
       return
     }
@@ -166,6 +188,7 @@ export class PreviewController {
     const barSeconds = beatSeconds * 4
     const startTime = audioNow()
 
+    const midiEvents: MidiPreviewEvent[] = []
     let totalDuration = 0
     for (const chord of chords) {
       if (!chord.voicing || chord.voicing.length === 0) continue
@@ -174,7 +197,8 @@ export class PreviewController {
       const voicedNotes = chord.voicing.map((n) => normalizePitchOctave(n, 3))
 
       const handle = generations.beginVoice('progression-preview', generation, voicedNotes.join(','))[0]
-      if (handle) chordSynth.playNote(handle.id, voicedNotes, duration, startTime + startOffset, 0.75)
+      midiEvents.push(this.pitchEvent(voicedNotes, startTime + startOffset, duration, 0.75))
+      if (handle) chordSynth?.playNote(handle.id, voicedNotes, duration, startTime + startOffset, 0.75)
 
       // Schedule UI highlight for when this chord starts sounding
       const startTimer = setTimeout(
@@ -202,6 +226,7 @@ export class PreviewController {
       }
     }
 
+    this.deps.outputRouter?.preview('progression', 'chord', midiEvents)
     this.progressionPreviewTimer = setTimeout(
       () => {
         this.progressionPreviewTimer = null
@@ -229,6 +254,7 @@ export class PreviewController {
    * fade, because cancelling the JavaScript completion timer alone cannot stop them.
    */
   stopProgressionPreview(): void {
+    this.deps.outputRouter?.cancelPreview('progression')
     if (this.progressionPreviewTimer) {
       clearTimeout(this.progressionPreviewTimer)
       this.progressionPreviewTimer = null
@@ -244,12 +270,26 @@ export class PreviewController {
     if (hadVoices) this.deps.truncateVoices()
   }
 
+  private pitchEvent(
+    pitches: string[],
+    onTimeSeconds: number,
+    durationSeconds: number,
+    velocity: number
+  ): MidiPreviewEvent {
+    return {
+      midiNotes: convertMidiPitches(pitches).midis.map((midi) => ({
+        midi,
+        source: { kind: 'preview', sourceId: pitches.join(',') }
+      })),
+      onTimeSeconds,
+      durationSeconds,
+      velocity
+    }
+  }
+
   dispose(): void {
     this.stopNotesAudition()
-    if (this.progressionPreviewTimer) {
-      clearTimeout(this.progressionPreviewTimer)
-      this.progressionPreviewTimer = null
-    }
-    this.clearPreviewChordTimers()
+    this.stopProgressionPreview()
+    this.deps.outputRouter?.cancelPreviews()
   }
 }

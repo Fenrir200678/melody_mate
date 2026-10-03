@@ -101,9 +101,11 @@ export class PlaybackEngine {
     })
     this.midiLifecycle = new TransportMidiLifecycle(this.outputRouter, outputRuntime, () => {
       ++this.startOperation
+      this.outputRouter.blockPreviews(false)
     })
     this.scheduler = new TransportScheduler({ outputRouter: this.outputRouter })
     this.previews = new PreviewController({
+      outputRouter: this.outputRouter,
       generations: this.generations,
       getLeadPreviewSynth: () => this.synths.getLeadPreview(),
       getChordPreviewSynth: () => this.synths.getChordPreview(),
@@ -241,12 +243,22 @@ export class PlaybackEngine {
 
   async play(): Promise<void> {
     const operation = ++this.startOperation
+    this.outputRouter.blockPreviews(true)
     // A start directly after a stop or panic must not begin inside the 12–35 ms silencing window.
     this.effectsRack.restoreVoiceGains()
-    if (!(await ensureAudioContextRunning())) throw new Error('Audio context is not running.')
+    if (!(await ensureAudioContextRunning())) {
+      if (operation === this.startOperation) this.outputRouter.blockPreviews(false)
+      throw new Error('Audio context is not running.')
+    }
     if (this.isDisposed || operation !== this.startOperation) return
-    await this.midiLifecycle.resume()
+    try {
+      await this.midiLifecycle.resume()
+    } catch (error) {
+      if (operation === this.startOperation) this.outputRouter.blockPreviews(false)
+      throw error
+    }
     if (this.isDisposed || operation !== this.startOperation) return
+    this.outputRouter.blockPreviews(true)
     Tone.getTransport().start()
   }
 
@@ -278,7 +290,9 @@ export class PlaybackEngine {
    */
   panic(): void {
     ++this.startOperation
+    this.outputRouter.blockPreviews(false)
     this.midiLifecycle.panic()
+    this.outputRouter.cancelPreviews()
     this.previews.stopNotesAudition()
     Tone.getTransport().cancel()
     this.scheduler.reset()
@@ -310,6 +324,10 @@ export class PlaybackEngine {
   }
 
   // --- Audition / Preview ---
+
+  testMidiNote(track: 'lead' | 'chord') {
+    return this.outputRouter.testMidiNote(track)
+  }
 
   previewNote(pitch: string, duration = '8n', velocity = 0.8): void {
     this.previews.previewNote(pitch, duration, velocity)

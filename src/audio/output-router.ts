@@ -1,18 +1,11 @@
-import * as Tone from 'tone'
-import {
-  DEFAULT_MIDI_OUTPUT_SETTINGS,
-  DEFAULT_MIDI_QUEUE_TIMING,
-  DEFAULT_PROJECT_SETTINGS,
-  DEFAULT_TRANSPORT_OUTPUT
-} from '../config/defaults'
-import { normalizedVelocityToMidi } from '../core/midi/live-messages'
+import { DEFAULT_MIDI_OUTPUT_SETTINGS, DEFAULT_PROJECT_SETTINGS, DEFAULT_TRANSPORT_OUTPUT } from '../config/defaults'
 import type { MidiOutputSettings, MidiSourceNote, MidiTrackKey } from '../core/midi/output.types'
-import { MidiOutputSettingsSchema } from '../core/midi/output.schema'
 import type { EventGenerationTracker } from '../core/synth/event-generation'
-import { getMidiDispatchAdvanceSeconds, getOutputGate, type OutputLoopBounds } from '../core/transport/output-gate'
-import { validateMidiAdvanceBudget } from '../core/transport/output-timing'
+import { getOutputGate, type OutputLoopBounds } from '../core/transport/output-gate'
 import type { InstrumentHost } from './instrument-host'
-import type { AudioMidiNoteIntent, MidiOutputSession } from './midi/output-session'
+import type { MidiOutputSession } from './midi/output-session'
+import { enqueueMidiOutput } from './midi/dispatch'
+import type { MidiPreviewOutput, MidiPreviewKey, MidiPreviewEvent } from './midi/preview-output'
 
 export interface TrackOutputEvent {
   track: MidiTrackKey
@@ -26,9 +19,10 @@ export interface TrackOutputEvent {
   stepDurationSeconds: number
 }
 
-/** The transport owns lifecycle release; preview routing remains internal. */
+/** Each output session owns its lifecycle and shares the physical port queue. */
 export interface TrackOutputRuntime {
   sessionId: string
+  previews?: MidiPreviewOutput
   getSettings(): MidiOutputSettings
   midi: Pick<MidiOutputSession, 'enqueue'> &
     Partial<Pick<MidiOutputSession, 'cancel' | 'reconcile' | 'endIteration' | 'panic'>>
@@ -105,44 +99,29 @@ export class TrackOutputRouter {
     }
     if (!runtime || mode === 'internal' || (runtime.canDispatch && !runtime.canDispatch(event.track))) return
     try {
-      const route = MidiOutputSettingsSchema.parse(settings)[event.track]
-      const context = Tone.getContext()
-      if (!('updateInterval' in context) || typeof context.updateInterval !== 'number') {
-        throw new Error('MIDI output requires a Tone context with a known scheduling interval.')
-      }
-      const advance = Math.min(
-        getMidiDispatchAdvanceSeconds(context.lookAhead, context.updateInterval),
-        event.onTimeSeconds - Tone.immediate()
-      )
-      if (
-        !validateMidiAdvanceBudget(
-          route.offsetMs,
-          advance,
-          DEFAULT_MIDI_QUEUE_TIMING.pumpIntervalMs,
-          DEFAULT_MIDI_QUEUE_TIMING.cancelGuardMs
-        )
-      )
-        throw new RangeError('MIDI route offset exceeds the actual Tone dispatch advance.')
-      const sequence = ++this.eventSequence
-      for (const note of event.midiNotes) {
-        const intent: AudioMidiNoteIntent = {
-          track: event.track,
-          source: note.source,
-          sessionId: runtime.sessionId,
-          generation: event.generation,
-          loopIteration: this.loopIteration,
-          eventId: `${runtime.sessionId}:${event.track}:${event.generation}:${this.loopIteration}:${sequence}:${note.midi}`,
-          channel: route.channel,
-          midi: note.midi,
-          velocity: normalizedVelocityToMidi(event.velocity),
-          onTimeSeconds: event.onTimeSeconds,
-          offTimeSeconds: gate.offTimeSeconds,
-          routeOffsetMs: route.offsetMs
-        }
-        runtime.midi.enqueue(intent)
-      }
+      enqueueMidiOutput(runtime, event, gate.offTimeSeconds, this.loopIteration, ++this.eventSequence)
     } catch (error) {
       runtime.onError?.(error, event)
     }
+  }
+
+  preview(key: MidiPreviewKey, track: MidiTrackKey, events: readonly MidiPreviewEvent[]): void {
+    this.deps.runtime?.previews?.start(key, track, events)
+  }
+
+  cancelPreview(key: MidiPreviewKey): void {
+    this.deps.runtime?.previews?.cancel(key)
+  }
+
+  cancelPreviews(): void {
+    this.deps.runtime?.previews?.cancelAll()
+  }
+
+  blockPreviews(blocked: boolean): void {
+    this.deps.runtime?.previews?.setTransportBlocked(blocked)
+  }
+
+  testMidiNote(track: MidiTrackKey) {
+    return this.deps.runtime?.previews?.testNote(track) ?? { ok: false as const, error: 'MIDI is unavailable.' }
   }
 }

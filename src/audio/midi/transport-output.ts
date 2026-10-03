@@ -12,12 +12,14 @@ import type { TrackOutputRuntime } from '../output-router'
 import type { MidiOutputPort } from './runtime.types'
 import type { MidiAccessManager } from './access-manager'
 import type { MidiClockBridge } from './clock-bridge'
+import { MidiPreviewOutput } from './preview-output'
 import { MidiOutputSession, midiTimerWakeup } from './output-session'
 import type { MidiQueueEnvironment, MidiQueueTiming } from './port-queue'
 import { disconnectMidiPort, recoverMidiPort } from './port-queue'
 
 export class MidiTransportOutput implements TrackOutputRuntime {
   readonly sessionId = DEFAULT_TRANSPORT_OUTPUT.sessionId
+  readonly previews: MidiPreviewOutput
   readonly midi: MidiOutputSession
   private settings: MidiOutputSettings = structuredClone(DEFAULT_MIDI_OUTPUT_SETTINGS)
   private armed = new Set<MidiTrackKey>()
@@ -49,11 +51,13 @@ export class MidiTransportOutput implements TrackOutputRuntime {
     this.midi = new MidiOutputSession(this.sessionId, access, clock, advanceSeconds, timing, wakeup, () =>
       this.suspend()
     )
+    this.previews = new MidiPreviewOutput(access, clock, () => this.getSettings(), advanceSeconds, timing, wakeup)
     this.unsubscribe = access.subscribe((snapshot) => {
       for (const track of ['lead', 'chord'] as const) {
         const port = access.getOpenOutput(track)
         const previous = this.previousPorts.get(track)
         if (!snapshot.enabled || (!port && previous)) {
+          this.previews.cancelTrack(track)
           this.armed.delete(track)
           if (!snapshot.enabled || snapshot.routes[track].status === 'disconnected') {
             ++this.operation
@@ -134,6 +138,7 @@ export class MidiTransportOutput implements TrackOutputRuntime {
       if (!prepared || operation !== this.routeOperations[track] || lifecycle !== this.operation || this.disposed)
         return false
     }
+    this.previews.cancelTrack(track)
     this.midi.cancel({ track })
     this.settings = MidiOutputSettingsSchema.parse({ ...this.settings, [track]: candidate[track] })
     if (route.mode === 'internal') {
@@ -141,6 +146,13 @@ export class MidiTransportOutput implements TrackOutputRuntime {
       await this.access.close(track)
     } else if (wasArmed) this.armed.add(track)
     return true
+  }
+
+  setSendPreviews(enabled: boolean): void {
+    for (const track of ['lead', 'chord'] as const) {
+      this.settings[track] = { ...this.settings[track], sendPreviews: enabled }
+      if (!enabled) this.previews.cancelTrack(track, false)
+    }
   }
 
   async resume(): Promise<void> {
@@ -173,6 +185,7 @@ export class MidiTransportOutput implements TrackOutputRuntime {
   suspend(): void {
     if (this.disposed || this.suspending) return
     this.suspending = true
+    this.previews.cancelAll()
     this.armed.clear()
     ++this.operation
     ++this.routeOperations.lead
@@ -186,6 +199,7 @@ export class MidiTransportOutput implements TrackOutputRuntime {
   }
 
   panic(): void {
+    this.previews.panic()
     this.suspend()
     this.midi.panic()
   }
@@ -195,6 +209,7 @@ export class MidiTransportOutput implements TrackOutputRuntime {
     this.suspend()
     this.disposed = true
     this.unsubscribe()
+    this.previews.dispose()
     this.midi.dispose()
   }
 }

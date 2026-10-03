@@ -91,6 +91,15 @@ export const useAudioStore = defineStore('audio', () => {
     getBpm: () => useProjectStore().bpm
   })
 
+  watch(
+    () => useUiStore().activeStudioDock,
+    (_, previous) => {
+      if (previous === 'chord') audition.stopProgressionPreview()
+      if (previous === 'arp') useMelodyStore().stopArpAudition()
+    },
+    { flush: 'sync' }
+  )
+
   function syncSchedule(bpm?: number): void {
     const engine = getEngine()
     if (!engine) return
@@ -177,6 +186,7 @@ export const useAudioStore = defineStore('audio', () => {
   function stop(): void {
     ++startRequest
     audition.stopNotesAudition()
+    audition.stopProgressionPreview()
     audition.stopRhythmPreview()
     const uiStore = useUiStore()
     const projectStore = useProjectStore()

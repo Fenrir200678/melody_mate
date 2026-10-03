@@ -29,6 +29,8 @@ export const useMidiOutputStore = defineStore('midi-output', () => {
     snapshot,
     getRuntime,
     getSettings: () => getRuntime().getSettings(),
+    setSendPreviews: (enabled: boolean) => getRuntime().setSendPreviews(enabled),
+    testNote: (track: MidiTrackKey) => getRuntime().previews.testNote(track),
     setRoute: (track: MidiTrackKey, route: MidiTrackRoute) => getRuntime().setRoute(track, route),
     enable: () => manager.enable(),
     disable: () => {

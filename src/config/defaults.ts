@@ -35,6 +35,8 @@ export const MIDI_OUTPUT_BOUNDS = {
   offsetMs: { min: -50, max: 50 }
 } as const
 
+export const DEFAULT_MIDI_TEST_NOTE = { midi: 60, velocity: 0.8, durationSeconds: 0.25 } as const
+
 export const DEFAULT_MIDI_NOTE_OFF_VELOCITY = 0
 
 export const DEFAULT_MIDI_OUTPUT_SETTINGS = {

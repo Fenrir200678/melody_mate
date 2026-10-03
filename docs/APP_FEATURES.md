@@ -515,6 +515,15 @@ Tone scheduling semantics were checked through Context7's [Tone Transport docume
 - Global Panic extends the existing internal action with app-owned queue clear, explicit Offs, then CC64/CC123/CC120 only on used port/channel pairs. It does not broadcast across unused outputs or all sixteen channels. Pending opens are canceled even if the audio engine has not initialized.
 - Production transition tests reuse the Task 63 port/buffer fakes for shared-port clear races, retained sibling Offs, per-note mute, loop retriggers, stale callbacks/unlocks, edits/BPM/groove, route preparation, disconnect/reconnect, suspension, Reset/Load and Panic. Physical disconnect/crash cleanup, browser scheduling and real hardware/DAW timing remain unverified; Task 69 owns that acceptance.
 
+### Preview and audition routing (Task 66)
+
+- Per-track `sendPreviews` is opt-in and defaults off. The MIDI output store exposes the central `setSendPreviews(enabled)` operation; changing it off cancels current external preview sessions, while changing it on takes effect with the next audition.
+- The existing internal audition path always remains active. When enabled and the corresponding MIDI or Both route has an explicitly opened port, note and chord auditions, take playback, Arp candidates and chord progressions fan out through the same clock bridge and owned port queue as transport notes. Their external intents use preview session ownership and retain source pitches, velocities, durations and take/Arp origin spans. Preview audio remains independent of MIDI routing.
+- External preview and test-note dispatch is unavailable while transport is active or a start is in progress; stopped and paused states allow it. Transport start cancels external preview/test-note sessions before enabling transport sends. The UI preference and test-note action are deferred to Task 68.
+- The explicit test-note runtime action sends a bounded note to the selected valid route and owns its release/cleanup. Successful queue submission confirms browser dispatch only; Web MIDI supplies no device-reception acknowledgement. Rhythm Studio click previews stay internal and do not route to MIDI.
+- Preview cancellation is session-scoped and uses the shared port queue's clear/rebuild and submitted-event ownership rules, preserving unrelated transport notes on a shared port. Stop, natural finish, audition replacement, Arp candidate/Shuffle changes, progression replacement, transport start, preference-off and disposal end the applicable external preview ownership. Audition operations do not modify project notes, dirty state, undo history or take contents.
+- Preview lifecycle tests cover immediate and delayed notes, cancellation paths, transport-start gating/order, opt-in defaults, internal-audio retention, shared-port ownership and test-note cleanup. No UI or Rhythm MIDI routing is part of this task.
+
 ### MIDI file export
 
 Melody Mate v2 provides professional MIDI export formatted for immediate use in external digital audio workstations:

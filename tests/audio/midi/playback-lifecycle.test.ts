@@ -8,6 +8,8 @@ const { mock, toneMock } = await vi.hoisted(async () => {
 })
 vi.mock('tone', () => toneMock)
 
+import * as trainedModelService from '../../../src/services/trained-model-service'
+import { PreviewController } from '../../../src/audio/playback-engine/preview-controller'
 import { PlaybackEngine } from '../../../src/audio/playback-engine'
 import { MidiAccessManager } from '../../../src/audio/midi/access-manager'
 import { MidiClockBridge } from '../../../src/audio/midi/clock-bridge'
@@ -23,6 +25,8 @@ import { useHarmonyStore } from '../../../src/stores/harmony.store'
 import { useMidiOutputStore } from '../../../src/stores/midi-output.store'
 import { useProjectStore } from '../../../src/stores/project.store'
 import { useAudioSettingsStore } from '../../../src/stores/audio-settings.store'
+import { useUiStore } from '../../../src/stores/ui.store'
+import { useTakesStore } from '../../../src/stores/takes.store'
 import { useMixerStore } from '../../../src/stores/mixer.store'
 import { AccessFake, deferred } from './port-fake'
 import { QueueFake, TEST_QUEUE_TIMING } from './queue-fake'
@@ -103,6 +107,7 @@ beforeEach(() => {
     off: vi.fn((_event, callback) => loopListeners.delete(callback))
   })
   context = Object.assign(toneMock.getContext(), {
+    state: 'running',
     lookAhead: 0.1,
     updateInterval: 0.02,
     on: vi.fn((_event, callback) => contextListeners.add(callback)),
@@ -121,6 +126,7 @@ beforeEach(() => {
 afterEach(async () => {
   for (const cleanup of cleanups.splice(0).reverse()) await cleanup()
   disposePinia(pinia)
+  vi.useRealTimers()
   vi.unstubAllGlobals()
 })
 
@@ -446,5 +452,292 @@ describe('transport MIDI lifecycle production transitions', () => {
     unlock.resolve()
     await starting
     expect(mock.transport.start).not.toHaveBeenCalled()
+  })
+})
+
+describe('external auditions through the playback engine', () => {
+  async function previewFixture() {
+    const result = await fixture()
+    result.engine.pause()
+    mock.transport.state = 'paused'
+    result.runtime.setSendPreviews(true)
+    result.fake.port.send.mockClear()
+    return result
+  }
+
+  it.each(['note', 'chord', 'notes', 'progression'] as const)(
+    'keeps the internal %s preview and fans out its actual notes even on MIDI-only routes',
+    async (kind) => {
+      const { engine, runtime, fake, advance } = await previewFixture()
+      for (const track of ['lead', 'chord'] as const)
+        await runtime.setRoute(track, { ...runtime.getSettings()[track], mode: 'midi' })
+      if (kind === 'note') engine.previewNote('D4', '8n', 0.8)
+      if (kind === 'chord') engine.previewChord(['E', 'G3'], '2n', 0.7)
+      if (kind === 'notes') engine.auditionNotes([{ ...note, midi: 62, pitch: 'D4', velocity: 91 }], 120)
+      if (kind === 'progression') engine.previewProgression([chord], 120)
+      const session = {
+        note: 'note-audition',
+        chord: 'chord-audition',
+        notes: 'take-audition',
+        progression: 'progression-preview'
+      } as const
+      expect(engine.generations.getActiveVoiceCount(session[kind])).toBeGreaterThan(0)
+      advance(1070)
+      advance(1100)
+      const ons = fake.delivered.filter(({ bytes }) => (bytes[0]! & 0xf0) === 0x90).map(({ bytes }) => bytes)
+      expect(ons).toEqual(
+        {
+          note: [[0x90, 62, 102]],
+          chord: [
+            [0x91, 52, 89],
+            [0x91, 55, 89]
+          ],
+          notes: [[0x90, 62, 91]],
+          progression: [[0x91, 55, 95]]
+        }[kind]
+      )
+    }
+  )
+
+  it('preserves leading/trailing rests, muted notes and take completion without mutating project history', async () => {
+    vi.useFakeTimers()
+    const { engine, fake, advance } = await previewFixture()
+    const melody = useMelodyStore()
+    const takes = useTakesStore()
+    const project = useProjectStore()
+    const before = {
+      notes: JSON.parse(JSON.stringify(melody.notes)),
+      undo: melody.canUndo,
+      takes: JSON.parse(JSON.stringify(takes.takes)),
+      config: JSON.stringify(project.toConfig())
+    }
+    const finish = vi.fn()
+    engine.auditionNotes(
+      [
+        { ...note, step: 20, durationSteps: 2 },
+        { ...note, id: 'muted', step: 16, isMuted: true }
+      ],
+      120,
+      finish,
+      { originStep: 16, durationSteps: 16 }
+    )
+    expect(fake.port.send).not.toHaveBeenCalled()
+    advance(1570)
+    expect(fake.port.send).toHaveBeenCalledWith([0x90, 60, 100], 1600)
+    advance(1600)
+    advance(1820)
+    expect(fake.port.send).toHaveBeenCalledWith([0x80, 60, 0], 1850)
+    vi.advanceTimersByTime(1900)
+    expect(finish).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(200)
+    expect(finish).toHaveBeenCalledTimes(1)
+    expect({
+      notes: melody.notes,
+      undo: melody.canUndo,
+      takes: takes.takes,
+      config: JSON.stringify(project.toConfig())
+    }).toEqual(before)
+  })
+
+  it.each([
+    'stop',
+    'pause',
+    'panic',
+    'dispose',
+    'preference',
+    'notes-stop',
+    'notes-replace',
+    'progression-stop',
+    'progression-replace'
+  ] as const)('%s removes sounding and future preview notes', async (action) => {
+    const { engine, runtime, fake, advance } = await previewFixture()
+    const progression = action.startsWith('progression')
+    if (progression) engine.previewProgression([chord, { ...chord, id: 'later', voicing: ['A3'], startBar: 1 }], 120)
+    else engine.auditionNotes([note, { ...note, id: 'later', midi: 62, pitch: 'D4', step: 8 }], 120)
+    advance(1070)
+    advance(1100)
+    if (action === 'preference') runtime.setSendPreviews(false)
+    else if (action === 'notes-stop') engine.stopNotesAudition()
+    else if (action === 'notes-replace') engine.auditionNotes([], 120)
+    else if (action === 'progression-stop') engine.stopProgressionPreview()
+    else if (action === 'progression-replace') engine.previewProgression([], 120)
+    else engine[action]()
+    expect(fake.delivered.filter(({ bytes }) => (bytes[0]! & 0xf0) === 0x80).at(-1)?.bytes).toEqual(
+      progression ? [0x81, 55, 0] : [0x80, 60, 0]
+    )
+    if (action === 'panic') expect(fake.delivered.some(({ bytes }) => bytes[0] === 0xb0 && bytes[1] === 120)).toBe(true)
+    advance(5000)
+    expect(fake.delivered.filter(({ bytes }) => (bytes[0]! & 0xf0) === 0x90)).toHaveLength(1)
+  })
+
+  it('routes multi-note previews without requiring an internal synth host', async () => {
+    const { engine, fake, advance } = await previewFixture()
+    const previews = new PreviewController({
+      generations: engine.generations,
+      outputRouter: engine.outputRouter,
+      getLeadPreviewSynth: () => null,
+      getChordPreviewSynth: () => null,
+      holdVoice: () => {},
+      truncateVoices: () => {}
+    })
+    cleanups.push(() => previews.dispose())
+    previews.auditionNotes([note], 120)
+    previews.previewProgression([chord], 120)
+    advance(1070)
+    advance(1100)
+    expect(fake.delivered.filter(({ bytes }) => (bytes[0]! & 0xf0) === 0x90).map(({ bytes }) => bytes)).toEqual([
+      [0x90, 60, 100],
+      [0x91, 55, 95]
+    ])
+  })
+
+  it.each(['route', 'disable', 'context', 'pagehide'] as const)(
+    '%s ends external preview ownership without restarting old events',
+    async (boundary) => {
+      const { engine, runtime, access, fake, advance } = await previewFixture()
+      engine.auditionNotes([note, { ...note, id: 'later', step: 8, midi: 62, pitch: 'D4' }], 120)
+      advance(1070)
+      advance(1100)
+      if (boundary === 'route') await runtime.setRoute('lead', { ...runtime.getSettings().lead, mode: 'internal' })
+      else if (boundary === 'disable') await access.disable()
+      else if (boundary === 'pagehide') page.dispatchEvent(new Event('pagehide'))
+      else {
+        context.state = 'suspended'
+        for (const listener of contextListeners) listener()
+      }
+      expect(fake.delivered.filter(({ bytes }) => bytes[0] === 0x80).at(-1)?.bytes).toEqual([0x80, 60, 0])
+      advance(4000)
+      expect(fake.delivered.filter(({ bytes }) => bytes[0] === 0x90)).toHaveLength(1)
+    }
+  )
+
+  it('enables only the next audition and never restarts a queue after preference off/on', async () => {
+    const { engine, runtime, fake, advance } = await previewFixture()
+    runtime.setSendPreviews(false)
+    engine.auditionNotes([note, { ...note, id: 'later', step: 8 }], 120)
+    runtime.setSendPreviews(true)
+    advance(1500)
+    expect(fake.port.send).not.toHaveBeenCalled()
+    engine.previewNote('E4')
+    advance(1570)
+    advance(1600)
+    expect(fake.delivered.at(-1)?.bytes).toEqual([0x90, 64, 102])
+    runtime.setSendPreviews(false)
+    runtime.setSendPreviews(true)
+    const count = fake.port.send.mock.calls.length
+    advance(5000)
+    expect(fake.port.send).toHaveBeenCalledTimes(count)
+  })
+
+  it('cancels test note before a transport on and blocks previews throughout asynchronous start', async () => {
+    const { engine, runtime, fake, advance } = await previewFixture()
+    expect(engine.testMidiNote('lead').ok).toBe(true)
+    advance(1070)
+    advance(1100)
+    const gate = deferred<void>()
+    const resume = runtime.resume.bind(runtime)
+    vi.spyOn(runtime, 'resume').mockImplementation(async () => {
+      await gate.promise
+      await resume()
+    })
+    engine.schedule([note], [], config)
+    const start = engine.play()
+    expect(fake.delivered.at(-1)?.bytes).toEqual([0x80, 60, 0])
+    expect(engine.testMidiNote('lead').ok).toBe(false)
+    engine.previewNote('D4')
+    expect(engine.generations.getActiveVoiceCount('note-audition')).toBe(1)
+    gate.resolve()
+    await start
+    mock.transport.state = 'started'
+    callbacks().at(-1)!(1.2)
+    advance(1170)
+    advance(1200)
+    const messages = fake.delivered.map(({ bytes }) => bytes)
+    expect(messages[0]).toEqual([0x90, 60, 102])
+    expect(messages.slice(1, -1).every((bytes) => bytes[0] === 0x80 && bytes[1] === 60)).toBe(true)
+    expect(messages.at(-1)).toEqual([0x90, 60, 100])
+    expect(engine.testMidiNote('lead').ok).toBe(false)
+    const count = fake.port.send.mock.calls.length
+    engine.previewChord(['G3'])
+    expect(engine.generations.getActiveVoiceCount('chord-audition')).toBe(1)
+    expect(fake.port.send).toHaveBeenCalledTimes(count)
+  })
+
+  it.each(['shuffle', 'candidate', 'dock'] as const)(
+    'ends the real Arp queue on %s while leaving notes, undo and takes untouched',
+    async (action) => {
+      const { fake, advance } = await previewFixture()
+      const melody = useMelodyStore()
+      const project = useProjectStore()
+      const ui = useUiStore()
+      const index = vi.spyOn(trainedModelService, 'loadTrainedModelIndex').mockResolvedValue(null)
+      await melody.loadArpModels()
+      index.mockRestore()
+      project.setWorkRange({ startStep: 0, endStep: 32 })
+      melody.setGeneratorParams({ arpPattern: 'up', arpRate: '1/16', arpSeed: 42, arpSeedLocked: true })
+      ui.setArpStudioOpen(true)
+      const candidate = melody.syncArpCandidate()!
+      await melody.auditionArp()
+      advance(1070)
+      advance(1100)
+      const heard = fake.delivered.filter(({ bytes }) => bytes[0] === 0x90)
+      expect(heard.length).toBeGreaterThan(0)
+      expect(heard[0]!.bytes[1]).toBe(candidate.notes[0]!.midi)
+      if (action === 'shuffle') melody.shuffleArp()
+      else if (action === 'candidate') {
+        melody.setGeneratorParams({ arpDensity: 60 })
+        melody.syncArpCandidate()
+      } else ui.setSoundDockOpen(true)
+      expect(useAudioStore().auditioningId).toBeNull()
+      advance(6000)
+      expect(fake.delivered.filter(({ bytes }) => bytes[0] === 0x90)).toHaveLength(heard.length)
+      expect(melody.notes).toEqual([])
+      expect(melody.canUndo).toBe(false)
+      expect(useTakesStore().takes).toEqual([])
+    }
+  )
+
+  it('replaces a take audition through the store without leaving its queued notes', async () => {
+    const { fake, advance } = await previewFixture()
+    const audio = useAudioStore()
+    await audio.auditionNotes([note, { ...note, id: 'future', midi: 62, pitch: 'D4', step: 8 }], 120, 'take-a')
+    advance(1070)
+    advance(1100)
+    await audio.auditionNotes([{ ...note, id: 'other', midi: 64, pitch: 'E4' }], 120, 'take-b')
+    expect(audio.auditioningId).toBe('take-b')
+    advance(1170)
+    advance(1200)
+    audio.stopNotesAudition()
+    advance(4000)
+    expect(fake.delivered.filter(({ bytes }) => bytes[0] === 0x90).map(({ bytes }) => bytes[1])).toEqual([60, 64])
+  })
+
+  it('keeps long progression events out of the browser port and cancels them on disconnect', async () => {
+    const { engine, fake, ports, advance } = await previewFixture()
+    engine.previewProgression([chord, { ...chord, id: 'far-future', voicing: ['A3'], startBar: 16 }], 120)
+    expect(fake.port.send).not.toHaveBeenCalled()
+    advance(1070)
+    advance(1100)
+    expect(fake.port.send.mock.calls.every(([, time]) => time <= 1130)).toBe(true)
+    fake.port.state = 'disconnected'
+    ports.change()
+    advance(34000)
+    expect(fake.delivered.filter(({ bytes }) => bytes[0] === 0x91).map(({ bytes }) => bytes[1])).toEqual([55])
+  })
+
+  it('cancels the progression on a dock change and preserves other preview sessions', async () => {
+    const { engine, fake, advance } = await previewFixture()
+    const ui = useUiStore()
+    ui.setChordStudioOpen(true)
+    await useAudioStore().previewProgression([chord, { ...chord, id: 'future', startBar: 2 }])
+    engine.auditionNotes([note], 120)
+    advance(1070)
+    advance(1100)
+    ui.setSoundDockOpen(true)
+    expect(fake.delivered.at(-1)?.bytes).toEqual([0x81, 55, 0])
+    advance(2070)
+    advance(2100)
+    expect(fake.delivered.at(-1)?.bytes).toEqual([0x80, 60, 0])
+    expect(useAudioStore().isPreviewingProgression).toBe(false)
   })
 })

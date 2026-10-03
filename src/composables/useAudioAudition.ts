@@ -1,4 +1,4 @@
-import { ref, type Ref } from 'vue'
+import { onScopeDispose, ref, type Ref } from 'vue'
 import type { PlaybackEngine } from '../audio/audio-runtime'
 import type { NotesAuditionOptions } from '../audio/playback-engine/preview-controller'
 import type { AppNote } from '../core/schemas/note.schema'
@@ -14,16 +14,23 @@ export interface UseAudioAuditionOptions {
 
 export function useAudioAudition(options: UseAudioAuditionOptions) {
   let notesAuditionRequest = 0
+  let progressionRequest = 0
+  let singleRequest = 0
+  let disposed = false
   const auditioningId = ref<string | null>(null)
   const isPreviewingProgression = ref<boolean>(false)
   const previewingChordId = ref<string | null>(null)
 
   async function auditionPitch(pitch: string): Promise<void> {
-    ;(await options.initializeAudio())?.previewNote(pitch)
+    const request = singleRequest
+    const engine = await options.initializeAudio()
+    if (!disposed && request === singleRequest) engine?.previewNote(pitch)
   }
 
   async function auditionChord(notes: string[]): Promise<void> {
-    ;(await options.initializeAudio())?.previewChord(notes)
+    const request = singleRequest
+    const engine = await options.initializeAudio()
+    if (!disposed && request === singleRequest) engine?.previewChord(notes)
   }
 
   async function auditionNotes(
@@ -37,7 +44,7 @@ export function useAudioAudition(options: UseAudioAuditionOptions) {
     options.getEngine()?.stopNotesAudition()
     try {
       const engine = await options.initializeAudio()
-      if (!engine || request !== notesAuditionRequest) {
+      if (!engine || disposed || request !== notesAuditionRequest) {
         if (request === notesAuditionRequest) auditioningId.value = null
         return
       }
@@ -65,17 +72,20 @@ export function useAudioAudition(options: UseAudioAuditionOptions) {
   }
 
   async function previewProgression(chords: ChordEvent[]): Promise<void> {
+    const request = ++progressionRequest
+    options.getEngine()?.stopProgressionPreview()
     const engine = await options.initializeAudio()
-    if (!engine) return
+    if (!engine || disposed || request !== progressionRequest) return
     isPreviewingProgression.value = true
     previewingChordId.value = null
     engine.previewProgression(
       chords,
       options.getBpm(),
       (chordId) => {
-        previewingChordId.value = chordId
+        if (request === progressionRequest) previewingChordId.value = chordId
       },
       () => {
+        if (request !== progressionRequest) return
         isPreviewingProgression.value = false
         previewingChordId.value = null
       }
@@ -83,6 +93,7 @@ export function useAudioAudition(options: UseAudioAuditionOptions) {
   }
 
   function stopProgressionPreview(): void {
+    ++progressionRequest
     const engine = options.getEngine()
     if (engine) {
       engine.stopProgressionPreview()
@@ -107,6 +118,8 @@ export function useAudioAudition(options: UseAudioAuditionOptions) {
   }
 
   function panic(): void {
+    ++singleRequest
+    ++progressionRequest
     notesAuditionRequest += 1
     auditioningId.value = null
     const engine = options.getEngine()
@@ -117,6 +130,13 @@ export function useAudioAudition(options: UseAudioAuditionOptions) {
     isPreviewingProgression.value = false
     previewingChordId.value = null
   }
+
+  onScopeDispose(() => {
+    disposed = true
+    ++singleRequest
+    stopNotesAudition()
+    stopProgressionPreview()
+  })
 
   return {
     auditioningId,
