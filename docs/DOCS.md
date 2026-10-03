@@ -510,6 +510,8 @@ The clock bridge streams Note-On, Note-Off, and Velocity events according to the
 
 Browsers without `MIDIOutput.clear()`, including Chromium-based browsers such as Brave, Chrome and Edge, are supported. Future events stay in Melody Mate until they are due, so Stop, Mute and route changes can cancel them safely. Output timing follows the 10 ms queue pump and may vary with browser scheduling load; ports with `clear()` retain timestamped lookahead scheduling. Test note uses the same capability-aware queue and always has an explicit release.
 
+Initial availability of the browser's output timestamp and temporary missing timestamp samples do not stop MIDI playback. Once calibrated, the clock bridge retains its timing reference while the audio and performance clocks advance normally. Actual AudioContext suspension or clock discontinuities still release external notes and require a fresh Play/resume.
+
 ### Quick DAW Integration Setup
 
 - **macOS IAC Driver:** Enable the IAC Driver in macOS **Audio MIDI Setup** (`Window` → `Show MIDI Studio` → double-click `IAC Driver` → check `Device is online`). In Melody Mate, click **Enable MIDI** and select `IAC Driver Bus 1`.

@@ -5,6 +5,7 @@ import { MidiClockBridge } from '../../../src/audio/midi/clock-bridge'
 import { cancelMidiPortScope } from '../../../src/audio/midi/port-queue'
 import { MidiTransportOutput } from '../../../src/audio/midi/transport-output'
 import type { MidiTrackKey, MidiTrackRoute } from '../../../src/core/midi/output.types'
+import type { OutputClockSample } from '../../../src/core/transport/output-timing'
 import { TEST_QUEUE_TIMING } from './queue-fake'
 import { AccessFake, deferred, PortFake } from './port-fake'
 
@@ -17,12 +18,18 @@ function fixture(...ports: PortFake[]) {
   manager.setCleanupHook(({ port, track }) => {
     cancelMidiPortScope(port, { track })
   })
-  const time = { audioSeconds: 1, performanceOffsetMs: 0, running: true }
+  const time: {
+    audioSeconds: number
+    performanceOffsetMs: number
+    running: boolean
+    outputTimestamp?: OutputClockSample
+  } = { audioSeconds: 1, performanceOffsetMs: 0, running: true }
   const clock = new MidiClockBridge({
     read: () => ({
       contextTimeSeconds: time.audioSeconds,
       performanceTimeMs: 1000 + time.audioSeconds * 1000 + time.performanceOffsetMs,
-      running: time.running
+      running: time.running,
+      outputTimestamp: time.outputTimestamp
     }),
     signalPathLatencySeconds: () => 0
   })
@@ -102,6 +109,42 @@ afterEach(async () => {
 })
 
 describe('transport MIDI output lifecycle', () => {
+  it('keeps a port without clear playing through initial and temporarily missing output calibration', async () => {
+    const port = new PortFake()
+    Object.assign(port, { clear: undefined })
+    const { output, callbacks, time, enable } = fixture(port)
+    await enable()
+    await routeAndResume(output, 'lead', port, 1)
+    output.midi.enqueue(note('lead', 'first', 1))
+    time.audioSeconds = 1.01
+    for (const callback of [...callbacks]) callback()
+    expect(port.send.mock.calls.map(([bytes]) => bytes)).toEqual([[0x90, 60, 100]])
+
+    time.audioSeconds = 1.02
+    time.outputTimestamp = { contextTimeSeconds: 1, performanceTimeMs: 2010 }
+    for (const callback of [...callbacks]) callback()
+    expect(output.canDispatch('lead')).toBe(true)
+
+    time.audioSeconds = 1.03
+    time.outputTimestamp = undefined
+    for (const callback of [...callbacks]) callback()
+    expect(output.canDispatch('lead')).toBe(true)
+    expect(port.send.mock.calls.map(([bytes]) => bytes)).toEqual([[0x90, 60, 100]])
+
+    time.outputTimestamp = { contextTimeSeconds: 1.01, performanceTimeMs: 2020 }
+    output.midi.enqueue({ ...note('lead', 'second', 1, 1.1), midi: 62, onTimeSeconds: 1.04 })
+    time.audioSeconds = 1.06
+    for (const callback of [...callbacks]) callback()
+    expect(port.send.mock.calls.map(([bytes]) => bytes)).toEqual([
+      [0x90, 60, 100],
+      [0x90, 62, 100]
+    ])
+    time.audioSeconds = 1.12
+    for (const callback of [...callbacks]) callback()
+    expect(port.send.mock.calls.at(-1)?.[0]).toEqual([0x80, 62, 0])
+    expect(output.canDispatch('lead')).toBe(true)
+  })
+
   it.each(['missing', 'ambiguous', 'exact'] as const)(
     'restores a %s desired port by ID only and waits for explicit enable/resume',
     async (match) => {

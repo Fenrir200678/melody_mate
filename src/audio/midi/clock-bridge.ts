@@ -33,13 +33,17 @@ export class MidiClockBridge {
 
   sample() {
     const reading = this.environment.read()
-    const next = selectOutputClockAnchor(reading, this.policy)
+    const discontinuity = !!this.previous && outputClockDiscontinuity(this.previous, reading, this.policy)
+    const candidate = selectOutputClockAnchor(reading, this.policy)
+    // A missing device timestamp does not invalidate calibration while the underlying clocks remain continuous.
+    const next =
+      !discontinuity && this.anchor?.mode === 'output' && candidate?.mode === 'estimated' ? this.anchor : candidate
     const changed =
       !!this.previous &&
-      (outputClockDiscontinuity(this.previous, reading, this.policy) ||
-        this.anchor?.mode !== next?.mode ||
+      (discontinuity ||
         (this.anchor &&
           next &&
+          this.anchor.mode === next.mode &&
           Math.abs(audioTimeToPerformanceMs(next.contextTimeSeconds, this.anchor, 0, 0) - next.performanceTimeMs) >
             this.policy.maxClockJumpMs))
     if (changed) ++this.epoch

@@ -7,6 +7,8 @@
 
 **Browser compatibility correction (2026-10-03):** A subsequent Brave/macOS IAC test exposed that the original port fakes always supplied `clear()`, while Chromium's native MIDI outputs do not. The queue now supports ports without `clear()` by retaining future events locally until due. Automated regressions cover bounded Test note output, local cancellation, shared-port releases, retriggers and Panic for this path. The original browser audit with zero endpoints did not verify actual note transmission; audible IAC-to-Ableton delivery remains a manual acceptance check.
 
+**Clock continuity correction (2026-10-03):** The user confirmed partial delivery to Serum over IAC, followed by intermittent silence. Automated reproduction showed that initial output calibration or a single missing output timestamp incorrectly suspended the MIDI runtime even with continuously advancing clocks. The bridge now accepts initial calibration and preserves an existing calibrated mapping through temporary missing samples. Regression tests verify later attacks and releases still arrive without an explicit restart; real suspension and clock-jump cleanup remain covered. Sustained audible playback over IAC still needs user verification.
+
 ---
 
 ## 1. Primary Test Environment & Hardware Audit
