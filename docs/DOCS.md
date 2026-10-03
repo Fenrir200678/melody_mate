@@ -508,6 +508,8 @@ A route, channel or offset change replaces the old target only after preparation
 
 The clock bridge streams Note-On, Note-Off, and Velocity events according to the project's internal transport timeline. It does not transmit MIDI Clock or automatically slave-synchronize a DAW transport; DAW recording is triggered manually at matching project BPM. Complete setup instructions for all platforms are available in the [MIDI Output & DAW Integration Guide](MIDI_OUTPUT.md), and physical acceptance test results are cataloged in the [Release Validation Report](MIDI_OUTPUT_VALIDATION.md).
 
+Browsers without `MIDIOutput.clear()`, including Chromium-based browsers such as Brave, Chrome and Edge, are supported. Future events stay in Melody Mate until they are due, so Stop, Mute and route changes can cancel them safely. Output timing follows the 10 ms queue pump and may vary with browser scheduling load; ports with `clear()` retain timestamped lookahead scheduling. Test note uses the same capability-aware queue and always has an explicit release.
+
 ### Quick DAW Integration Setup
 
 - **macOS IAC Driver:** Enable the IAC Driver in macOS **Audio MIDI Setup** (`Window` → `Show MIDI Studio` → double-click `IAC Driver` → check `Device is online`). In Melody Mate, click **Enable MIDI** and select `IAC Driver Bus 1`.

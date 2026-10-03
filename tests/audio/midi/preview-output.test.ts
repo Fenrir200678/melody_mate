@@ -35,8 +35,8 @@ function event(overrides: Partial<MidiPreviewEvent> = {}): MidiPreviewEvent {
   }
 }
 
-async function fixture(signalPathLatencySeconds = 0) {
-  const fake = new QueueFake()
+async function fixture(signalPathLatencySeconds = 0, supportsClear = true) {
+  const fake = new QueueFake(TEST_QUEUE_TIMING, supportsClear)
   fake.nowMs = 1000
   const access = new MidiAccessManager({
     secureContext: true,
@@ -50,7 +50,7 @@ async function fixture(signalPathLatencySeconds = 0) {
   // The preview sessions use the bridge as the shared queue clock owner.
   fake.queue.dispose()
   fake.port.send.mockClear()
-  fake.port.clear.mockClear()
+  fake.port.clear?.mockClear()
 
   const clock = new MidiClockBridge({
     read: () => ({
@@ -186,11 +186,11 @@ describe('MIDI preview output', () => {
     ])
   })
 
-  it('sends a finite test note and submits its release at the configured duration', async () => {
-    const { fake, preview } = await fixture()
+  it.each([true, false])('sends a bounded test note with its configured release (clear: %s)', async (supportsClear) => {
+    const { fake, preview } = await fixture(0, supportsClear)
     toneMock.now.mockReturnValue(1.02)
     expect(preview.testNote('lead')).toEqual({ ok: true, value: undefined })
-    fake.callback?.()
+    advance(fake, supportsClear ? 1000 : 1020)
     expect(DEFAULT_MIDI_TEST_NOTE.durationSeconds).toBeGreaterThan(0)
     expect(fake.port.send).toHaveBeenCalledWith(
       [0x90, DEFAULT_MIDI_TEST_NOTE.midi, Math.round(DEFAULT_MIDI_TEST_NOTE.velocity * 127)],
@@ -198,7 +198,7 @@ describe('MIDI preview output', () => {
     )
 
     const offTimeMs = 1020 + DEFAULT_MIDI_TEST_NOTE.durationSeconds * 1000
-    advance(fake, offTimeMs - TEST_QUEUE_TIMING.horizonMs)
+    advance(fake, offTimeMs - (supportsClear ? TEST_QUEUE_TIMING.horizonMs : 0))
     expect(fake.port.send).toHaveBeenLastCalledWith([0x80, DEFAULT_MIDI_TEST_NOTE.midi, 0], offTimeMs)
   })
 

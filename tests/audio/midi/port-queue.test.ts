@@ -2,11 +2,10 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { DEFAULT_MIDI_QUEUE_TIMING } from '../../../src/config/defaults'
 import { MidiPortQueue } from '../../../src/audio/midi/port-queue'
 import { intent, QueueFake, TEST_QUEUE_TIMING } from './queue-fake'
-import { PortFake } from './port-fake'
 
 const harnesses: QueueFake[] = []
-function setup() {
-  const fake = new QueueFake()
+function setup(supportsClear = true) {
+  const fake = new QueueFake(TEST_QUEUE_TIMING, supportsClear)
   harnesses.push(fake)
   return fake
 }
@@ -15,6 +14,43 @@ afterEach(() => {
 })
 
 describe('owned MIDI port queue', () => {
+  it('keeps future attacks and releases local on ports without clear', () => {
+    const fake = setup(false)
+    fake.queue.enqueue(intent('short'))
+    fake.queue.enqueue(intent('canceled', { midi: 64, onTimeMs: 1020, offTimeMs: 1040 }))
+    fake.queue.pump()
+    expect(fake.port.send).not.toHaveBeenCalled()
+    fake.advance(1010)
+    expect(fake.delivered.map(({ bytes, timeMs }) => [bytes, timeMs])).toEqual([[[0x90, 60, 100], 1010]])
+    expect(fake.pending).toEqual([])
+    fake.queue.cancel({ source: { kind: 'melody', noteId: 'canceled' } })
+    fake.advance(1020)
+    fake.advance(1040)
+    expect(fake.delivered.map(({ bytes, timeMs }) => [bytes, timeMs])).toEqual([
+      [[0x90, 60, 100], 1010],
+      [[0x80, 60, 0], 1020]
+    ])
+    expect(fake.pending).toEqual([])
+    expect(fake.queue.getSnapshot().notes).toEqual([])
+  })
+
+  it('releases before retrigger on ports without clear and never sends the stale predecessor off', () => {
+    const fake = setup(false)
+    fake.queue.enqueue(intent('old', { onTimeMs: 1000, offTimeMs: 1025 }))
+    fake.queue.pump()
+    fake.queue.enqueue(intent('new', { onTimeMs: 1010, offTimeMs: 1050 }))
+    fake.advance(1010)
+    fake.queue.cancel({ source: { kind: 'melody', noteId: 'old' } })
+    fake.advance(1025)
+    fake.advance(1050)
+    expect(fake.delivered.map(({ bytes, timeMs }) => [bytes, timeMs])).toEqual([
+      [[0x90, 60, 100], 1000],
+      [[0x80, 60, 0], 1010],
+      [[0x90, 60, 100], 1010],
+      [[0x80, 60, 0], 1050]
+    ])
+  })
+
   it.each([0, 15])(
     'reconciles disconnect after clear advances %s ms and never replays its old attack',
     (clearAdvanceMs) => {
@@ -102,8 +138,8 @@ describe('owned MIDI port queue', () => {
     expect(fake.queue.getSnapshot().notes).toEqual([])
   })
 
-  it('preserves sounding chords and their long off after melody cancel on the shared port', () => {
-    const fake = setup()
+  it.each([true, false])('preserves shared-port chord releases after melody cancel (clear: %s)', (supportsClear) => {
+    const fake = setup(supportsClear)
     fake.queue.enqueue(intent('melody', { onTimeMs: 1000, offTimeMs: 3000 }))
     fake.queue.enqueue(
       intent('chord', {
@@ -290,8 +326,8 @@ describe('owned MIDI port queue', () => {
     }
   )
 
-  it('panic and disposal release owned notes and controllers only on used channels', () => {
-    const fake = setup()
+  it.each([true, false])('panic and disposal release only used channels (clear: %s)', (supportsClear) => {
+    const fake = setup(supportsClear)
     fake.queue.enqueue(intent('active', { channel: 2, onTimeMs: 1000, offTimeMs: 3000 }))
     fake.queue.pump()
     fake.queue.dispose()
@@ -435,11 +471,8 @@ describe('owned MIDI port queue', () => {
     expect(() => fake.queue.enqueue(intent('new', { onTimeMs: 1020, offTimeMs: 1040 }))).not.toThrow()
   })
 
-  it('rejects unsafe ports, timing budgets and conflicting ownership', () => {
+  it('rejects unsafe timing budgets and conflicting ownership', () => {
     const fake = setup()
-    const missingClear = new PortFake('unsafe')
-    Object.assign(missingClear, { clear: undefined })
-    expect(() => MidiPortQueue.own(missingClear, fake.environment)).toThrow('clear()')
     expect(() => new QueueFake({ ...TEST_QUEUE_TIMING, horizonMs: 1 })).toThrow('budget')
     fake.queue.enqueue(intent('lead'))
     expect(() =>

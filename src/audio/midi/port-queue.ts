@@ -29,7 +29,7 @@ export function recoverMidiPort(port: MidiOutputPort): void {
 }
 
 export class MidiPortQueue {
-  private readonly port: MidiOutputPort & { clear(): void }
+  private readonly port: MidiOutputPort
   private readonly environment: MidiQueueEnvironment
   private readonly timing: MidiQueueTiming
   private notes = new Map<string, OwnedMidiNote>()
@@ -50,8 +50,7 @@ export class MidiPortQueue {
     ) {
       throw new RangeError('Invalid MIDI queue timing budget.')
     }
-    if (typeof port.clear !== 'function') throw new Error('MIDI output requires clear() for safe cancellation.')
-    this.port = port as MidiOutputPort & { clear(): void }
+    this.port = port
     this.environment = environment
     this.timing = timing
     this.epoch = environment.readClock().epoch
@@ -213,8 +212,10 @@ export class MidiPortQueue {
         ...(!offSubmitted ? [{ note, kind: 'off' as const, timeMs: note.offTimeMs }] : [])
       ])
       .sort(compareMidiQueueEvents)
+    // Without driver cancellation, future events must stay local until they are due.
+    const horizonMs = typeof this.port.clear === 'function' ? this.timing.horizonMs : 0
     for (const event of events) {
-      if (event.timeMs > now + this.timing.horizonMs) break
+      if (event.timeMs > now + horizonMs) break
       const entry = this.notes.get(event.note.eventId)
       if (!entry) continue
       if (event.kind === 'on' && (now - event.timeMs > this.timing.lateOnThresholdMs || entry.note.offTimeMs <= now)) {
@@ -268,7 +269,7 @@ export class MidiPortQueue {
     this.stopWakeup?.()
     this.stopWakeup = undefined
     try {
-      this.port.clear()
+      this.port.clear?.()
       const now = this.environment.readClock().nowMs
       const plan = planMidiPortClear(
         [...this.notes.values()],
@@ -366,8 +367,8 @@ export class MidiPortQueue {
   }
 
   private clearAndRebuild(canceled: Set<string>): void {
-    this.port.clear()
-    // clear is port-wide. Time must be sampled after it, across a possible driver boundary.
+    this.port.clear?.()
+    // Native clear is port-wide; ports without it have no future driver submissions.
     const now = this.environment.readClock().nowMs
     const panicEvents = new Map(
       this.submitted
@@ -402,7 +403,7 @@ export class MidiPortQueue {
     if (this.disposed) return
     let cleared = true
     try {
-      this.port.clear()
+      this.port.clear?.()
     } catch {
       cleared = false
       this.failed = true

@@ -60,7 +60,7 @@ export class QueueFake {
   }
   queue: MidiPortQueue
 
-  constructor(timing: MidiQueueTiming = TEST_QUEUE_TIMING) {
+  constructor(timing: MidiQueueTiming = TEST_QUEUE_TIMING, supportsClear = true) {
     this.port.connection = 'open'
     this.port.send.mockImplementation((bytes, timeMs) => {
       this.pending.push({ bytes: [...bytes], timeMs, order: this.order++ })
@@ -71,6 +71,7 @@ export class QueueFake {
       this.flush()
       this.pending = []
     })
+    if (!supportsClear) Object.assign(this.port, { clear: undefined })
     this.queue = MidiPortQueue.own(this.port, this.environment, timing)
   }
 

@@ -230,8 +230,11 @@ To create virtual loopback ports accessible to both the browser and Linux DAWs (
 | :------------------ | :------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Google Chrome**   | **Full (Primary)**        | Chromium 124+ displays a site permission prompt. Works on `https://` and `http://localhost`.                                                                       |
 | **Microsoft Edge**  | **Full**                  | Identical to Chrome engine. Requires secure context.                                                                                                               |
+| **Brave**           | **Supported**             | Chromium-based; requires MIDI permission and a secure context.                                                                                                     |
 | **Mozilla Firefox** | **Supported (Secondary)** | Supported from Firefox 108+. May require site permission prompt confirmation or manual add-on validation depending on OS.                                          |
 | **Apple Safari**    | **Unsupported**           | WebKit does not implement the Web MIDI API. Melody Mate gracefully displays `MIDI: Unavailable`; internal synthesis and MIDI file export remain fully operational. |
+
+`MIDIOutput.clear()` is not implemented in Chromium-based browsers. Melody Mate supports these ports by keeping future events in its own queue until they are due, then submitting them immediately. Stop, Mute, route changes and Panic still release owned notes without leaving future attacks in an uncancellable driver queue. This mode follows the configured 10 ms pump interval and is more sensitive to browser scheduling delays than timestamped lookahead on ports with `clear()`. See [MDN browser compatibility](https://developer.mozilla.org/en-US/docs/Web/API/MIDIOutput/clear).
 
 ### Troubleshooting Checklist
 
@@ -254,6 +257,11 @@ To create virtual loopback ports accessible to both the browser and Linux DAWs (
 
 - **Cause:** A previously selected USB cable was unplugged or an external virtual driver closed.
 - **Fix:** Reconnect the hardware and click **Refresh ports**. Melody Mate preserves your desired routing configuration and automatically rebinds when the port identifier reappears.
+
+#### 5. "MIDI output requires clear() for safe cancellation."
+
+- **Cause:** An older Melody Mate build incorrectly required a browser method that Chromium does not implement. This is an application compatibility error, unrelated to IAC installation or Ableton's MIDI port preferences.
+- **Fix:** Reload the updated application, enable MIDI and select the output again. For the Ableton listening test, set the instrument track's **Monitor** to **In**, or use **Auto** with **Record Arm** enabled.
 
 ---
 
