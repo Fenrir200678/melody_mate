@@ -1,7 +1,7 @@
 {
   "name": "melodymate",
   "private": false,
-  "version": "2.1.2",
+  "version": "2.1.5",
   "type": "module",
   "packageManager": "pnpm@12.8.1",
   "scripts": {
