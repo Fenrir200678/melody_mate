@@ -59,7 +59,7 @@
   import { Lock, LockOpen } from '@lucide/vue'
   import DawIconButton from '@/components/common/DawIconButton.vue'
   import { DEFAULT_PROJECT_BAR_OPTIONS, PROJECT_BAR_BOUNDS } from '@/config/defaults'
-  import { SUPPORTED_SCALES, type ScaleDefinition } from '@/core/theory/scale.engine'
+  import { ROOT_KEYS, SUPPORTED_SCALES, type ScaleDefinition } from '@/core/theory/scale.engine'
   import { useHarmonyStore } from '@/stores/harmony.store'
   import { useProjectStore } from '@/stores/project.store'
   import { useUiStore } from '@/stores/ui.store'
@@ -68,7 +68,6 @@
   const harmonyStore = useHarmonyStore()
   const uiStore = useUiStore()
 
-  const ROOT_KEYS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']
   const barOptions = computed(() =>
     [...new Set([...DEFAULT_PROJECT_BAR_OPTIONS, projectStore.bars])]
       .filter((b) => b >= PROJECT_BAR_BOUNDS.min && b <= PROJECT_BAR_BOUNDS.max)

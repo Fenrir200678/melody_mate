@@ -104,6 +104,7 @@ export function duplicateChordEvent(chord: ChordEvent): ChordEvent {
 export interface BuildProgressionChordsOptions {
   progressionId: string
   key: string
+  scale?: string
   targetBars: number
   chordRegister: number
   voicingStyle: VoicingStyle
@@ -126,6 +127,10 @@ export function generateProgressionChords(options: BuildProgressionChordsOptions
   )
   if (options.autoSmooth && chords.length > 1) {
     chords = optimizeProgressionVoiceLeading(chords, options.chordRegister)
+  }
+  // Smoothing rebuilds named chords, so map afterward to retain only target-scale tones.
+  if (options.scale && options.scale !== preset.scale) {
+    chords = transposeChordProgression(chords, options.key, preset.scale, options.key, options.scale)
   }
 
   return { preset, chords }

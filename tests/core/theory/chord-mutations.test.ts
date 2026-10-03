@@ -12,6 +12,7 @@ import {
   transposeVoicingOctave
 } from '../../../src/core/theory/chord-mutations'
 import { getDiatonicChords } from '../../../src/core/theory/chord.engine'
+import { isNoteInScale } from '../../../src/core/theory/scale.engine'
 
 function sampleChord(id: string, name = 'C', roman = 'I', notes = ['C', 'E', 'G'], startBar = 0): ChordEvent {
   return {
@@ -99,6 +100,31 @@ describe('chord-mutations', () => {
     expect(preset.id).toBe('pop-standard')
     expect(chords).toHaveLength(4)
   })
+
+  it.each(['dorian', 'major pentatonic', 'ichikosucho'])(
+    'adapts preset chords to %s while preserving harmonic timing',
+    (scale) => {
+      const options = {
+        progressionId: 'pop-standard',
+        key: 'F#',
+        targetBars: 4,
+        chordRegister: 3,
+        voicingStyle: 'close' as const
+      }
+      const original = generateProgressionChords(options).chords
+      const adapted = generateProgressionChords({ ...options, scale, autoSmooth: true }).chords
+
+      expect(adapted.map(({ startBar, durationBars }) => ({ startBar, durationBars }))).toEqual(
+        original.map(({ startBar, durationBars }) => ({ startBar, durationBars }))
+      )
+      expect(adapted.every((chord) => chord.voicing.length > 0)).toBe(true)
+      expect(
+        adapted
+          .flatMap((chord) => [...chord.voicing, ...chord.notes])
+          .every((pitch) => isNoteInScale(pitch, options.key, scale))
+      ).toBe(true)
+    }
+  )
 
   it('transposeProgressionToScale transposes preset or custom chords', () => {
     const c1 = sampleChord('c1', 'C', 'I', ['C3', 'E3', 'G3'], 0)

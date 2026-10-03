@@ -1,5 +1,8 @@
 import { Note, Scale, ScaleType } from 'tonal'
 
+export const ROOT_KEYS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'] as const
+export type RootKey = (typeof ROOT_KEYS)[number]
+
 export interface ScaleDefinition {
   id: string
   name: string

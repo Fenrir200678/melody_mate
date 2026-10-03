@@ -321,12 +321,14 @@ export const useHarmonyStore = defineStore('harmony', () => {
     return chord
   }
 
-  function loadPredefinedProgression(progressionId: string): void {
+  function loadPredefinedProgression(progressionId: string, targetScale?: string): void {
     const range = { ...projectStore.workRange }
+    const coversProject = range.startStep === 0 && range.endStep === projectStore.bars * STEPS_PER_BAR
     const targetBars = Math.ceil((range.endStep - range.startStep) / STEPS_PER_BAR)
     const { preset, chords: nextChords } = generateProgressionChords({
       progressionId,
       key: projectStore.key,
+      scale: targetScale,
       targetBars,
       chordRegister: chordRegister.value,
       voicingStyle: voicingStyle.value,
@@ -334,12 +336,10 @@ export const useHarmonyStore = defineStore('harmony', () => {
     })
 
     history.pushState(chords.value)
-    if (range.startStep === 0 && range.endStep === projectStore.bars * STEPS_PER_BAR) {
-      projectStore.setScale(preset.scale)
-    }
+    const appliedScale = targetScale ?? preset.scale
+    if (coversProject) projectStore.setScale(appliedScale)
     chords.value = fitAndMergeProgression(chords.value, nextChords, range)
-    selectedProgressionId.value =
-      range.startStep === 0 && range.endStep === projectStore.bars * STEPS_PER_BAR ? progressionId : null
+    selectedProgressionId.value = coversProject && appliedScale === preset.scale ? progressionId : null
     if (selectedChordId.value && !chords.value.some((chord) => chord.id === selectedChordId.value)) {
       selectedChordId.value = null
     }

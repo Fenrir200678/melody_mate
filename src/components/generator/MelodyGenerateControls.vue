@@ -16,6 +16,20 @@
       <span>{{ melodyStore.isGenerating ? 'Generating…' : 'GENERATE' }}</span>
     </DawButton>
     <div class="btn-generate-divider" aria-hidden="true" />
+    <DawButton
+      size="md"
+      appearance="ghost"
+      variant="signal"
+      class="rounded-full!"
+      :icon="Dice5"
+      :disabled="melodyStore.isGenerating"
+      disabled-reason="Wait for melody generation to finish"
+      :title="`Randomize key, scale, chords, rhythm, motif, contour and feel, then generate in ${workRangeLabel}`"
+      @click="void surpriseMe()"
+    >
+      Surprise me
+    </DawButton>
+    <div class="btn-generate-divider" aria-hidden="true" />
     <span class="text-daw-text-muted text-micro max-w-28 truncate px-1 font-mono" :title="`Target: ${workRangeLabel}`">
       Target: {{ workRangeLabel }}
     </span>
@@ -24,8 +38,9 @@
 
 <script setup lang="ts">
   import { computed } from 'vue'
-  import { Loader2, Wand2 } from '@lucide/vue'
+  import { Dice5, Loader2, Wand2 } from '@lucide/vue'
   import DawButton from '@/components/common/DawButton.vue'
+  import { useSurpriseGeneration } from '@/composables/useSurpriseGeneration'
   import { useMelodyStore } from '@/stores/melody.store'
   import { useProjectStore } from '@/stores/project.store'
   import { useRhythmStore } from '@/stores/rhythm.store'
@@ -34,6 +49,7 @@
   const melodyStore = useMelodyStore()
   const projectStore = useProjectStore()
   const rhythmStore = useRhythmStore()
+  const { surpriseMe } = useSurpriseGeneration()
   const workRangeLabel = computed(() => formatWorkRangeLabel(projectStore.workRange))
   const generateButtonTitle = computed(() =>
     melodyStore.generatorParams.rhythmMode === 'custom' && !rhythmStore.canGenerate

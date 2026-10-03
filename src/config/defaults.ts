@@ -123,6 +123,13 @@ export const DEFAULT_GENERATOR_PARAMS = {
 
 export const DEFAULT_ARP_VARIATION_SEED = 1
 
+export const SURPRISE_ME_RANGES = {
+  markovOrder: { min: 1, max: 4, step: 1 },
+  chordAdherence: { min: 0, max: 100, step: 5 },
+  restProbability: { min: 0, max: 15, step: 5 },
+  noteLength: { min: 50, max: 100, step: 5 }
+} as const
+
 /**
  * Default variation and mutation settings for melody session state.
  */

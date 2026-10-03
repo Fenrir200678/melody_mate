@@ -172,6 +172,15 @@ The Work Range system lets producers isolate any section of the composition for 
 
 ## 6. Algorithmic Melody Generation Engine
 
+### Surprise Me
+
+- **Header action:** `Surprise me` sits beside Generate, first chooses a random key and scale, then applies a random factory chord progression and rhythm preset before triggering normal melody generation once.
+- **Tonality:** Samples all 12 `ROOT_KEYS` and all 21 `SUPPORTED_SCALES` from the shared scale-engine catalogs. Project key and scale are set before applying chords. The selected progression is generated in its native scale and mapped into the chosen scale with the existing chord-transposition engine, preserving timing and supporting scales with different note counts. Adapted progressions clear the factory preset selection marker when their scale differs from the original.
+- **Randomized parameters:** Motif (`FREE`, `ABAB`, `ABAC`, `AABA`, `AAAB`, `AABC`, `ABCB`), contour (`free`, `ascending`, `descending`, `arch`, `valley`), Markov Step Memory (orders 1–4), Chord Tone Adherence (0–100%), Breath (0–25%), and Note Length (50–100%). Percentages use 5% increments; bounds live in `SURPRISE_ME_RANGES` in `src/config/defaults.ts`.
+- **Orchestration:** `useSurpriseGeneration` applies the pure `createSurpriseSettings` result, enables chord guidance, synchronizes harmony adherence, switches rhythm mode to `preset`, switches Call & Response off, and disables `randomRhythmPreset` to prevent a second preset draw during Generate. Factory catalogs are sampled across all categories, independently of browser category filters.
+- **Scope and history:** Existing work-range chord application and melody replacement preserve material outside the target. The randomly selected project key and scale remain active for both whole-project and partial targets. Other project, sound, and generator controls stay unchanged. Existing seed locking, Take capture, and separate melody/chord Undo histories remain in effect; those histories do not restore project key or scale.
+- **Concurrency:** The action is disabled during generation and its handler also guards pending requests before changing any settings. It works from an empty Custom rhythm by selecting a factory preset first.
+
 ### 6.1 Probabilistic & Music Theory Algorithms
 
 Melody Mate v2 avoids unmusical random noise by combining probabilistic transition matrices with classical music theory heuristics:
