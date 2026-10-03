@@ -67,12 +67,13 @@ Unlike simple randomizers or playback-only tools, Melody Mate v2 operates as an 
 ### 3.2 Workspace Shell Structure
 
 - **DawHeader:**
-  - Branding and current project name.
-  - Transport playback controls: Play/Pause, Stop, Timecode display (`Bar.Beat.Step`).
-  - Loop controls: Loop toggle, active loop range indicator, Play from Loop Start, Return to Start on Pause.
-  - Project musical settings: Root Key selector (12 chromatic keys), Scale dropdown (21 scales across 5 categories), Scale Lock toggle (`K`), Bar count selector (1, 2, 4, 6, 8, 12, 16 bars).
-  - BPM control with numeric entry and Tap Tempo button.
-  - Project Groove module: Swing knob, Timing Looseness knob, and live straight-vs-swung timing preview SVG.
+  - Branding and current project name with responsive collapse (full text on wide screens, signature icon badge on viewports below 1280px).
+  - Generative hero action group: `GENERATE` button (with spinner during generation, icon-only on viewports below 1024px) paired with an icon-based `Surprise me` dice trigger.
+  - Transport playback controls: tactile icon-based Play/Pause button, Stop, and numeric timecode display (`Bar.Beat.Step`).
+  - Loop controls: Loop toggle, active loop range indicator, and accessible studio options popover (`...`) for `Play from Loop Start` and `Return to Start on Pause`.
+  - Project musical settings: Root Key selector (12 chromatic keys), Scale dropdown (21 scales across 5 categories with responsive max-width), Scale Lock toggle (`K`), and Bar count selector (1, 2, 4, 6, 8, 12, 16 bars).
+  - BPM control with direct numeric entry, live tempo ramp, and keyboard support.
+  - Project Groove module: tactile `SlidersHorizontal` studio button opening Swing knob, Timing Looseness knob, and live timing preview SVG.
 - **DawWorkspace (3-Panel Split):**
   - **Left Sidebar (`GeneratorPanel.vue`):** Collapsible and resizable (min 200px, max 420px). Hosts Rhythm, Motif, Contour, Variation, and Take Rack modules.
   - **Center Viewport:** HTML5 Canvas Piano Roll, Ruler, Work Range controls, Velocity Lane, and docked studio drawers (Rhythm Studio, Arp Studio, Chord Studio).

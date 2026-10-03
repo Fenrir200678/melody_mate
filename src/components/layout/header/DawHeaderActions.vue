@@ -1,19 +1,5 @@
 <template>
-  <div class="flex shrink-0 items-center gap-2 xl:gap-3">
-    <!-- About Melody Mate Modal Button -->
-    <DawIconButton
-      :icon="Info"
-      size="md"
-      appearance="panel"
-      variant="signal"
-      :active="uiStore.isAboutOpen"
-      aria-haspopup="dialog"
-      :aria-expanded="uiStore.isAboutOpen"
-      title="About Melody Mate"
-      aria-label="About Melody Mate"
-      @click="uiStore.toggleAbout()"
-    />
-
+  <div class="flex shrink-0 items-center gap-1.5 xl:gap-2">
     <!-- Keyboard Shortcuts & Help Modal Button -->
     <DawIconButton
       :icon="HelpCircle"
@@ -46,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-  import { HelpCircle, Info, PanelRight } from '@lucide/vue'
+  import { HelpCircle, PanelRight } from '@lucide/vue'
   import DawIconButton from '@/components/common/DawIconButton.vue'
   import { useUiStore } from '@/stores/ui.store'
 

@@ -1,10 +1,12 @@
 <template>
-  <header class="daw-header bg-daw-panel border-daw-border text-daw-text z-30 border-b px-3 py-2 select-none">
+  <header
+    class="daw-header bg-daw-panel border-daw-border text-daw-text z-30 border-b px-2 py-2 select-none sm:px-2.5 xl:px-3"
+  >
     <!-- Left Group: Branding & Left Sidebar Toggle -->
     <DawHeaderBrand class="shrink-0" />
 
     <!-- Center Group: Generative Hero Action, Hardware Transport & Musical Context Displays -->
-    <div class="daw-header-center flex min-w-0 items-center gap-2 xl:gap-2.5">
+    <div class="daw-header-center flex min-w-0 items-center gap-1 sm:gap-1.5 xl:gap-2">
       <!-- Primary Generative Action Pill -->
       <MelodyGenerateControls />
 
@@ -15,26 +17,25 @@
         <DawTransportControls />
       </div>
 
-      <!-- Musical Key, Scale & Structure -->
+      <!-- Musical Key, Scale, Structure & Groove -->
       <div
         class="bg-daw-surface border-daw-border rounded-control flex shrink-0 items-center border p-1 font-mono text-xs shadow-inner"
       >
         <DawProjectSettings />
-      </div>
-      <div ref="grooveButton" class="relative shrink-0">
-        <DawButton
-          appearance="surface"
-          variant="signal"
-          size="md"
-          :icon="SlidersHorizontal"
-          :active="isGrooveOpen"
-          aria-controls="groove-panel"
-          aria-label="Groove settings"
-          title="Groove"
-          @click="toggleGroove"
-        >
-          Groove
-        </DawButton>
+        <div class="bg-daw-border mx-0.5 h-4 w-px" />
+        <div ref="grooveButton" class="relative shrink-0">
+          <DawIconButton
+            :icon="SlidersHorizontal"
+            size="sm"
+            appearance="panel"
+            variant="signal"
+            :active="isGrooveOpen"
+            aria-controls="groove-panel"
+            aria-label="Groove settings"
+            title="Groove settings"
+            @click="toggleGroove"
+          />
+        </div>
       </div>
     </div>
 
@@ -63,7 +64,7 @@
   import { nextTick, ref } from 'vue'
   import { onClickOutside, useEventListener } from '@vueuse/core'
   import { SlidersHorizontal } from '@lucide/vue'
-  import DawButton from '@/components/common/DawButton.vue'
+  import DawIconButton from '@/components/common/DawIconButton.vue'
   import MelodyGenerateControls from '@/components/generator/MelodyGenerateControls.vue'
   import DawHeaderActions from './header/DawHeaderActions.vue'
   import DawHeaderBrand from './header/DawHeaderBrand.vue'

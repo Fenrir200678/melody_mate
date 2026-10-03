@@ -28,11 +28,8 @@
       >
         <AudioWaveform class="h-4 w-4 text-white" />
       </div>
-      <div class="flex flex-col">
+      <div class="hidden flex-col xl:flex">
         <span class="text-daw-text text-xs font-bold tracking-tight whitespace-nowrap uppercase">Melody Mate</span>
-        <span class="text-daw-text-muted text-micro hidden font-mono leading-none 2xl:inline">
-          v{{ APP_METADATA.version }}
-        </span>
       </div>
     </button>
   </div>
@@ -41,7 +38,6 @@
 <script setup lang="ts">
   import { AudioWaveform, PanelLeft } from '@lucide/vue'
   import DawIconButton from '@/components/common/DawIconButton.vue'
-  import { APP_METADATA } from '@/config/defaults'
   import { useUiStore } from '@/stores/ui.store'
 
   const uiStore = useUiStore()

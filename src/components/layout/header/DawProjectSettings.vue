@@ -1,8 +1,8 @@
 <template>
-  <div class="flex items-center gap-1.5">
+  <div class="flex items-center gap-1 xl:gap-1.5">
     <!-- Root Key -->
     <select
-      class="bg-daw-panel border-daw-border text-daw-text rounded-chip focus:border-daw-signal text-2xs cursor-pointer border px-2 py-1 font-mono font-semibold focus:outline-none"
+      class="bg-daw-panel border-daw-border text-daw-text rounded-chip focus:border-daw-signal text-2xs w-8.5 cursor-pointer border px-0.5 py-1 text-center font-mono font-semibold focus:outline-none sm:w-9 sm:px-1 xl:w-10 xl:px-1.5"
       :value="projectStore.key"
       aria-label="Root Key"
       @change="onKeyChange"
@@ -14,9 +14,10 @@
 
     <!-- Scale Selection with Groups -->
     <select
-      class="bg-daw-panel border-daw-border text-daw-text rounded-chip focus:border-daw-signal text-2xs max-w-28 cursor-pointer truncate border px-2 py-1 font-mono focus:outline-none xl:max-w-36"
+      class="bg-daw-panel border-daw-border text-daw-text rounded-chip focus:border-daw-signal text-2xs max-w-16 cursor-pointer truncate border px-1 py-1 font-mono focus:outline-none sm:max-w-17 sm:px-1.5 md:max-w-18 lg:max-w-22 xl:max-w-28"
       :value="projectStore.scale"
       aria-label="Scale / Mode"
+      :title="`Current Scale: ${projectStore.scale}`"
       @change="onScaleChange"
     >
       <optgroup v-for="group in scaleGroups" :key="group.category" :label="group.title">
@@ -38,17 +39,19 @@
       @click="uiStore.toggleScaleLocked()"
     />
 
-    <div class="bg-daw-border mx-0.5 h-5 w-px" />
+    <div class="bg-daw-border mx-0.5 h-4 w-px" />
 
     <!-- Bar Length -->
     <select
-      class="bg-daw-panel border-daw-border text-daw-text rounded-chip focus:border-daw-signal text-2xs cursor-pointer border px-1.5 py-1 font-mono focus:outline-none"
+      class="bg-daw-panel border-daw-border text-daw-text rounded-chip focus:border-daw-signal text-2xs cursor-pointer border px-1 py-1 text-center font-mono focus:outline-none xl:px-1.5"
+      :class="isCompactBars ? 'w-11' : 'w-auto'"
       :value="projectStore.bars"
       aria-label="Project Length in Bars"
+      :title="`Project Length: ${projectStore.bars} Bars`"
       @change="onBarsChange"
     >
       <option v-for="barCount in barOptions" :key="barCount" :value="barCount">
-        {{ barCount }} {{ barCount === 1 ? 'Bar' : 'Bars' }}
+        {{ formatBarOption(barCount) }}
       </option>
     </select>
   </div>
@@ -56,6 +59,7 @@
 
 <script setup lang="ts">
   import { computed } from 'vue'
+  import { useWindowSize } from '@vueuse/core'
   import { Lock, LockOpen } from '@lucide/vue'
   import DawIconButton from '@/components/common/DawIconButton.vue'
   import { DEFAULT_PROJECT_BAR_OPTIONS, PROJECT_BAR_BOUNDS } from '@/config/defaults'
@@ -73,6 +77,13 @@
       .filter((b) => b >= PROJECT_BAR_BOUNDS.min && b <= PROJECT_BAR_BOUNDS.max)
       .sort((a, b) => a - b)
   )
+
+  const { width: windowWidth } = useWindowSize()
+  const isCompactBars = computed(() => windowWidth.value < 850)
+
+  function formatBarOption(barCount: number): string {
+    return isCompactBars.value ? `${barCount}B` : `${barCount} ${barCount === 1 ? 'Bar' : 'Bars'}`
+  }
 
   interface ScaleGroup {
     category: string

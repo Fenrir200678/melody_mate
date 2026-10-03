@@ -42,7 +42,10 @@ Press `Space` to listen to your idea. Press `S` to open the Sound & Mix rack to 
 
 ## 2. Transport Bar & Project Setup (Header)
 
-The top header bar anchors the workstation. It hosts playback controls, arrangement length, musical tonality, tempo, and groove settings.
+The top header bar anchors the workstation. It hosts playback controls, arrangement length, musical tonality, tempo, and groove settings. It features progressive responsive adaptation across viewports from 769px up to ultrawide displays:
+
+- **Desktop & Widescreen (>= 1280px):** Full brand title, expanded hero action label (`GENERATE`), tactile hardware transport with `Play`/`Stop` icons, numeric position display, loop cluster with transport options popover (`...`), key, scale, scale lock, bars, tempo, and groove icon button.
+- **Laptops & Compact Viewports (768px – 1279px):** Brand collapses to the signature gradient icon (which opens the About dialog on click), hero generation pill adapts to compact icon tools (`Wand` and `Dice`), while all fundamental musical and transport controls (Key, Scale, Scale Lock, Bars, Tempo, Loop, Position) remain directly visible, unclipped, and fully interactive.
 
 <!-- Screenshot Placeholder: Transport bar and project settings in header -->
 
