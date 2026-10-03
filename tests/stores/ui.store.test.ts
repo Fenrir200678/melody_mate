@@ -6,6 +6,7 @@ import { installMockLocalStorage } from '../helpers/storage-mock'
 import {
   DEFAULT_CANVAS_GRID,
   DEFAULT_SHOW_WELCOME_ON_STARTUP,
+  DEFAULT_SOUND_DOCK_VIEW,
   DEFAULT_UI_DIMENSIONS,
   DEFAULT_UI_PREFERENCES,
   UI_PREFERENCES_VERSION
@@ -117,6 +118,28 @@ describe('useUiStore sound dock', () => {
     expect(restoredStore.activeStudioDock).toBe('sound')
     expect(restoredStore.isSoundDockOpen).toBe(true)
     expect(restoredStore.soundDockHeight).toBe(DEFAULT_UI_DIMENSIONS.soundDock.minHeight)
+  })
+
+  it('switches, persists and restores sound dock view mode (sound vs midi)', async () => {
+    const { storage } = installMockLocalStorage()
+    const store = useUiStore()
+    expect(store.soundDockView).toBe(DEFAULT_SOUND_DOCK_VIEW)
+
+    store.setSoundDockView('midi')
+    expect(store.soundDockView).toBe('midi')
+    await nextTick()
+
+    expect(JSON.parse(storage.getItem(UI_STORAGE_KEY) ?? '{}')).toMatchObject({
+      version: UI_PREFERENCES_VERSION,
+      soundDockView: 'midi'
+    })
+
+    setActivePinia(createPinia())
+    const reloaded = useUiStore()
+    expect(reloaded.soundDockView).toBe('midi')
+
+    reloaded.reset()
+    expect(reloaded.soundDockView).toBe(DEFAULT_SOUND_DOCK_VIEW)
   })
 
   it('discards prior-version dock state and falls back to the configured defaults', () => {

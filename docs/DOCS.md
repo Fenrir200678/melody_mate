@@ -433,6 +433,8 @@ Press `S` or click Sound & Mix in the footer to open the resizable Sound & Mix w
 
 Sound & Mix replaces any open Rhythm, Arp, or Chord Studio in the slot beneath the piano roll. It preserves the active track and undo context, and its sound and mix values survive dock switches. Drag the top separator or use its arrow keys to resize; double-click resets the height. The preferred height and selected dock restore on reload. Close, `S`, or `Escape` returns focus to the footer trigger without stopping playback. If a preset popup or modal is open, `Escape` closes that first. On short windows the content scrolls and the dock height shrinks to preserve piano-roll space.
 
+The dock provides two compact views toggled via the header switcher: **Sound & Mix** (internal synthesizer and mixer strips) and **MIDI Output** (external hardware and DAW routing workstation). The dock header also displays a live MIDI connection status indicator.
+
 <!-- Screenshot Placeholder: Sound & Mix Rack with Channel Strips and Master Limiter -->
 
 ![Sound & Mix Rack](screenshots/sound-mix.png)
@@ -441,8 +443,9 @@ Sound & Mix replaces any open Rhythm, Arp, or Chord Studio in the slot beneath t
 
 Independent mixer strips for the **Melody Track** and **Chord Track**:
 
+- **Per-Track Routing Summary:** Shows current route destination (`Internal synth`, `MIDI · Port · Ch X`, or `Both · Port · Ch X`) with a direct link to the MIDI Output view. For tracks routed exclusively to external MIDI, a reminder clarifies that internal sound controls and volume faders do not affect external hardware output.
 - **Solo (`S`) & Mute (`M`):** Isolate or silence individual tracks during playback.
-- **Volume Fader:** Decibel-calibrated horizontal fader with numeric readout. Double-click or click the reset button to return instantly to unity gain (`0.0 dB`).
+- **Volume Fader:** Decibel-calibrated horizontal fader with numeric readout. Double-click or click the reset button to return instantly to unity gain (`0.0 dB`). Faders and audio FX only shape internal sound; no volume scaling or audio return exists over external MIDI.
 - **Sound Preset Selector:** Choose from calibrated synthesizer patches:
   - _Subtractive Synthesis Bank:_
     - `Warm Analog Poly`: Rich, lush polyphonic synthesizer with dual detuned saw oscillators, 24dB warm lowpass filter, and stereo chorus. Ideal for chords and ambient backing.
@@ -493,7 +496,7 @@ Melody Mate v2 incorporates studio-grade protection processing on the master ste
 
 ## 8. Multi-Track MIDI Export & DAW Integration
 
-Live MIDI access, clock conversion, cancellable port queues and the shared Internal/MIDI/Both transport router are connected to the application runtime. Routing and preview settings are currently available through the runtime/store API; visible MIDI controls remain pending. Preview fan-out is off by default for each track. Internal note, chord, take, arpeggio-candidate and progression previews always remain available; enabling preview fan-out adds external notes on the corresponding Lead or Chords route through the shared MIDI queue. Changing the setting on applies to the next audition, while changing it off cancels that track's active external preview. MIDI permission is never requested on startup, and internal playback and MIDI file export remain independent of device access.
+Live MIDI access, clock conversion, cancellable port queues and the shared Internal/MIDI/Both transport router are fully exposed through the **MIDI Output** view in the Sound & Mix workspace dock (`S`). You can select output modes (`Internal`, `MIDI`, `Both`), select target ports, assign MIDI channels (1–16), fine-tune timing offsets (-50 to +50 ms), test note connections with a single click, and toggle `Send previews to MIDI`. Preview fan-out is off by default for each track. Internal note, chord, take, arpeggio-candidate and progression previews always remain available; enabling preview fan-out adds external notes on the corresponding Lead or Chords route through the shared MIDI queue. Changing the setting on applies to the next audition, while changing it off cancels that track's active external preview. MIDI permission is never requested on startup or dock opening, and internal playback and MIDI file export remain independent of device access.
 
 The project audio snapshot saves each track's desired output mode, port ID and display hints, channel, timing offset and preview preference together with sound and mix settings. Reload restores these preferences with MIDI disabled and ports closed; sending requires explicit MIDI activation and a new Play/resume or audition action. A missing port stays unresolved, even if another device has the same name or manufacturer. Route edits count as unsaved audio changes until the paired project save succeeds; enabling MIDI, discovering devices and hotplug do not. Reset Settings releases external notes before restoring the central routing defaults. Older audio snapshot versions are discarded without migration. Live routes are not included in sound presets, takes or MIDI file exports.
 

@@ -22,6 +22,7 @@ import type {
   HistoryContext,
   ModuleKey,
   ModuleOpenStates,
+  SoundDockView,
   StudioDock,
   UiDimensionsConfig,
   UiPreferencesDefaults,
@@ -39,6 +40,7 @@ export type {
   HistoryContext,
   ModuleKey,
   ModuleOpenStates,
+  SoundDockView,
   StudioDock,
   UiDimensionsConfig,
   UiPreferencesDefaults,
@@ -100,6 +102,7 @@ export const CHORD_TIMELINE_RESIZE = {
 } as const
 export const DEFAULT_FOLLOW_PLAYHEAD = true
 export const DEFAULT_SHOW_WELCOME_ON_STARTUP = false
+export const DEFAULT_SOUND_DOCK_VIEW: SoundDockView = 'sound'
 
 export const DEFAULT_UI_PREFERENCES: UiPreferencesDefaults = {
   activeTool: 'select',
@@ -112,6 +115,7 @@ export const DEFAULT_UI_PREFERENCES: UiPreferencesDefaults = {
   isLeftSidebarOpen: true,
   isRightSidebarOpen: true,
   activeStudioDock: null,
+  soundDockView: DEFAULT_SOUND_DOCK_VIEW,
   isVelocityLaneOpen: false
 } as const
 

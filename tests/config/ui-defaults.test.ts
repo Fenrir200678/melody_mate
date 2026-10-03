@@ -88,6 +88,8 @@ describe('UI defaults configuration', () => {
       } else {
         expect(DEFAULT_UI_PREFERENCES.activeStudioDock).toBeNull()
       }
+
+      expect(['sound', 'midi']).toContain(DEFAULT_UI_PREFERENCES.soundDockView)
     })
   })
 

@@ -1,9 +1,11 @@
 import { computed, ref, watch, type Ref } from 'vue'
 import {
   type ActiveTrack,
+  type SoundDockView,
   type StudioDock,
   ARP_STUDIO_DEFAULT_HEIGHT,
   CHORD_STUDIO_DEFAULT_HEIGHT,
+  DEFAULT_SOUND_DOCK_VIEW,
   DEFAULT_UI_DIMENSIONS,
   DEFAULT_UI_PREFERENCES,
   LEFT_SIDEBAR_DEFAULT_WIDTH,
@@ -52,6 +54,8 @@ export function useUiLayout(options: UseUiLayoutOptions) {
       DEFAULT_UI_DIMENSIONS.soundDock.maxHeight
     )
   )
+
+  const soundDockView = ref<SoundDockView>(preferences?.soundDockView ?? DEFAULT_SOUND_DOCK_VIEW)
 
   const chordStudioHeight = ref<number>(
     Math.min(
@@ -156,6 +160,10 @@ export function useUiLayout(options: UseUiLayoutOptions) {
 
   function resetSoundDockHeight(): void {
     soundDockHeight.value = SOUND_DOCK_DEFAULT_HEIGHT
+  }
+
+  function setSoundDockView(view: SoundDockView): void {
+    soundDockView.value = view
   }
 
   function toggleChordStudio(): void {
@@ -275,6 +283,7 @@ export function useUiLayout(options: UseUiLayoutOptions) {
     wideLeftSidebarOpen.value = DEFAULT_UI_PREFERENCES.isLeftSidebarOpen
     wideRightSidebarOpen.value = DEFAULT_UI_PREFERENCES.isRightSidebarOpen
     activeStudioDock.value = DEFAULT_UI_PREFERENCES.activeStudioDock
+    soundDockView.value = DEFAULT_SOUND_DOCK_VIEW
     resetSoundDockHeight()
     resetChordStudioHeight()
     resetRhythmStudioHeight()
@@ -293,6 +302,7 @@ export function useUiLayout(options: UseUiLayoutOptions) {
       leftSidebarWidth,
       rightSidebarWidth,
       soundDockHeight,
+      soundDockView,
       chordStudioHeight,
       rhythmStudioHeight,
       arpStudioHeight,
@@ -306,6 +316,7 @@ export function useUiLayout(options: UseUiLayoutOptions) {
       leftWidth,
       rightWidth,
       dockHeight,
+      dockView,
       chordHeight,
       rhythmHeight,
       arpHeight,
@@ -319,6 +330,7 @@ export function useUiLayout(options: UseUiLayoutOptions) {
         leftSidebarWidth: leftWidth,
         rightSidebarWidth: rightWidth,
         soundDockHeight: dockHeight,
+        soundDockView: dockView,
         chordStudioHeight: chordHeight,
         rhythmStudioHeight: rhythmHeight,
         arpStudioHeight: arpHeight,
@@ -339,6 +351,7 @@ export function useUiLayout(options: UseUiLayoutOptions) {
     isRhythmStudioOpen,
     isArpStudioOpen,
     soundDockHeight,
+    soundDockView,
     chordStudioHeight,
     rhythmStudioHeight,
     arpStudioHeight,
@@ -354,6 +367,7 @@ export function useUiLayout(options: UseUiLayoutOptions) {
     setSoundDockOpen,
     setSoundDockHeight,
     resetSoundDockHeight,
+    setSoundDockView,
     toggleChordStudio,
     setChordStudioOpen,
     setChordStudioHeight,

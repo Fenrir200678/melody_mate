@@ -27,6 +27,7 @@ export interface VariationSettings {
 export type ActiveTool = 'select' | 'lasso' | 'pencil' | 'eraser' | 'pan'
 export type ActiveTrack = 'melody' | 'chords'
 export type StudioDock = 'chord' | 'rhythm' | 'arp' | 'sound' | null
+export type SoundDockView = 'sound' | 'midi'
 export type HistoryContext = 'piano' | 'chord' | 'rhythm'
 
 export type GeneratorModuleKey = 'rhythm' | 'motif' | 'contour' | 'variation' | 'takes'
@@ -59,6 +60,7 @@ export interface UiPreferencesDefaults {
   readonly isLeftSidebarOpen: boolean
   readonly isRightSidebarOpen: boolean
   readonly activeStudioDock: StudioDock
+  readonly soundDockView: SoundDockView
   readonly isVelocityLaneOpen: boolean
 }
 

@@ -30,6 +30,9 @@
       </div>
     </div>
 
+    <!-- Routing summary -->
+    <SoundMixRoutingSummary :track="track" :variant="variant" />
+
     <!-- Sound preset -->
     <DawPresetSelector v-model="soundId" :presets="presets" :variant="variant" :label="`${title} preset`" />
 
@@ -137,6 +140,7 @@
   import DawIconButton from '@/components/common/DawIconButton.vue'
   import DawKnob from '@/components/common/DawKnob.vue'
   import DawPresetSelector from '@/components/common/DawPresetSelector.vue'
+  import SoundMixRoutingSummary from '@/components/layout/sound-mix/SoundMixRoutingSummary.vue'
   import AdsrEnvelopeCanvas from './AdsrEnvelopeCanvas.vue'
   import { getPresetsForTrack, type PreviewTrack } from '@/core/presets/preview-sounds'
   import { useAudioSettingsStore } from '@/stores/audio-settings.store'

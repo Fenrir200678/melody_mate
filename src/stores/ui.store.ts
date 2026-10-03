@@ -31,12 +31,15 @@ import {
   VELOCITY_LANE_MAX_HEIGHT,
   VELOCITY_LANE_MIN_HEIGHT,
   UI_PREFERENCES_VERSION,
-  DEFAULT_SHOW_WELCOME_ON_STARTUP
+  DEFAULT_SHOW_WELCOME_ON_STARTUP,
+  DEFAULT_SOUND_DOCK_VIEW,
+  type SoundDockView
 } from '../config/ui-defaults'
 import { useUiLayout } from '../composables/useUiLayout'
 import { readUiPreferences, saveUiPreferences } from '../composables/uiStorage'
 
-export type { ActiveTool, ActiveTrack, StudioDock }
+export type { ActiveTool, ActiveTrack, SoundDockView, StudioDock }
+export { DEFAULT_SOUND_DOCK_VIEW }
 export type UiZoomAction =
   | 'zoomInHorizontal'
   | 'zoomOutHorizontal'
@@ -392,6 +395,8 @@ export const useUiStore = defineStore('ui', () => {
     setRightSidebar: layout.setRightSidebar,
     toggleSoundDock: layout.toggleSoundDock,
     setSoundDockOpen: layout.setSoundDockOpen,
+    soundDockView: layout.soundDockView,
+    setSoundDockView: layout.setSoundDockView,
     setSoundDockHeight: layout.setSoundDockHeight,
     resetSoundDockHeight: layout.resetSoundDockHeight,
     toggleChordStudio: layout.toggleChordStudio,

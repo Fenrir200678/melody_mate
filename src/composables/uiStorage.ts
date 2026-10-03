@@ -1,4 +1,5 @@
 import {
+  type SoundDockView,
   type StudioDock,
   LEFT_SIDEBAR_MAX_WIDTH,
   LEFT_SIDEBAR_MIN_WIDTH,
@@ -18,6 +19,7 @@ export interface PersistedUiPreferences {
   isLeftSidebarOpen?: boolean
   isRightSidebarOpen?: boolean
   activeStudioDock?: StudioDock
+  soundDockView?: SoundDockView
   rhythmStudioHeight?: number
   arpStudioHeight?: number
   leftSidebarWidth?: number
