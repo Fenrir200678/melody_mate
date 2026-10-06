@@ -20,6 +20,13 @@ describe('generator.schema', () => {
     expect(GeneratorParamsSchema.parse({}).motif).toBe(DEFAULT_GENERATOR_PARAMS.motif)
   })
 
+  it('validates note length variation from zero to one', () => {
+    expect(GeneratorParamsSchema.parse({ noteLengthVariation: 0 }).noteLengthVariation).toBe(0)
+    expect(GeneratorParamsSchema.parse({ noteLengthVariation: 1 }).noteLengthVariation).toBe(1)
+    expect(() => GeneratorParamsSchema.parse({ noteLengthVariation: -0.1 })).toThrow()
+    expect(() => GeneratorParamsSchema.parse({ noteLengthVariation: 1.1 })).toThrow()
+  })
+
   it('exports MotifPatternEnum with the full pattern list in stable order', () => {
     expect(MotifPatternEnum.options).toEqual(['FREE', 'ABAB', 'ABAC', 'AABA', 'AAAB', 'AABC', 'ABCB'])
   })

@@ -55,7 +55,13 @@ describe('melody.generator', () => {
     const generate = (seed: number) =>
       generateMelody({
         project: defaultProject,
-        generator: { ...defaultGenerator, restProbability: 0.15, velocityVariation: 0.4 },
+        generator: {
+          ...defaultGenerator,
+          restProbability: 0.15,
+          velocityVariation: 0.4,
+          noteLength: 0.5,
+          noteLengthVariation: 0.6
+        },
         chords: sampleChords,
         rng: createRng(seed)
       }).map(({ id: _id, ...note }) => note)
@@ -468,6 +474,42 @@ describe('melody.generator', () => {
     expect(shaped.map((note) => note.step)).toEqual(plain.map((note) => note.step))
     expect(shaped.every((note, index) => note.durationSteps < plain[index].durationSteps)).toBe(true)
   })
+
+  it.each(['preset', 'euclidean'] as const)(
+    'varies %s note lengths without changing pitches, onsets, or velocities',
+    (rhythmMode) => {
+      const options = {
+        project: defaultProject,
+        generator: {
+          ...defaultGenerator,
+          rhythmMode,
+          noteLength: 1,
+          noteLengthVariation: 0,
+          velocityVariation: 0.4
+        },
+        rhythmPreset: RHYTHM_PRESETS.find((preset) => preset.id === 'syncopated-lead')!,
+        rangeStartStep: 3,
+        rangeEndStep: 29
+      }
+      const plain = generateMelody({ ...options, rng: createRng(42) })
+      const varied = generateMelody({
+        ...options,
+        generator: { ...options.generator, noteLength: 0.5, noteLengthVariation: 0.75 },
+        rng: createRng(42)
+      })
+
+      expect(varied.map(({ step, midi, velocity }) => [step, midi, velocity])).toEqual(
+        plain.map(({ step, midi, velocity }) => [step, midi, velocity])
+      )
+      expect(varied.some((note, index) => note.durationSteps < plain[index].durationSteps * 0.5)).toBe(true)
+      expect(varied.some((note, index) => note.durationSteps > plain[index].durationSteps * 0.5)).toBe(true)
+      for (const [index, note] of varied.entries()) {
+        expect(note.durationSteps).toBeGreaterThanOrEqual(0.25)
+        expect(note.durationSteps).toBeLessThanOrEqual(plain[index].durationSteps)
+        expect(note.step + note.durationSteps).toBeLessThanOrEqual(varied[index + 1]?.step ?? options.rangeEndStep)
+      }
+    }
+  )
 
   it('applies humanized velocities to repeated motif sections', () => {
     const notes = generateMelody({

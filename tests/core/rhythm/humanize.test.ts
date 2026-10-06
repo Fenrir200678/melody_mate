@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  humanizeNoteDuration,
   humanizeTimingOffset,
   humanizeVelocity,
   MAX_TIMING_JITTER_MS,
@@ -7,6 +8,28 @@ import {
 } from '@/core/rhythm/humanize'
 
 describe('Humanize Engine', () => {
+  describe('humanizeNoteDuration', () => {
+    it('preserves the uniform gate and minimum length with variation disabled', () => {
+      const noRandomness = () => {
+        throw new Error('Uniform gates must not use randomness')
+      }
+      expect(humanizeNoteDuration(3, 0.5, 0, 3, noRandomness)).toBe(1.5)
+      expect(humanizeNoteDuration(1, 0.25, 0, 1, noRandomness)).toBe(0.25)
+    })
+
+    it('varies both sides of the base gate proportionally to the amount', () => {
+      expect(humanizeNoteDuration(4, 0.5, 0.5, 4, () => 0)).toBe(1)
+      expect(humanizeNoteDuration(4, 0.5, 0.5, 4, () => 1)).toBe(3)
+      expect(humanizeNoteDuration(4, 0.5, 0.5, 4, () => 0.5)).toBe(2)
+    })
+
+    it('bounds varied gates to the minimum, original rhythm, and available space', () => {
+      expect(humanizeNoteDuration(1, 0.25, 1, 1, () => 0)).toBe(0.25)
+      expect(humanizeNoteDuration(4, 1, 1, 8, () => 1)).toBe(4)
+      expect(humanizeNoteDuration(4, 1, 1, 2, () => 1)).toBe(2)
+    })
+  })
+
   describe('humanizeVelocity', () => {
     it('should return the exact base velocity when amount is 0', () => {
       expect(humanizeVelocity(100, 0)).toBe(100)

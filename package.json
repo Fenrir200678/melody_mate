@@ -1,7 +1,7 @@
 {
   "name": "melodymate",
   "private": false,
-  "version": "2.1.6",
+  "version": "2.1.7",
   "type": "module",
   "packageManager": "pnpm@12.8.1",
   "scripts": {
@@ -10,7 +10,6 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "type-check": "vue-tsc --build --noEmit",
     "typecheck": "vue-tsc --build --noEmit",
     "check": "pnpm lint && pnpm type-check",
     "format": "prettier --write .",

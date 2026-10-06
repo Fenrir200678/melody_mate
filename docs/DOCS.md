@@ -305,10 +305,11 @@ Press `I` to show or hide the right Expression panel. The panel width is resizab
 ### Feel Module
 
 - **Breath / Rest Probability Knob (0% to 100%):** Injects natural musical pauses between phrases. Features built-in consecutive-rest damping so melodies never drop out for extended measures. Default is 5%.
-- **Note Length / Gate Knob (25% to 100%):** Adjusts note gate duration relative to step length:
+- **Note Length / Gate Knob (25% to 100%):** Sets the base gate duration as a proportion of each generated note's rhythm duration:
   - _25% to 50%:_ Tight, staccato plucks with crisp separation.
   - _75% to 90%:_ Natural melodic phrasing with clean articulation.
   - _100%:_ Full legato sustained notes that connect seamlessly.
+- **Length var Knob (0% to 100%, default 0%):** Randomly varies each generated note's gate around the base Note Length, by up to that percentage of the base gate in either direction. At _0%_, note lengths match the base setting. Variation is deterministic for a given generation seed and leaves onsets, pitches, and velocities unchanged. Gates stay at least 0.25 steps long and cannot exceed the note's rhythm duration or the next onset and generation-range end; at 100% Note Length, variation can only shorten notes. Custom rhythms define their own note durations and disable both length controls.
 - **Beat Accent Strength Knob (0% to 100%):** Increases velocity on metric downbeats (beats 1 and 3 in 4/4 time). Enhances rhythmic drive and groove definition. Default is 100%.
 - **Velocity Variation Knob (0% to 100%):** Introduces organic velocity humanization across individual notes. Subtle settings (10% to 20%) remove mechanical uniformity without compromising mix balance.
 

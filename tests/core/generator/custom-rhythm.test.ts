@@ -32,6 +32,7 @@ describe('custom rhythm generation', () => {
     callAndResponse: false,
     restProbability: 1,
     noteLength: 0.25,
+    noteLengthVariation: 1,
     velocityVariation: 0
   })
 

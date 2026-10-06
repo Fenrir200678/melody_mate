@@ -8,6 +8,25 @@ export const MAX_VELOCITY_JITTER = 25
  */
 export const MAX_TIMING_JITTER_MS = 15
 
+export function humanizeNoteDuration(
+  durationSteps: number,
+  noteLength: number,
+  amount: number,
+  maxDurationSteps: number,
+  rng: () => number = Math.random
+): number {
+  const baseDuration = durationSteps * noteLength
+  const clampedAmount = Math.max(0, Math.min(1, amount))
+  if (clampedAmount === 0) {
+    return Math.max(0.25, Math.round(baseDuration * 1000) / 1000)
+  }
+
+  const variedDuration = baseDuration * (1 + (rng() * 2 - 1) * clampedAmount)
+  // Preserve the rhythm's articulation ceiling and leave the next onset clear.
+  const maximum = Math.min(durationSteps, maxDurationSteps)
+  return Math.min(maximum, Math.max(0.25, Math.round(variedDuration * 1000) / 1000))
+}
+
 /**
  * Adds humanized organic velocity variation to a MIDI note velocity.
  * Clamps the resulting value strictly within the valid MIDI velocity range (1–127).

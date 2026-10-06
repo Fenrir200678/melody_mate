@@ -97,6 +97,7 @@ export const DEFAULT_GENERATOR_PARAMS = {
   euclideanSubdivision: '16n',
   restProbability: 0.05,
   noteLength: 1,
+  noteLengthVariation: 0,
   accentStrength: 1,
   velocityVariation: 0.1,
   contour: 'free',

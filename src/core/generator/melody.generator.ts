@@ -1,5 +1,5 @@
 import { Note } from 'tonal'
-import { humanizeVelocity } from '../rhythm/humanize'
+import { humanizeNoteDuration, humanizeVelocity } from '../rhythm/humanize'
 import { getRhythmPresetCycleSteps, type RhythmPreset } from '../rhythm/presets'
 import type { ChordEvent } from '../schemas/chord.schema'
 import type { GeneratorParams } from '../schemas/generator.schema'
@@ -271,6 +271,8 @@ export function generateMelody(options: MelodyGeneratorOptions): AppNote[] {
   const finalNotes: AppNote[] = []
   const rootPitch = rootCandidate.pitch
   const rootMidi = rootCandidate.midi
+  // Length variation must not shift the seeded velocity pattern.
+  const velocities = structuredNotes.map((note) => humanizeVelocity(note.velocity, generator.velocityVariation, rng))
 
   for (let idx = 0; idx < structuredNotes.length; idx++) {
     const n = structuredNotes[idx]
@@ -313,8 +315,14 @@ export function generateMelody(options: MelodyGeneratorOptions): AppNote[] {
       durationSteps:
         generator.rhythmMode === 'custom'
           ? n.durationSteps
-          : Math.max(0.25, Math.round(n.durationSteps * (generator.noteLength ?? 1) * 1000) / 1000),
-      velocity: humanizeVelocity(n.velocity, generator.velocityVariation ?? 0.1, rng),
+          : humanizeNoteDuration(
+              n.durationSteps,
+              generator.noteLength,
+              generator.noteLengthVariation,
+              Math.min(structuredNotes[idx + 1]?.step ?? rangeEndStep, rangeEndStep) - n.step,
+              rng
+            ),
+      velocity: velocities[idx],
       isMuted: n.isMuted
     })
 

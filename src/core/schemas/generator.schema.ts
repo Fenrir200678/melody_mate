@@ -57,6 +57,7 @@ export const GeneratorParamsSchema = z
     euclideanSubdivision: SubdivisionEnum.default(DEFAULT_GENERATOR_PARAMS.euclideanSubdivision),
     restProbability: z.number().min(0).max(1).default(DEFAULT_GENERATOR_PARAMS.restProbability),
     noteLength: z.number().min(0.25).max(1).default(DEFAULT_GENERATOR_PARAMS.noteLength),
+    noteLengthVariation: z.number().min(0).max(1).default(DEFAULT_GENERATOR_PARAMS.noteLengthVariation),
     accentStrength: z.number().min(0).max(1).default(DEFAULT_GENERATOR_PARAMS.accentStrength),
     velocityVariation: z.number().min(0).max(1).default(DEFAULT_GENERATOR_PARAMS.velocityVariation),
     contour: ContourEnum.default(DEFAULT_GENERATOR_PARAMS.contour),

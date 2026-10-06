@@ -197,6 +197,7 @@ src/
 
 ## Documentation
 
+- Release notes: [CHANGELOG.md](CHANGELOG.md)
 - User guide and manual: [docs/DOCS.md](docs/DOCS.md)
 - Full feature inventory and technical breakdown: [docs/APP_FEATURES.md](docs/APP_FEATURES.md)
 

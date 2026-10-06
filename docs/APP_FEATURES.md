@@ -254,7 +254,8 @@ Melody Mate v2 avoids unmusical random noise by combining probabilistic transiti
 - **Custom Mode:** Direct integration with the custom Rhythm Studio step sequencer.
 - **Feel & Humanization Controls:**
   - **Breath / Rest Probability (0% to 100%):** Introduces musical rests between notes with consecutive-rest damping to prevent phrase dropouts.
-  - **Note Length / Gate (25% to 100%):** Adjusts gate duration relative to step length (staccato to legato).
+  - **Note Length / Gate (25% to 100%):** Sets the base gate duration as a proportion of each generated note's rhythm duration (staccato to legato).
+  - **Length var / Note Length Variation (0% to 100%, default 0%):** Applies deterministic per-note random variation around the base gate, up to the selected percentage of the base in either direction, without changing onsets, pitches, or velocities. At 0%, existing uniform gate behavior is preserved. Gates are bounded to a 0.25-step minimum, the original rhythm duration, and the next onset or generation-range end; at 100% Note Length, variation can only shorten notes. Custom rhythms preserve authored durations and disable both length controls.
   - **Accent Strength (0% to 100%):** Velocity boost applied to metric downbeats.
   - **Velocity Variation (0% to 100%):** Subtle per-note velocity humanization.
 - **Global Project Groove:**
