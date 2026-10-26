@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(MelodyMatePrototype VERSION 0.1.1 LANGUAGES C CXX)
+project(MelodyMatePrototype VERSION 0.1.3 LANGUAGES C CXX)
 if(NOT APPLE)
   message(FATAL_ERROR "This feasibility prototype currently targets macOS only")
 endif()
@@ -17,7 +17,7 @@ if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/dist/plugin.html")
   message(FATAL_ERROR "Run pnpm build:plugin-ui before configuring the native build")
 endif()
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/dist/native-config.json" NATIVE_CONFIG)
-foreach(KEY width height minWidth minHeight maxNotes maxStateBytes)
+foreach(KEY width height minWidth minHeight maxNotes maxStateBytes externalMidiDefaultMode externalMidiScanMs externalMidiPollMs externalMidiLookaheadMs externalMidiLateMs externalMidiWatchdogMs externalMidiQueueCapacity)
   string(JSON ${KEY} GET "${NATIVE_CONFIG}" ${KEY})
 endforeach()
 configure_file(Source/PluginConfig.h.in "${CMAKE_CURRENT_BINARY_DIR}/generated/PluginConfig.h" @ONLY)
@@ -30,24 +30,32 @@ juce_add_plugin(MelodyMatePrototype
   PLUGIN_MANUFACTURER_CODE Mlmt PLUGIN_CODE Mmpt
   PRODUCT_NAME "Melody Mate Prototype"
   IS_SYNTH TRUE NEEDS_MIDI_INPUT TRUE NEEDS_MIDI_OUTPUT TRUE IS_MIDI_EFFECT FALSE
+  EDITOR_WANTS_KEYBOARD_FOCUS TRUE
   VST3_CATEGORIES Instrument Synth
   FORMATS VST3 COPY_PLUGIN_AFTER_BUILD FALSE
   NEEDS_WEB_BROWSER TRUE)
-target_sources(MelodyMatePrototype PRIVATE Source/PluginProcessor.cpp Source/PluginEditor.cpp Source/SessionState.cpp Source/MidiScheduler.cpp)
+target_sources(MelodyMatePrototype PRIVATE Source/PluginProcessor.cpp Source/PluginEditor.cpp Source/SessionState.cpp Source/MidiScheduler.cpp Source/NativeMidiOutput.cpp Source/NativeOutputSelector.cpp)
 target_include_directories(MelodyMatePrototype PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
 target_compile_definitions(MelodyMatePrototype PUBLIC JUCE_WEB_BROWSER=1 JUCE_USE_CURL=0 JUCE_VST3_CAN_REPLACE_VST2=0)
-target_link_libraries(MelodyMatePrototype PRIVATE PluginAssets juce::juce_audio_utils juce::juce_gui_extra
+target_link_libraries(MelodyMatePrototype PRIVATE PluginAssets juce::juce_audio_utils juce::juce_gui_extra "-framework CoreMIDI"
   PUBLIC juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
+# JUCE regenerates moduleinfo.json after its own signing step.
+add_custom_command(TARGET MelodyMatePrototype_VST3 POST_BUILD
+  COMMAND /usr/bin/codesign --force --sign - --timestamp=none "$<TARGET_BUNDLE_DIR:MelodyMatePrototype_VST3>"
+  VERBATIM COMMENT "Ad-hoc signing the completed local VST3 bundle")
 include(CTest)
 if(BUILD_TESTING)
   add_executable(SchedulerTests tests/SchedulerTests.cpp Source/MidiScheduler.cpp)
   target_include_directories(SchedulerTests PRIVATE Source "${CMAKE_CURRENT_BINARY_DIR}/generated")
   add_test(NAME native-scheduler COMMAND SchedulerTests)
+  add_executable(MidiDispatchTests tests/MidiDispatchTests.cpp)
+  target_include_directories(MidiDispatchTests PRIVATE Source "${CMAKE_CURRENT_BINARY_DIR}/generated")
+  add_test(NAME native-midi-dispatch COMMAND MidiDispatchTests)
   juce_add_gui_app(PluginProbe PRODUCT_NAME "Melody Mate VST3 Probe" BUNDLE_ID "local.melodymate.probe")
   target_sources(PluginProbe PRIVATE tests/PluginProbe.cpp)
   target_include_directories(PluginProbe SYSTEM PRIVATE "${juce_SOURCE_DIR}/modules/juce_audio_processors_headless/format_types/VST3_SDK")
   target_compile_definitions(PluginProbe PRIVATE JUCE_PLUGINHOST_VST3=1 JUCE_WEB_BROWSER=1 JUCE_USE_CURL=0)
-  target_link_libraries(PluginProbe PRIVATE juce::juce_audio_processors juce::juce_gui_extra
+  target_link_libraries(PluginProbe PRIVATE juce::juce_audio_processors juce::juce_gui_extra "-framework CoreMIDI"
     juce::juce_recommended_config_flags juce::juce_recommended_warning_flags)
   add_dependencies(PluginProbe MelodyMatePrototype_VST3)
   add_test(NAME native-vst3 COMMAND PluginProbe "$<TARGET_BUNDLE_DIR:MelodyMatePrototype_VST3>")

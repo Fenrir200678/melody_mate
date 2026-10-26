@@ -476,16 +476,22 @@ export function useKeyboardShortcuts(options: KeyboardShortcutsOptions = {}) {
     if (key === 's' && !isModifier && !e.altKey && !e.shiftKey) {
       e.preventDefault()
       uiStore.toggleSoundDock()
+      if (IS_PLUGIN) e.stopPropagation()
       return
     }
     if ((e.target as Element | null)?.closest?.('#rhythm-studio-dock')) return
 
-    if (handleTransport(e, key, isModifier)) return
-    if (handleTrackAndSound(e, key, isModifier)) return
-    if (handleEditing(e, key, isModifier)) return
-    if (handleTools(e, key, isModifier)) return
-    if (handleZoom(e, key, isModifier)) return
-    if (handleView(e, key, isModifier)) return
+    const handled =
+      handleTransport(e, key, isModifier) ||
+      handleTrackAndSound(e, key, isModifier) ||
+      handleEditing(e, key, isModifier) ||
+      handleTools(e, key, isModifier) ||
+      handleZoom(e, key, isModifier) ||
+      handleView(e, key, isModifier)
+    if (handled) {
+      e.preventDefault()
+      if (IS_PLUGIN) e.stopPropagation()
+    }
   }
 
   if (targetWindow && typeof targetWindow.addEventListener === 'function') {

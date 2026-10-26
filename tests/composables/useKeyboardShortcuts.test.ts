@@ -9,6 +9,9 @@ import { useProjectStore } from '@/stores/project.store'
 import { useRhythmStore } from '@/stores/rhythm.store'
 import { useUiStore } from '@/stores/ui.store'
 
+const platform = vi.hoisted(() => ({ IS_PLUGIN: false }))
+vi.mock('@/platform/environment', () => platform)
+
 interface MockKeyboardEventOptions {
   key: string
   code?: string
@@ -28,6 +31,7 @@ describe('useKeyboardShortcuts - Zoom & Viewport', () => {
   let keyListeners: Array<(e: KeyboardEvent) => void>
 
   beforeEach(() => {
+    platform.IS_PLUGIN = false
     setActivePinia(createPinia())
     uiStore = useUiStore()
     uiStore.setSoundDockOpen(false)
@@ -56,6 +60,7 @@ describe('useKeyboardShortcuts - Zoom & Viewport', () => {
       repeat: options.repeat ?? false,
       isComposing: options.isComposing ?? false,
       target: options.target ?? null,
+      stopPropagation: vi.fn(),
       preventDefault: () => {
         defaultPrevented = true
       },
@@ -79,6 +84,37 @@ describe('useKeyboardShortcuts - Zoom & Viewport', () => {
   it('registers keydown listener on target window', () => {
     useKeyboardShortcuts({ window: mockWindow })
     expect(mockWindow.addEventListener).toHaveBeenCalledWith('keydown', expect.any(Function))
+  })
+
+  it('consumes plugin studio shortcuts while preserving unassigned keys and host transport keys', () => {
+    platform.IS_PLUGIN = true
+    useKeyboardShortcuts({ window: mockWindow })
+    const arp = dispatchKey({ key: 'a' })
+    expect(uiStore.isArpStudioOpen).toBe(true)
+    expect(arp.defaultPrevented).toBe(true)
+    expect(arp.event.stopPropagation).toHaveBeenCalledOnce()
+
+    const unused = dispatchKey({ key: 'q' })
+    const space = dispatchKey({ key: ' ', code: 'Space' })
+    expect(unused.defaultPrevented).toBe(false)
+    expect(unused.event.stopPropagation).not.toHaveBeenCalled()
+    expect(space.defaultPrevented).toBe(false)
+    expect(space.event.stopPropagation).not.toHaveBeenCalled()
+  })
+
+  it('leaves typing and IME composition to the focused control in plugin mode', () => {
+    platform.IS_PLUGIN = true
+    useKeyboardShortcuts({ window: mockWindow })
+    const composing = dispatchKey({ key: 'a', isComposing: true })
+    expect(uiStore.isArpStudioOpen).toBe(false)
+    expect(composing.defaultPrevented).toBe(false)
+    expect(composing.event.stopPropagation).not.toHaveBeenCalled()
+
+    Object.assign(mockWindow.document, { activeElement: { tagName: 'INPUT' } })
+    const typing = dispatchKey({ key: 'a' })
+    expect(uiStore.isArpStudioOpen).toBe(false)
+    expect(typing.defaultPrevented).toBe(false)
+    expect(typing.event.stopPropagation).not.toHaveBeenCalled()
   })
 
   it('triggers horizontal zoom in on "+" and "=" keys', () => {
