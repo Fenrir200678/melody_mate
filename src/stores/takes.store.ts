@@ -9,6 +9,7 @@ import type { AppNote } from '../core/schemas/note.schema'
 import { SeedSchema, TakeSnapshotSchema, type TakeContext, type TakeSnapshot } from '../core/schemas/take.schema'
 import { DEFAULT_TAKE_CAPACITY } from '../config/defaults'
 import { useHarmonyStore } from './harmony.store'
+import { getBrowserStorage } from '../platform/storage'
 
 export const TAKES_STORAGE_KEY = 'melodymate-takes-v1'
 export const TAKE_CAPACITY = DEFAULT_TAKE_CAPACITY
@@ -22,9 +23,10 @@ const TakesStateSchema = z.object({
 })
 
 function loadState(): z.infer<typeof TakesStateSchema> | null {
-  if (typeof window === 'undefined') return null
+  const storage = getBrowserStorage()
+  if (!storage) return null
   try {
-    const raw = window.localStorage.getItem(TAKES_STORAGE_KEY)
+    const raw = storage.getItem(TAKES_STORAGE_KEY)
     if (!raw) return null
     const parsed = TakesStateSchema.safeParse(JSON.parse(raw))
     return parsed.success ? parsed.data : null
@@ -45,9 +47,10 @@ export const useTakesStore = defineStore('takes', () => {
   const isFull = computed(() => takes.value.length >= TAKE_CAPACITY && takes.value.every((take) => take.locked))
 
   watch([takes, currentSeed, seedLocked, selectedTakeId, compareEnabled], () => {
-    if (typeof window === 'undefined') return
+    const storage = getBrowserStorage()
+    if (!storage) return
     try {
-      window.localStorage.setItem(
+      storage.setItem(
         TAKES_STORAGE_KEY,
         JSON.stringify({
           takes: takes.value,

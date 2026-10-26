@@ -1,3 +1,4 @@
+import { IS_PLUGIN } from '../platform/environment'
 import { tryOnScopeDispose } from '@vueuse/core'
 import { chordNoteKey } from '../core/schemas/chord.schema'
 import { STEPS_PER_BAR } from '../core/schemas/project.schema'
@@ -82,6 +83,7 @@ export function useKeyboardShortcuts(options: KeyboardShortcutsOptions = {}) {
   }
 
   function handleTransport(e: KeyboardEvent, key: string, isModifier: boolean): boolean {
+    if (IS_PLUGIN) return false
     if (e.code === 'Space' || key === ' ') {
       e.preventDefault()
       if (e.shiftKey && !isModifier && !e.altKey) {

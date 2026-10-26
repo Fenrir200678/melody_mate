@@ -2,15 +2,17 @@ import { GeneratorParamsSchema, type GeneratorParams } from '../core/schemas/gen
 import { getRhythmPresetById } from '../core/rhythm/presets'
 import { DEFAULT_GENERATOR_PARAMS } from '../config/defaults'
 import { defaultsFingerprint } from '../utils/defaults-fingerprint.utils'
+import { getBrowserStorage } from '../platform/storage'
 
 export const GENERATOR_STORAGE_KEY = 'melodymate_generator'
 
 const CURRENT_DEFAULTS_FINGERPRINT = defaultsFingerprint(DEFAULT_GENERATOR_PARAMS)
 
 export function saveGeneratorParamsToStorage(params: GeneratorParams): void {
-  if (typeof window === 'undefined' || !window.localStorage) return
+  const storage = getBrowserStorage()
+  if (!storage) return
   try {
-    window.localStorage.setItem(
+    storage.setItem(
       GENERATOR_STORAGE_KEY,
       JSON.stringify({ ...params, defaultsFingerprint: CURRENT_DEFAULTS_FINGERPRINT })
     )
@@ -20,9 +22,10 @@ export function saveGeneratorParamsToStorage(params: GeneratorParams): void {
 }
 
 export function loadGeneratorParamsFromStorage(): GeneratorParams | null {
-  if (typeof window === 'undefined' || !window.localStorage) return null
+  const storage = getBrowserStorage()
+  if (!storage) return null
   try {
-    const raw = window.localStorage.getItem(GENERATOR_STORAGE_KEY)
+    const raw = storage.getItem(GENERATOR_STORAGE_KEY)
     if (!raw) return null
     const parsed: unknown = JSON.parse(raw)
     if (typeof parsed !== 'object' || parsed === null) return null

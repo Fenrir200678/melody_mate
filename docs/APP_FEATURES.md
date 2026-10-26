@@ -18,6 +18,21 @@ Unlike simple randomizers or playback-only tools, Melody Mate v2 operates as an 
 
 ---
 
+## Additional native plugin feasibility target
+
+The repository includes an arm64 macOS **JUCE 9.0.4 VST3 prototype** alongside the existing web application. See [native build, architecture and acceptance record](../plugin/README.md). `plugin/` contains C++/CMake; no repository/package migration was introduced.
+
+- Separate web/plugin composition roots and build-time audio/MIDI/dock adapters share the existing `DawWorkspace`, piano roll, controls, generators and editing logic.
+- The plugin bundles local Vue assets, fonts and lazy Markov chunks through JUCE BinaryData/ZIP and a resource provider. A build guard excludes Tone.js, browser audio and Analytics modules; the plugin storage adapter never reads browser localStorage.
+- Versioned Zod musical sessions cover project settings, applied melody, generator/variation settings, chords/harmony, takes/seeds and custom rhythms. Validated playback snapshots carry finite PPQ starts/ends, velocity, channel and track identity. MIDI-byte snapshots are encoded with the existing melody exporter.
+- Native processing uses host PPQ/BPM and sample offsets, with note-off tracking, seek chase, stop/missing-timing flushing, loop handling, replacement, panic and bypass. Immutable snapshots cross an atomic three-slot mailbox; UI messages never schedule individual notes. Native state and playback survive editor destruction.
+- Per-instance DAW state is served synchronously from the processor; native restore prepares playback before the WebView exists. Editor hydration uses a restore epoch to reject stale queued edits. Same-playback settings changes avoid unnecessary note retriggers. State limits: 4,096 playback notes, 8 MiB document.
+- A native mouse-drag handle exports a prepared real temporary melody `.mid` file through the OS. This avoids relying on an asynchronous WebView event retaining native drag context. Chord/multitrack drag, browser audition, Sound & Mix and web downloads are outside this prototype.
+- Bus/classification candidate: VST3 Instrument/Synth, no audio input, silent stereo audio output, MIDI event output and a compatibility MIDI event input required by Live. Incoming MIDI is discarded; it does not trigger or pass through the generator. Prototype 0.1.1 corrects the missing event input that caused Live to reject 0.1.0 after scanning. Full DAW lifecycle, pointer interaction, drag import and offline rendering require the host acceptance procedure. Ableton merges internally routed channels; Logic needs a later AU MIDI-FX implementation.
+- Native repetition is a whole-project PPQ-zero cycle, independent of the editor's loop reference markers. Host loops are respected. Layout/zoom, selections, undo histories and unapplied Arp drafts are editor-local.
+
+---
+
 ## 2. Technology Stack & Architecture
 
 ### 2.1 Core Technologies

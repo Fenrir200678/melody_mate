@@ -1,0 +1,6 @@
+#pragma once
+namespace melody {
+constexpr int editorWidth = @width@, editorHeight = @height@;
+constexpr int editorMinWidth = @minWidth@, editorMinHeight = @minHeight@;
+constexpr int maxStateBytes = @maxStateBytes@, maxNotes = @maxNotes@;
+}

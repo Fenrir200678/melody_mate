@@ -32,3 +32,8 @@ RTK.md
 
 # Vitest cache/output artifacts
 .vitest
+
+# Native prototype build products
+plugin/build/
+plugin/dist/
+plugin/.cache/

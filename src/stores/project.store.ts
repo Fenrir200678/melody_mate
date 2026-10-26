@@ -9,8 +9,9 @@ import {
 } from '../core/schemas/project.schema'
 import { DEFAULT_PROJECT_SETTINGS, PROJECT_BAR_BOUNDS } from '../config/defaults'
 import { useAudioStore } from './audio.store'
-import { useMidiOutputStore } from './midi-output.store'
+import { resetMidiOutput } from '#platform-midi'
 import { defaultsFingerprint } from '../utils/defaults-fingerprint.utils'
+import { getBrowserStorage } from '../platform/storage'
 
 export const PROJECT_STORAGE_KEY = 'melodymate_project'
 
@@ -127,7 +128,7 @@ export const useProjectStore = defineStore('project', () => {
 
   function reset(): void {
     useAudioStore().stop()
-    useMidiOutputStore().reset()
+    resetMidiOutput()
     bpm.value = defaults.bpm
     key.value = defaults.key
     scale.value = defaults.scale
@@ -142,11 +143,12 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   function saveToStorage(): ProjectStorageResult {
-    if (typeof window === 'undefined' || !window.localStorage) {
+    const storage = getBrowserStorage()
+    if (!storage) {
       return { ok: false, error: 'Local storage is unavailable; the project was not saved.' }
     }
     try {
-      window.localStorage.setItem(
+      storage.setItem(
         PROJECT_STORAGE_KEY,
         JSON.stringify({ ...toConfig(), defaultsFingerprint: PROJECT_DEFAULTS_FINGERPRINT })
       )
@@ -160,9 +162,10 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   function hydrateFromStorage(initial = false): void {
-    if (typeof window === 'undefined' || !window.localStorage) return
+    const storage = getBrowserStorage()
+    if (!storage) return
     try {
-      const raw = window.localStorage.getItem(PROJECT_STORAGE_KEY)
+      const raw = storage.getItem(PROJECT_STORAGE_KEY)
       if (!raw) return
       const parsed: unknown = JSON.parse(raw)
       if (typeof parsed !== 'object' || parsed === null) return
@@ -193,7 +196,7 @@ export const useProjectStore = defineStore('project', () => {
 
   // Automatic persistence watch. The audio revision is written only through saveToStorage callers so
   // a commit marker cannot drift ahead of the audio snapshot document.
-  if (typeof window !== 'undefined' && window.localStorage) {
+  if (getBrowserStorage()) {
     watch([bpm, key, scale, bars, swing, timingLooseness, loopStartStep, loopEndStep, workRange, isLooping], () => {
       void saveToStorage()
     })

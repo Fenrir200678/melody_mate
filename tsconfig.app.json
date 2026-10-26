@@ -6,10 +6,11 @@
     "allowArbitraryExtensions": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@markov-tables/*": ["./markov-tables/*"]
+      "@markov-tables/*": ["./markov-tables/*"],
+      "#platform-audio": ["./src/stores/browser-audio.store.ts"],
+      "#platform-midi": ["./src/platform/browser-midi.ts"],
+      "#sound-mix-dock": ["./src/components/layout/SoundMixDock.vue"]
     },
-
-    /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,

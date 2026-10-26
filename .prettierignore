@@ -7,3 +7,7 @@ coverage
 *.local
 markov-tables
 .vitest
+
+plugin/build
+plugin/dist
+plugin/.cache

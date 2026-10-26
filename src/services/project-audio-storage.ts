@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { ProjectAudioSnapshotSchema, type ProjectAudioSnapshot } from '../core/schemas/project-audio.schema'
+import { getBrowserStorage } from '../platform/storage'
 
 export const PROJECT_AUDIO_STORAGE_KEY = 'melodymate_project_audio'
 export const PROJECT_AUDIO_DOCUMENT_VERSION = 4
@@ -36,8 +37,7 @@ const storedDocumentSchema = z.strictObject({
 })
 
 function getStorage(): Storage | null {
-  if (typeof window === 'undefined' || !window.localStorage) return null
-  return window.localStorage
+  return getBrowserStorage() ?? null
 }
 
 function describeError(error: unknown, fallback: string): string {

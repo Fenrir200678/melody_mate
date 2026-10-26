@@ -51,6 +51,7 @@ import { DEFAULT_VARIATION_SETTINGS } from '../config/defaults'
 import { useAudioStore } from './audio.store'
 import { useProjectStore } from './project.store'
 import { useUiStore } from './ui.store'
+import { getBrowserStorage } from '../platform/storage'
 import { useTakesStore } from './takes.store'
 
 export { GENERATOR_STORAGE_KEY }
@@ -80,7 +81,7 @@ export const useMelodyStore = defineStore('melody', () => {
 
   hydrateGeneratorFromStorage()
 
-  if (typeof window !== 'undefined' && window.localStorage) {
+  if (getBrowserStorage()) {
     watch(generatorParams, () => saveGeneratorToStorage())
   }
 

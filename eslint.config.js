@@ -26,7 +26,17 @@ export default tseslint.config(
     }
   },
   {
-    ignores: ['dist/**', 'node_modules/**', 'src/vite-env.d.ts', 'docs/**', '.kilo/**', '.kilocode/**']
+    ignores: [
+      'dist/**',
+      'plugin/build/**',
+      'plugin/dist/**',
+      'plugin/.cache/**',
+      'node_modules/**',
+      'src/vite-env.d.ts',
+      'docs/**',
+      '.kilo/**',
+      '.kilocode/**'
+    ]
   },
   {
     rules: {

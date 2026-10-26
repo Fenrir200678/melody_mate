@@ -172,6 +172,9 @@ importers:
       '@fontsource/geist-sans':
         specifier: ^5.3.0
         version: 5.3.0
+      '@juce-framework/webview':
+        specifier: 1.0.0
+        version: 1.0.0
       '@lucide/vue':
         specifier: ^1.45.0
         version: 1.45.0(vue@3.5.42(typescript@6.0.3))
@@ -490,6 +493,9 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@juce-framework/webview@1.0.0':
+    resolution: {integrity: sha512-jTy6YKJBhYf51dNLJBUSeVrqXWUc7G2Dpsc2CDd5ktFytihQaU2rRiCGZAbpI74xecsc4XZHg/OSUQH8BKcK6g==}
 
   '@keyv/bigmap@1.3.1':
     resolution: {integrity: sha512-WbzE9sdmQtKy8vrNPa9BRnwZh5UF4s1KTmSK0KUVLo3eff5BlQNNWDnFOouNpKfPKDnms9xynJjsMYjMaT/aFQ==}
@@ -2340,6 +2346,8 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
+
+  '@juce-framework/webview@1.0.0': {}
 
   '@keyv/bigmap@1.3.1(keyv@5.6.0)':
     dependencies:

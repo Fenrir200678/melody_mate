@@ -32,7 +32,7 @@
       <div class="flex min-h-0 flex-1 flex-col overflow-hidden">
         <DawPianoRoll v-bind="pianoRollProps" v-on="pianoRollEvents" />
       </div>
-      <SoundMixDock v-if="uiStore.isSoundDockOpen" />
+      <SoundMixDock v-if="!IS_PLUGIN && uiStore.isSoundDockOpen" />
       <ChordStudioDock v-if="uiStore.isChordStudioOpen" />
       <RhythmStudioDock v-if="uiStore.isRhythmStudioOpen" />
       <ArpStudioDock v-if="uiStore.isArpStudioOpen" @close="uiStore.setArpStudioOpen(false)" />
@@ -76,6 +76,7 @@
 </template>
 
 <script setup lang="ts">
+  import { IS_PLUGIN } from '@/platform/environment'
   import { computed, defineAsyncComponent, nextTick, ref, useTemplateRef, watch } from 'vue'
   import { useMediaQuery, useWindowSize } from '@vueuse/core'
   import DawResizeHandle from '@/components/common/DawResizeHandle.vue'
@@ -83,7 +84,7 @@
   import GeneratorPanel from '@/components/generator/GeneratorPanel.vue'
   import DawPianoRoll from '@/components/pianoroll/DawPianoRoll.vue'
 
-  const SoundMixDock = defineAsyncComponent(() => import('@/components/layout/SoundMixDock.vue'))
+  const SoundMixDock = defineAsyncComponent(() => import('#sound-mix-dock'))
   const ChordStudioDock = defineAsyncComponent(() => import('@/components/generator/harmony/ChordStudioDock.vue'))
   const RhythmStudioDock = defineAsyncComponent(() => import('@/components/generator/melody/RhythmStudioDock.vue'))
   const ArpStudioDock = defineAsyncComponent(() => import('@/components/generator/melody/ArpStudioDock.vue'))

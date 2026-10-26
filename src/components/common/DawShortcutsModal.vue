@@ -131,6 +131,7 @@
 </template>
 
 <script setup lang="ts">
+  import { IS_PLUGIN } from '@/platform/environment'
   import { computed, nextTick, ref, watch } from 'vue'
   import { Keyboard, Search, SearchX, X } from '@lucide/vue'
   import DawButton from '@/components/common/DawButton.vue'
@@ -167,10 +168,15 @@
     }
   })
 
-  const totalCount = SHORTCUT_DEFINITIONS.length
+  const availableShortcuts = IS_PLUGIN
+    ? SHORTCUT_DEFINITIONS.filter(
+        (shortcut) => shortcut.category !== 'Transport' && shortcut.id !== 'track-toggle-audition'
+      )
+    : SHORTCUT_DEFINITIONS
+  const totalCount = availableShortcuts.length
 
   const filteredCategories = computed(() => {
-    const matches = filterShortcuts(SHORTCUT_DEFINITIONS, searchQuery.value)
+    const matches = filterShortcuts(availableShortcuts, searchQuery.value)
     return groupShortcutsByCategory(matches)
   })
 

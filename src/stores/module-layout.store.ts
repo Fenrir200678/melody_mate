@@ -6,15 +6,17 @@ import {
   GENERATOR_PANEL_MODULE_KEYS,
   type ModuleOpenStates
 } from '../config/ui-defaults'
+import { getBrowserStorage } from '../platform/storage'
 
 const MODULE_LAYOUT_STORAGE_KEY = 'melodymate-module-layout'
 
 export { EXPRESSION_PANEL_MODULE_KEYS, GENERATOR_PANEL_MODULE_KEYS }
 
 function readPersistedStates(): ModuleOpenStates {
-  if (typeof window === 'undefined') return { ...DEFAULT_MODULE_LAYOUT }
+  const storage = getBrowserStorage()
+  if (!storage) return { ...DEFAULT_MODULE_LAYOUT }
   try {
-    const raw = window.localStorage.getItem(MODULE_LAYOUT_STORAGE_KEY)
+    const raw = storage.getItem(MODULE_LAYOUT_STORAGE_KEY)
     const parsed: unknown = raw ? JSON.parse(raw) : null
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
       return { ...DEFAULT_MODULE_LAYOUT }
@@ -56,9 +58,10 @@ export const useModuleLayoutStore = defineStore('moduleLayout', () => {
   }
 
   watch(moduleOpenStates, (states) => {
-    if (typeof window === 'undefined') return
+    const storage = getBrowserStorage()
+    if (!storage) return
     try {
-      window.localStorage.setItem(MODULE_LAYOUT_STORAGE_KEY, JSON.stringify(states))
+      storage.setItem(MODULE_LAYOUT_STORAGE_KEY, JSON.stringify(states))
     } catch {
       // Module layout stays usable when browser storage is unavailable.
     }

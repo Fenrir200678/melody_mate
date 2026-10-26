@@ -11,6 +11,7 @@ import {
   VELOCITY_LANE_MAX_HEIGHT,
   VELOCITY_LANE_MIN_HEIGHT
 } from '../config/ui-defaults'
+import { getBrowserStorage } from '../platform/storage'
 
 export const UI_STORAGE_KEY = 'melodymate-ui-preferences'
 
@@ -33,9 +34,10 @@ export interface PersistedUiPreferences {
 }
 
 export function readUiPreferences(): PersistedUiPreferences | null {
-  if (typeof window === 'undefined') return null
+  const storage = getBrowserStorage()
+  if (!storage) return null
   try {
-    const raw = window.localStorage.getItem(UI_STORAGE_KEY)
+    const raw = storage.getItem(UI_STORAGE_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw) as PersistedUiPreferences
     if (!parsed || typeof parsed !== 'object' || parsed.version !== UI_PREFERENCES_VERSION) {
@@ -48,13 +50,11 @@ export function readUiPreferences(): PersistedUiPreferences | null {
 }
 
 export function saveUiPreferences(preferences: PersistedUiPreferences): void {
-  if (typeof window === 'undefined') return
+  const storage = getBrowserStorage()
+  if (!storage) return
   try {
     const existing = readUiPreferences() ?? {}
-    window.localStorage.setItem(
-      UI_STORAGE_KEY,
-      JSON.stringify({ ...existing, ...preferences, version: UI_PREFERENCES_VERSION })
-    )
+    storage.setItem(UI_STORAGE_KEY, JSON.stringify({ ...existing, ...preferences, version: UI_PREFERENCES_VERSION }))
   } catch {
     // UI preferences remain usable when browser storage is unavailable.
   }

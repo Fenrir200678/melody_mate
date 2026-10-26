@@ -26,15 +26,17 @@ import { useAudioStore } from './audio.store'
 import { useMelodyStore } from './melody.store'
 import { useProjectStore } from './project.store'
 import { useUiStore } from './ui.store'
+import { getBrowserStorage } from '../platform/storage'
 
 export const RHYTHM_STORAGE_KEY = 'melodymate-custom-rhythm-v1'
 export const RHYTHM_PRESETS_STORAGE_KEY = 'melodymate-saved-custom-rhythms-v1'
 const RHYTHM_STORAGE_VERSION = 1
 
 function loadSavedPresets(): SavedCustomRhythmPreset[] {
-  if (typeof window === 'undefined') return []
+  const storage = getBrowserStorage()
+  if (!storage) return []
   try {
-    const raw = window.localStorage.getItem(RHYTHM_PRESETS_STORAGE_KEY)
+    const raw = storage.getItem(RHYTHM_PRESETS_STORAGE_KEY)
     if (!raw) return []
     const document = JSON.parse(raw) as { version?: unknown; presets?: unknown }
     if (document.version !== RHYTHM_STORAGE_VERSION) return []
@@ -51,9 +53,10 @@ function copyPattern(pattern: CustomRhythmPattern): CustomRhythmPattern {
 
 function loadPattern(): CustomRhythmPattern {
   const empty: CustomRhythmPattern = { bars: 1, events: [] }
-  if (typeof window === 'undefined') return empty
+  const storage = getBrowserStorage()
+  if (!storage) return empty
   try {
-    const raw = window.localStorage.getItem(RHYTHM_STORAGE_KEY)
+    const raw = storage.getItem(RHYTHM_STORAGE_KEY)
     if (!raw) return empty
     const document = JSON.parse(raw) as { version?: unknown; pattern?: unknown }
     if (document.version !== RHYTHM_STORAGE_VERSION) return empty
@@ -79,12 +82,10 @@ export const useRhythmStore = defineStore('rhythm', () => {
   let previewRequest = 0
 
   watch(pattern, (next) => {
-    if (typeof window !== 'undefined') {
+    const storage = getBrowserStorage()
+    if (storage) {
       try {
-        window.localStorage.setItem(
-          RHYTHM_STORAGE_KEY,
-          JSON.stringify({ version: RHYTHM_STORAGE_VERSION, pattern: next })
-        )
+        storage.setItem(RHYTHM_STORAGE_KEY, JSON.stringify({ version: RHYTHM_STORAGE_VERSION, pattern: next }))
       } catch {
         error.value = 'Could not save the custom rhythm. Changes may be lost after reload.'
       }
@@ -92,12 +93,10 @@ export const useRhythmStore = defineStore('rhythm', () => {
     if (isPreviewing.value) void startPreview()
   })
   watch(savedPresets, (presets) => {
-    if (typeof window === 'undefined') return
+    const storage = getBrowserStorage()
+    if (!storage) return
     try {
-      window.localStorage.setItem(
-        RHYTHM_PRESETS_STORAGE_KEY,
-        JSON.stringify({ version: RHYTHM_STORAGE_VERSION, presets })
-      )
+      storage.setItem(RHYTHM_PRESETS_STORAGE_KEY, JSON.stringify({ version: RHYTHM_STORAGE_VERSION, presets }))
     } catch {
       error.value = 'Could not save custom rhythm presets. Changes may be lost after reload.'
     }

@@ -23,6 +23,7 @@ import { useAudioStore } from './audio.store'
 import { useMixerStore } from './mixer.store'
 import { useProjectStore } from './project.store'
 import { useMidiOutputStore } from './midi-output.store'
+import { getBrowserStorage } from '../platform/storage'
 
 export type ProjectAudioHydrationStatus = 'empty' | 'loaded' | 'invalid' | 'reset' | 'unpaired'
 export type ProjectAudioSaveResult =
@@ -174,7 +175,7 @@ export const useAudioSettingsStore = defineStore('audio-settings', () => {
   }
 
   function scheduleAutoSave(): void {
-    if (typeof window === 'undefined' || !window.localStorage) return
+    if (!getBrowserStorage()) return
     if (saveDebounceTimer) clearTimeout(saveDebounceTimer)
     saveDebounceTimer = setTimeout(() => {
       saveDebounceTimer = null
@@ -182,7 +183,7 @@ export const useAudioSettingsStore = defineStore('audio-settings', () => {
     }, AUDIO_SETTINGS_PERSISTENCE_DEBOUNCE_MS)
   }
 
-  if (typeof window !== 'undefined' && window.localStorage) {
+  if (getBrowserStorage()) {
     const mixer = useMixerStore()
     watch(
       [

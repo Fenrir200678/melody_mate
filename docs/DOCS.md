@@ -10,6 +10,16 @@ Instead of relying on black-box AI prompts or chaotic randomizers, Melody Mate v
 
 > **Note on Supported Devices:** Melody Mate v2 is built exclusively for desktop and laptop environments (screen width ≥ 768px, recommended ≥ 1280px) to provide precision control over the piano roll, synthesizers, and multi-track timelines. Accessing the app on a smartphone automatically displays the **Mobile Gate** with a full visual preview and one-click options to copy or share the link to your computer.
 
+## Additional macOS JUCE plugin prototype
+
+The web edition described in this guide remains available with browser audio, Sound & Mix and MIDI downloads. A separate **Melody Mate Prototype** VST3 build now reuses the editor and generators inside a locally bundled native WebView. Build and host acceptance instructions are in [plugin/README.md](../plugin/README.md).
+
+In the prototype, start/stop, tempo and seeking belong to the DAW. Route the plugin's MIDI output to a DAW instrument; the plugin's stereo audio output is silent. Prototype 0.1.1 also exposes the MIDI input bus required by Live for instrument plug-ins. Incoming MIDI does not trigger or pass through this generator. If Live rejected 0.1.0, restart Live after rebuilding, rescan if necessary and add a fresh instance. **MIDI output** gates melody plus enabled/unmuted chords, and **Repeat project** repeats the whole arrangement from host PPQ zero. Piano-roll loop markers remain editing references. Browser audition and transport shortcuts are unavailable; note editing shortcuts remain supported.
+
+Drag the **native melody MIDI handle above the WebView** to create a DAW clip. It exports a real melody-only `.mid` file using the existing exporter. Chord/multitrack drag is not yet implemented. Each plugin instance stores its musical session and native playback in the DAW project; wait for **Stored in plugin instance** before saving. Playback/restoration are independent of editor lifetime. Browser storage is not used by the plugin. Layout, zoom, selection, undo stacks and unapplied Arp drafts are not persisted in this prototype.
+
+The initial build targets arm64 macOS with JUCE 9.0.4. Host scanning, editor pointer interaction, drag import and full two-instance DAW restart acceptance must be recorded separately; see the linked acceptance matrix for tested evidence and open checks. This prototype does not claim universal VST3 compatibility or Logic support.
+
 ---
 
 ## 1. Quickstart Workflow
