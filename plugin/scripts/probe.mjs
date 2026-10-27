@@ -3,12 +3,11 @@ import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { resolve } from 'node:path'
 
-const executable = fileURLToPath(
-  new URL(
-    '../build/PluginProbe_artefacts/Release/Melody Mate VST3 Probe.app/Contents/MacOS/Melody Mate VST3 Probe',
-    import.meta.url
-  )
-)
+const executablePath =
+  process.platform === 'win32'
+    ? '../build/PluginProbe_artefacts/Release/Melody Mate VST3 Probe.exe'
+    : '../build/PluginProbe_artefacts/Release/Melody Mate VST3 Probe.app/Contents/MacOS/Melody Mate VST3 Probe'
+const executable = fileURLToPath(new URL(executablePath, import.meta.url))
 const bundle = fileURLToPath(
   new URL('../build/MelodyMatePrototype_artefacts/Release/VST3/Melody Mate Prototype.vst3', import.meta.url)
 )

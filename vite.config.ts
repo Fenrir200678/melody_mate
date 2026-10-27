@@ -1,8 +1,9 @@
 import { fileURLToPath, URL } from 'node:url'
+import { readFileSync } from 'node:fs'
 import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig, type Plugin } from 'vite'
-import { PLUGIN_EDITOR_SIZE } from './src/config/ui-defaults.ts'
+import { PLUGIN_EDITOR_SIZE, PLUGIN_EDITOR_CHROME } from './src/config/ui-defaults.ts'
 import { PLUGIN_LIMITS } from './src/config/defaults.ts'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
@@ -14,6 +15,22 @@ export default defineConfig(({ mode }) => ({
           {
             name: 'native-config',
             generateBundle(_, bundle) {
+              const theme = readFileSync(new URL('./src/styles/main.css', import.meta.url), 'utf8')
+              const nativeColors = Object.fromEntries(
+                Object.entries({
+                  nativePanel: 'panel',
+                  nativeSurface: 'surface',
+                  nativeBorder: 'border',
+                  nativeText: 'text',
+                  nativeMuted: 'text-muted',
+                  nativeSignal: 'signal',
+                  nativeChord: 'chord'
+                }).map(([name, token]) => {
+                  const value = theme.match(new RegExp(`--color-daw-${token}:\\s*#([\\da-fA-F]{6})`))?.[1]
+                  if (!value) this.error(`Missing native editor theme token: ${token}`)
+                  return [name, value]
+                })
+              )
               for (const chunk of Object.values(bundle)) {
                 if (chunk.type !== 'chunk') continue
                 for (const id of Object.keys(chunk.modules)) {
@@ -28,7 +45,12 @@ export default defineConfig(({ mode }) => ({
               this.emitFile({
                 type: 'asset' as const,
                 fileName: 'native-config.json',
-                source: JSON.stringify({ ...PLUGIN_EDITOR_SIZE, ...PLUGIN_LIMITS })
+                source: JSON.stringify({
+                  ...PLUGIN_EDITOR_SIZE,
+                  ...PLUGIN_EDITOR_CHROME,
+                  ...PLUGIN_LIMITS,
+                  ...nativeColors
+                })
               })
             }
           } as Plugin

@@ -22,11 +22,17 @@ std::optional<PreparedState> prepareState(const juce::var& document, juce::Strin
     const auto session = property(document, "session");
     for (const auto* name : { "project", "melody", "harmony", "rhythm", "takes", "output" })
         if (!property(session, name).isObject()) return {};
+    const auto output = property(session, "output");
+    const auto enabled = property(output, "enabled");
+    const auto melodyChannel = property(output, "melodyChannel"), chordsChannel = property(output, "chordsChannel");
+    if (!enabled.isBool() || !property(output, "repeat").isBool()
+        || !inRange(melodyChannel, 0, 16, true) || !inRange(chordsChannel, 0, 16, true)) return {};
     const auto playback = property(document, "playback");
     next.playbackIdentity = juce::JSON::toString(playback, true);
     const auto length = property(playback, "lengthPpq");
     const auto repeat = property(playback, "repeat");
-    if (!inRange(length, 0.25, 4096) || !repeat.isBool()) return {};
+    if (!inRange(length, 0.25, 4096) || !repeat.isBool()
+        || static_cast<bool>(repeat) != static_cast<bool>(property(output, "repeat"))) return {};
     next.sequence.lengthPpq = static_cast<double>(length);
     next.sequence.repeat = static_cast<bool>(repeat);
     const auto noteArray = property(playback, "notes");
@@ -41,6 +47,11 @@ std::optional<PreparedState> prepareState(const juce::var& document, juce::Strin
             || static_cast<double>(end) <= static_cast<double>(start) || !inRange(pitch, 0, 127, true)
             || !inRange(velocity, 1, 127, true) || !inRange(channel, 1, 16, true)
             || (track != "melody" && track != "chords")) return {};
+        const int assignedChannel = static_cast<int>(track == "melody" ? melodyChannel : chordsChannel);
+        if (!static_cast<bool>(enabled) || assignedChannel == 0 || static_cast<int>(channel) != assignedChannel) {
+            error = "Playback channel does not match track routing";
+            return {};
+        }
         next.sequence.notes.push_back({ static_cast<double>(start), static_cast<double>(end), static_cast<int>(pitch),
                                         static_cast<int>(velocity), static_cast<int>(channel) });
     }
@@ -56,7 +67,7 @@ std::optional<PreparedState> prepareState(const juce::var& document, juce::Strin
     juce::MidiFile file;
     if (!file.readFrom(stream) || file.getNumTracks() != 1 || file.getTimeFormat() <= 0) return {};
     const auto* track = file.getTrack(0);
-    for (int i = 0; i < track->getNumEvents(); ++i) next.hasMelody = next.hasMelody || track->getEventPointer(i)->message.isNoteOn();
+    for (int i = 0; i < track->getNumEvents(); ++i) next.hasMidiNotes = next.hasMidiNotes || track->getEventPointer(i)->message.isNoteOn();
     next.filename = property(document, "filename").toString();
     if (!next.filename.endsWith(".mid") || next.filename.length() > 180
         || next.filename.containsAnyOf("/\\:") || next.filename != juce::File::createLegalFileName(next.filename)) return {};
@@ -106,13 +117,13 @@ void SessionState::save(juce::MemoryBlock& result) const {
     result.reset();
     if (current) result.append(current->json.toRawUTF8(), current->json.getNumBytesAsUTF8());
     else {
-        const juce::String empty = "{\"version\":1,\"empty\":true}";
+        const juce::String empty = "{\"version\":" + juce::String(protocolVersion) + ",\"empty\":true}";
         result.append(empty.toRawUTF8(), empty.getNumBytesAsUTF8());
     }
 }
 juce::MemoryBlock SessionState::midiBytes() const {
     const std::lock_guard<std::mutex> lock(mutex);
-    return current && current->hasMelody ? current->midi : juce::MemoryBlock();
+    return current && current->hasMidiNotes ? current->midi : juce::MemoryBlock();
 }
 juce::String SessionState::midiFilename() const {
     const std::lock_guard<std::mutex> lock(mutex);

@@ -3,6 +3,12 @@ import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+if (process.platform === 'win32') {
+  throw new Error(
+    'Automatic local VST3 linking is macOS-only. Copy the VST3 bundle to your Windows VST3 folder manually.'
+  )
+}
+
 const bundle = fileURLToPath(
   new URL('../build/MelodyMatePrototype_artefacts/Release/VST3/Melody Mate Prototype.vst3', import.meta.url)
 )

@@ -7,7 +7,7 @@ import { GeneratorParamsSchema } from '../schemas/generator.schema'
 import { CustomRhythmPatternSchema, SavedCustomRhythmPresetsSchema } from '../schemas/custom-rhythm.schema'
 import { SeedSchema, TakeSnapshotSchema } from '../schemas/take.schema'
 
-export const PLUGIN_PROTOCOL_VERSION = 1
+export const PLUGIN_PROTOCOL_VERSION = 2
 export const PluginSessionSchema = z.object({
   project: ProjectSchema,
   melody: z.object({
@@ -42,7 +42,12 @@ export const PluginSessionSchema = z.object({
     selectedTakeId: z.string().nullable(),
     compareEnabled: z.boolean()
   }),
-  output: z.object({ enabled: z.boolean(), repeat: z.boolean() })
+  output: z.object({
+    enabled: z.boolean(),
+    repeat: z.boolean(),
+    melodyChannel: z.number().int().min(0).max(16),
+    chordsChannel: z.number().int().min(0).max(16)
+  })
 })
 export type PluginSession = z.infer<typeof PluginSessionSchema>
 
@@ -69,11 +74,30 @@ export const PlaybackSnapshotSchema = z
         context.addIssue({ code: 'custom', message: 'Note lies outside the sequence.' })
     }
   })
-export const PluginDocumentSchema = z.object({
-  version: z.literal(PLUGIN_PROTOCOL_VERSION),
-  session: PluginSessionSchema,
-  playback: PlaybackSnapshotSchema,
-  midiBase64: z.string().max(PLUGIN_LIMITS.maxStateBytes),
-  filename: z.string().regex(/^[a-zA-Z0-9_#.-]+\.mid$/)
-})
+export const PluginDocumentSchema = z
+  .object({
+    version: z.literal(PLUGIN_PROTOCOL_VERSION),
+    session: PluginSessionSchema,
+    playback: PlaybackSnapshotSchema,
+    midiBase64: z.string().max(PLUGIN_LIMITS.maxStateBytes),
+    filename: z.string().regex(/^[a-zA-Z0-9_#.-]+\.mid$/)
+  })
+  .superRefine((document, context) => {
+    const { output } = document.session
+    if (document.playback.repeat !== output.repeat)
+      context.addIssue({
+        code: 'custom',
+        path: ['playback', 'repeat'],
+        message: 'Playback repeat does not match session output.'
+      })
+    for (const [index, note] of document.playback.notes.entries()) {
+      const channel = note.track === 'melody' ? output.melodyChannel : output.chordsChannel
+      if (!output.enabled || channel === 0 || note.channel !== channel)
+        context.addIssue({
+          code: 'custom',
+          path: ['playback', 'notes', index, 'channel'],
+          message: 'Playback channel does not match track routing.'
+        })
+    }
+  })
 export type PluginDocument = z.infer<typeof PluginDocumentSchema>

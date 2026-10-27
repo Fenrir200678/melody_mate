@@ -7,7 +7,7 @@
 #include <optional>
 
 namespace melody {
-constexpr int protocolVersion = 1;
+constexpr int protocolVersion = 2;
 
 struct PreparedState {
     juce::String json, playbackIdentity;
@@ -15,7 +15,7 @@ struct PreparedState {
     Sequence sequence;
     juce::MemoryBlock midi;
     juce::String filename;
-    bool hasMelody = false;
+    bool hasMidiNotes = false;
 };
 std::optional<PreparedState> prepareState(const juce::var&, juce::String& error);
 

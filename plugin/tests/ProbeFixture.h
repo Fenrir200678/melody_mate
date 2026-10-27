@@ -20,10 +20,12 @@ void require(bool condition, const juce::String& message) {
     if (!condition) throw std::runtime_error(message.toStdString());
 }
 
-juce::var makeMidiBase64() {
+juce::var makeMidiBase64(int channel = 1, std::initializer_list<int> pitches = {60}) {
     juce::MidiMessageSequence track;
-    track.addEvent(juce::MidiMessage::noteOn(1, 60, static_cast<juce::uint8>(100)), 0.0);
-    track.addEvent(juce::MidiMessage::noteOff(1, 60), 480.0);
+    for (const auto pitch : pitches) {
+        track.addEvent(juce::MidiMessage::noteOn(channel, pitch, static_cast<juce::uint8>(100)), 0.0);
+        track.addEvent(juce::MidiMessage::noteOff(channel, pitch), 480.0);
+    }
     track.updateMatchedPairs();
     juce::MidiFile file;
     file.setTicksPerQuarterNote(480);
@@ -50,6 +52,11 @@ juce::var makeDocument(int firstPitch, int secondPitch) {
     auto* session = new juce::DynamicObject();
     for (const auto* key : { "project", "melody", "harmony", "rhythm", "takes", "output" })
         session->setProperty(key, juce::var(new juce::DynamicObject()));
+    auto* output = session->getProperty("output").getDynamicObject();
+    output->setProperty("enabled", true);
+    output->setProperty("repeat", false);
+    output->setProperty("melodyChannel", 1);
+    output->setProperty("chordsChannel", 2);
     auto* playback = new juce::DynamicObject();
     juce::Array<juce::var> notes;
     notes.add(note(firstPitch, 0.25, 0.5));
@@ -58,7 +65,7 @@ juce::var makeDocument(int firstPitch, int secondPitch) {
     playback->setProperty("repeat", false);
     playback->setProperty("notes", notes);
     auto* root = new juce::DynamicObject();
-    root->setProperty("version", 1);
+    root->setProperty("version", 2);
     root->setProperty("session", juce::var(session));
     root->setProperty("playback", juce::var(playback));
     root->setProperty("midiBase64", makeMidiBase64());
@@ -122,7 +129,7 @@ private:
     PositionInfo position;
 };
 
-struct Heard { int sample; int pitch; bool on; };
+struct Heard { int sample; int pitch; bool on; int channel = 1; };
 
 std::vector<Heard> processBlock(juce::AudioPluginInstance& plugin, juce::AudioBuffer<float>& audio,
                                 juce::MidiBuffer& midi, ProbePlayHead& host, double ppq, bool playing,
@@ -145,7 +152,7 @@ std::vector<Heard> processBlock(juce::AudioPluginInstance& plugin, juce::AudioBu
         require(metadata.samplePosition >= 0 && metadata.samplePosition < audio.getNumSamples(),
                 "Plugin emitted MIDI outside the current audio block");
         require(message.isNoteOn() || message.isNoteOff(), "Plugin emitted a non-note MIDI event");
-        events.push_back({metadata.samplePosition, message.getNoteNumber(), message.isNoteOn()});
+        events.push_back({metadata.samplePosition, message.getNoteNumber(), message.isNoteOn(), message.getChannel()});
     }
     return events;
 }
@@ -164,8 +171,8 @@ void verifyVst3EventBuses(juce::AudioPluginInstance& plugin) {
                 == Steinberg::kResultTrue && input.channelCount > 0,
             "VST3 event input bus was not valid");
     require(component->getBusInfo(Steinberg::Vst::kEvent, Steinberg::Vst::kOutput, 0, output)
-                == Steinberg::kResultTrue && output.channelCount > 0,
-            "VST3 event output bus was not valid");
+                == Steinberg::kResultTrue && output.channelCount == 16,
+            "VST3 event output bus did not expose all 16 MIDI channels");
 }
 
 void verifyFixture(juce::AudioPluginInstance& plugin, ProbePlayHead& host,
@@ -179,7 +186,7 @@ void verifyFixture(juce::AudioPluginInstance& plugin, ProbePlayHead& host,
         const auto events = processBlock(plugin, audio, midi, host, ppq, true,
                                          false, 0.0, 0.0, tempo, block == 0);
         for (const auto& event : events)
-            heard.push_back({block * blockSize + event.sample, event.pitch, event.on});
+            heard.push_back({block * blockSize + event.sample, event.pitch, event.on, event.channel});
         ppq += blockSize * tempo / (60.0 * sampleRate);
     }
     const std::array<Heard, 4> expected {{
@@ -193,7 +200,8 @@ void verifyFixture(juce::AudioPluginInstance& plugin, ProbePlayHead& host,
     require(heard.size() == expected.size(), "Unexpected MIDI event count from processBlock");
     for (std::size_t i = 0; i < expected.size(); ++i)
         require(heard[i].sample == expected[i].sample && heard[i].pitch == expected[i].pitch &&
-                heard[i].on == expected[i].on, "Unexpected pitch or sample offset from processBlock");
+                heard[i].on == expected[i].on && heard[i].channel == expected[i].channel,
+                "Unexpected pitch, channel or sample offset from processBlock");
 }
 
 void verifyTransport(juce::AudioPluginInstance& plugin, ProbePlayHead& host) {

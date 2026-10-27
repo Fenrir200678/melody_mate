@@ -9,6 +9,7 @@ import {
   PLUGIN_LIMITS
 } from '../../src/config/defaults'
 import { buildPlaybackSnapshot } from '../../src/core/plugin/playback-snapshot'
+import { buildPluginMidiDragExport } from '../../src/core/plugin/midi-drag-export'
 import {
   PluginDocumentSchema,
   PluginSessionSchema,
@@ -99,10 +100,19 @@ describe('plugin session playback snapshot', () => {
 
     expect(snapshot.lengthPpq).toBe(8)
     expect(snapshot.notes).toHaveLength(2)
-    expect(snapshot.notes[0]).toMatchObject({ pitch: 60, track: 'melody', channel: 1 })
+    expect(snapshot.notes[0]).toMatchObject({
+      pitch: 60,
+      track: 'melody',
+      channel: DEFAULT_PLUGIN_OUTPUT.melodyChannel
+    })
     expect(snapshot.notes[0].startPpq).toBeCloseTo(1 / 3)
     expect(snapshot.notes[0].endPpq).toBeCloseTo(4 / 3)
-    expect(snapshot.notes[1]).toMatchObject({ pitch: 64, track: 'melody', channel: 1, endPpq: 8 })
+    expect(snapshot.notes[1]).toMatchObject({
+      pitch: 64,
+      track: 'melody',
+      channel: DEFAULT_PLUGIN_OUTPUT.melodyChannel,
+      endPpq: 8
+    })
     expect(snapshot.notes[1].startPpq).toBeLessThan(snapshot.lengthPpq)
   })
 
@@ -132,6 +142,28 @@ describe('plugin session playback snapshot', () => {
       [4, 52],
       [4, 55]
     ])
+    expect(
+      enabled.notes
+        .filter((note) => note.track === 'chords')
+        .every((note) => note.channel === DEFAULT_PLUGIN_OUTPUT.chordsChannel)
+    ).toBe(true)
+    const routed = { ...chordSession, output: { ...chordSession.output, melodyChannel: 3, chordsChannel: 16 } }
+    expect(buildPlaybackSnapshot(routed).notes.map((note) => [note.track, note.channel])).toEqual([
+      ['melody', 3],
+      ['chords', 16],
+      ['chords', 16],
+      ['chords', 16]
+    ])
+    expect(
+      buildPlaybackSnapshot({ ...routed, output: { ...routed.output, melodyChannel: 0 } }).notes.map(
+        (note) => note.track
+      )
+    ).toEqual(['chords', 'chords', 'chords'])
+    expect(
+      buildPlaybackSnapshot({ ...routed, output: { ...routed.output, chordsChannel: 0 } }).notes.map(
+        (note) => note.track
+      )
+    ).toEqual(['melody'])
     expect(
       buildPlaybackSnapshot({
         ...chordSession,
@@ -167,6 +199,30 @@ describe('plugin session playback snapshot', () => {
     expect(
       PluginDocumentSchema.safeParse({
         ...document,
+        playback: { ...document.playback, repeat: !session.output.repeat }
+      }).success
+    ).toBe(false)
+    expect(
+      PluginDocumentSchema.safeParse({
+        ...document,
+        session: { ...session, output: { ...session.output, melodyChannel: 17 } }
+      }).success
+    ).toBe(false)
+    expect(
+      PluginDocumentSchema.safeParse({
+        ...document,
+        session: { ...session, output: { ...session.output, chordsChannel: -1 } }
+      }).success
+    ).toBe(false)
+    expect(
+      PluginDocumentSchema.safeParse({
+        ...document,
+        playback: { ...document.playback, notes: [{ ...playbackNote, channel: 16 }] }
+      }).success
+    ).toBe(false)
+    expect(
+      PluginDocumentSchema.safeParse({
+        ...document,
         playback: { ...document.playback, notes: [{ ...playbackNote, pitch: 'C4' }] }
       }).success
     ).toBe(false)
@@ -192,6 +248,67 @@ describe('plugin session playback snapshot', () => {
         session: { ...session, melody: { ...session.melody, notes: oversized } }
       }).success
     ).toBe(false)
+  })
+})
+
+describe('plugin MIDI drag export', () => {
+  it('exports the selected editable track with its track channel and filename', () => {
+    const session = makeSession({
+      project: { key: 'C', scale: 'major', timingLooseness: 0 },
+      notes: [makeNote(NOTE_IDS.lead, 0, 60, 4)],
+      harmony: {
+        chords: [
+          {
+            id: NOTE_IDS.chord,
+            name: 'C major',
+            roman: 'I',
+            notes: ['C', 'E', 'G'],
+            voicing: ['C3', 'E3', 'G3'],
+            startBar: 0,
+            durationBars: 1,
+            inversion: 0
+          }
+        ]
+      }
+    })
+
+    const melody = buildPluginMidiDragExport(session, 'melody')
+    const chords = buildPluginMidiDragExport(session, 'chords')
+    const hasMidiNoteOn = (bytes: Uint8Array, channelStatus: number, pitch: number) =>
+      bytes.some((byte, index) => byte === channelStatus && bytes[index + 1] === pitch)
+
+    expect(melody.filename).toMatch(/_Lead\.mid$/)
+    expect(chords.filename).toMatch(/_Chords\.mid$/)
+    expect(hasMidiNoteOn(melody.bytes, 0x90, 60)).toBe(true)
+    expect(hasMidiNoteOn(melody.bytes, 0x91, 48)).toBe(false)
+    expect(hasMidiNoteOn(chords.bytes, 0x91, 48)).toBe(true)
+    expect(hasMidiNoteOn(chords.bytes, 0x90, 60)).toBe(false)
+  })
+
+  it('exports chord voicings without melody and regardless of playback routing or mute state', () => {
+    const session = makeSession({
+      harmony: {
+        chords: [
+          {
+            id: NOTE_IDS.chord,
+            name: 'C major',
+            roman: 'I',
+            notes: ['C', 'E', 'G'],
+            voicing: ['C3', 'E3', 'G3'],
+            startBar: 0,
+            durationBars: 1,
+            inversion: 0
+          }
+        ],
+        isMuted: true,
+        useChords: false
+      },
+      output: { enabled: false, chordsChannel: 0 }
+    })
+
+    const exported = buildPluginMidiDragExport(session, 'chords')
+    expect(exported.bytes.length).toBeGreaterThan(0)
+    expect(exported.bytes.some((byte, index) => byte === 0x91 && exported.bytes[index + 1] === 48)).toBe(true)
   })
 })
 
@@ -241,14 +358,14 @@ describe('plugin session state transfer', () => {
 
     const piniaA = piniae[0]
     const storesA = populateSession('A')
-    const outputA = { enabled: true, repeat: false }
+    const outputA = { enabled: true, repeat: false, melodyChannel: 3, chordsChannel: 16 }
     const capturedA = captureSession(outputA)
 
     const piniaB = createPinia()
     piniae.push(piniaB)
     setActivePinia(piniaB)
     populateSession('B')
-    const outputB = { enabled: false, repeat: true }
+    const outputB = { enabled: false, repeat: true, melodyChannel: 16, chordsChannel: 0 }
     const capturedB = captureSession(outputB)
     expect(capturedB).not.toEqual(capturedA)
     expect(capturedB.melody.generatorParams.euclideanPulses).not.toBe(capturedA.melody.generatorParams.euclideanPulses)

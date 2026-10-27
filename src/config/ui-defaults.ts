@@ -204,3 +204,10 @@ export const DEFAULT_MODULE_LAYOUT: Readonly<Record<ModuleKey, boolean>> = {
 } as const
 
 export const PLUGIN_EDITOR_SIZE = { width: 1360, height: 860, minWidth: 1024, minHeight: 640 } as const
+export const PLUGIN_EDITOR_CHROME = {
+  nativeStripHeight: 32,
+  nativeDragWidth: 208,
+  nativeLabelSize: 11,
+  nativeControlSize: 12,
+  nativeDragThreshold: 4
+} as const

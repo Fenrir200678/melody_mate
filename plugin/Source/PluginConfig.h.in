@@ -3,4 +3,10 @@ namespace melody {
 constexpr int editorWidth = @width@, editorHeight = @height@;
 constexpr int editorMinWidth = @minWidth@, editorMinHeight = @minHeight@;
 constexpr int maxStateBytes = @maxStateBytes@, maxNotes = @maxNotes@;
+constexpr int nativeStripHeight = @nativeStripHeight@, nativeDragWidth = @nativeDragWidth@;
+constexpr int nativeLabelSize = @nativeLabelSize@, nativeControlSize = @nativeControlSize@;
+constexpr int nativeDragThreshold = @nativeDragThreshold@;
+constexpr unsigned int nativePanel = 0xff@nativePanel@, nativeSurface = 0xff@nativeSurface@;
+constexpr unsigned int nativeBorder = 0xff@nativeBorder@, nativeText = 0xff@nativeText@;
+constexpr unsigned int nativeMuted = 0xff@nativeMuted@, nativeSignal = 0xff@nativeSignal@, nativeChord = 0xff@nativeChord@;
 }

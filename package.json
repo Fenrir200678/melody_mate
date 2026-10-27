@@ -17,9 +17,9 @@
     "test": "vitest",
     "test:run": "vitest run",
     "build:plugin-ui": "pnpm typecheck && vite build --mode plugin",
-    "plugin:configure": "cmake -S plugin -B plugin/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0",
-    "plugin:build": "pnpm build:plugin-ui && pnpm plugin:configure && cmake --build plugin/build --parallel 4",
-    "plugin:test": "ctest --test-dir plugin/build --output-on-failure",
+    "plugin:configure": "node plugin/scripts/configure.mjs",
+    "plugin:build": "pnpm build:plugin-ui && pnpm plugin:configure && cmake --build plugin/build --config Release --parallel 4",
+    "plugin:test": "ctest --test-dir plugin/build -C Release --output-on-failure",
     "plugin:probe": "node plugin/scripts/probe.mjs",
     "plugin:link-local": "node plugin/scripts/link-local.mjs"
   },

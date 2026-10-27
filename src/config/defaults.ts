@@ -262,43 +262,5 @@ export const DEFAULT_TAKE_CAPACITY = 25
 
 export const MIN_GAP_DURATION_BARS = 0.25
 
-export const DEFAULT_PLUGIN_OUTPUT = { enabled: true, repeat: true } as const
+export const DEFAULT_PLUGIN_OUTPUT = { enabled: true, repeat: true, melodyChannel: 1, chordsChannel: 2 } as const
 export const PLUGIN_LIMITS = { maxNotes: 4096, maxStateBytes: 8 * 1024 * 1024 } as const
-export const DEFAULT_PLUGIN_DEMO_NOTES = [
-  {
-    id: '01000000-0000-4000-8000-000000000001',
-    pitch: 'C4',
-    midi: 60,
-    step: 0,
-    durationSteps: 2,
-    velocity: 100,
-    isMuted: false
-  },
-  {
-    id: '01000000-0000-4000-8000-000000000002',
-    pitch: 'E4',
-    midi: 64,
-    step: 4,
-    durationSteps: 2,
-    velocity: 100,
-    isMuted: false
-  },
-  {
-    id: '01000000-0000-4000-8000-000000000003',
-    pitch: 'G4',
-    midi: 67,
-    step: 8,
-    durationSteps: 2,
-    velocity: 100,
-    isMuted: false
-  },
-  {
-    id: '01000000-0000-4000-8000-000000000004',
-    pitch: 'B4',
-    midi: 71,
-    step: 12,
-    durationSteps: 2,
-    velocity: 100,
-    isMuted: false
-  }
-]

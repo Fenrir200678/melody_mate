@@ -1,4 +1,5 @@
 #include "ProbeFixture.h"
+#include "MultichannelFixture.h"
 
 namespace {
 class ProbeWindow final : public juce::DocumentWindow {
@@ -89,6 +90,7 @@ private:
         for (const auto* description : descriptions)
             if (description->isInstrument) { selected = description; break; }
         require(selected != nullptr, "The VST3 bundle did not expose an instrument type");
+        verifyMultichannel(format, *selected);
         std::cout << "Scanning " << selected->name.toStdString() << " with JUCE VST3PluginFormat\n";
 
         ProbePlayHead firstHost, secondHost;

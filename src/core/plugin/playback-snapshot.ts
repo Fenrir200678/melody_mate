@@ -17,14 +17,15 @@ export function buildPlaybackSnapshot(session: PluginSession) {
   const lead = melody.notes.filter((note) => !note.isMuted)
   const starts = getGroovedLeadStarts(lead, project)
   const append = (startStep: number, duration: number, pitch: number, velocity: number, track: 'melody' | 'chords') => {
+    const channel = track === 'melody' ? output.melodyChannel : output.chordsChannel
     const startPpq = startStep / 4
-    if (startPpq >= lengthPpq) return
+    if (channel === 0 || startPpq >= lengthPpq) return
     notes.push({
       startPpq,
       endPpq: Math.min(lengthPpq, startPpq + duration / 4),
       pitch,
       velocity,
-      channel: track === 'melody' ? 1 : 2,
+      channel,
       track
     })
   }

@@ -1,10 +1,16 @@
 import { onScopeDispose, ref, watch } from 'vue'
 import { z } from 'zod'
 import { DEFAULT_PLUGIN_OUTPUT } from '../../config/defaults'
-import { buildMidiBytes, generateMidiFilename } from '../../core/midi/midi-exporter'
+import { buildPluginMidiDragExport } from '../../core/plugin/midi-drag-export'
 import { buildPlaybackSnapshot } from '../../core/plugin/playback-snapshot'
-import { PluginDocumentSchema, PLUGIN_PROTOCOL_VERSION, type PluginDocument } from '../../core/plugin/session'
+import {
+  PluginDocumentSchema,
+  PLUGIN_PROTOCOL_VERSION,
+  type PluginDocument,
+  type PluginSession
+} from '../../core/plugin/session'
 import { useAudioStore } from '../../stores/audio.store'
+import { useUiStore } from '../../stores/ui.store'
 import { nativeCall, onNativeEvent } from './bridge'
 import { captureSession, restoreSession, pluginStores } from './session-stores'
 
@@ -26,9 +32,10 @@ export function usePluginSession() {
   const ready = ref(false)
   const needsReset = ref(false)
   const status = ref('Connecting to native processor…')
-  const output = ref<{ enabled: boolean; repeat: boolean }>({ ...DEFAULT_PLUGIN_OUTPUT })
+  const output = ref<PluginSession['output']>({ ...DEFAULT_PLUGIN_OUTPUT })
   const hostBpm = ref<number | null>(null)
   const audio = useAudioStore()
+  const ui = useUiStore()
   const stores = pluginStores()
   const initialSession = captureSession({ ...DEFAULT_PLUGIN_OUTPUT })
   let epoch = 0
@@ -39,15 +46,13 @@ export function usePluginSession() {
 
   function document(): PluginDocument {
     const session = captureSession(output.value)
-    const project = session.project
+    const midi = buildPluginMidiDragExport(session, ui.activeTrack === 'chords' ? 'chords' : 'melody')
     return PluginDocumentSchema.parse({
       version: PLUGIN_PROTOCOL_VERSION,
       session,
       playback: buildPlaybackSnapshot(session),
-      midiBase64: encodeBytes(
-        buildMidiBytes(session.melody.notes, [], project.bpm, { mode: 'melody-only', ...project })
-      ),
-      filename: generateMidiFilename({ ...project, mode: 'melody-only' })
+      midiBase64: encodeBytes(midi.bytes),
+      filename: midi.filename
     })
   }
   function hydrate(payload: unknown): void {
@@ -123,12 +128,15 @@ export function usePluginSession() {
       stores.harmony.voicingStyle,
       stores.harmony.autoSmooth,
       stores.harmony.paletteClickMode,
+      ui.activeTrack,
       stores.rhythm.pattern,
       stores.rhythm.savedPresets,
       stores.rhythm.activeSavedPresetId,
       ...Object.values(stores.takes.$state),
       output.value.enabled,
-      output.value.repeat
+      output.value.repeat,
+      output.value.melodyChannel,
+      output.value.chordsChannel
     ],
     commit,
     { flush: 'sync' }

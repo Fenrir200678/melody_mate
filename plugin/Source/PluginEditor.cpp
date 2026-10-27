@@ -2,57 +2,57 @@
 #include "BinaryData.h"
 #include "PluginConfig.h"
 
-MelodyDragHandle::MelodyDragHandle() : TextButton("Drag melody MIDI to DAW") {
-    setEnabled(false);
-    setTooltip("Drag this native handle to a MIDI track. The file is prepared before the mouse gesture.");
+namespace {
+juce::File createEditorTempDirectory() {
+    const auto directory = juce::File::getSpecialLocation(juce::File::tempDirectory)
+        .getChildFile("MelodyMate-" + juce::Uuid().toString());
+    directory.createDirectory();
+    return directory;
 }
-MelodyDragHandle::~MelodyDragHandle() { setFile({}); }
-void MelodyDragHandle::setFile(juce::File file) {
-    if (prepared.existsAsFile() && !preparedWasDragged) prepared.getParentDirectory().deleteRecursively();
-    prepared = std::move(file);
-    preparedWasDragged = false;
-    setEnabled(prepared.existsAsFile());
-}
-void MelodyDragHandle::mouseDrag(const juce::MouseEvent& event) {
-    if (started || !event.mods.isLeftButtonDown() || event.getDistanceFromDragStart() < 4 || !prepared.existsAsFile()) return;
-    started = juce::DragAndDropContainer::performExternalDragDropOfFiles({ prepared.getFullPathName() }, false, this);
-    preparedWasDragged = preparedWasDragged || started;
 }
 
 MelodyMateEditor::MelodyMateEditor(MelodyMateProcessor& owner)
     : AudioProcessorEditor(owner), ownerProcessor(owner),
       assets(std::make_unique<juce::MemoryInputStream>(BinaryData::ui_zip, BinaryData::ui_zipSize, false)),
-      browser(browserOptions()),
-      tempDirectory(juce::File::getSpecialLocation(juce::File::tempDirectory)
-          .getChildFile("MelodyMate-" + juce::Uuid().toString())) {
-    tempDirectory.createDirectory();
-    addAndMakeVisible(browser);
+      tempDirectory(createEditorTempDirectory()) {
     addAndMakeVisible(drag);
     addAndMakeVisible(dragStatus);
-    dragStatus.setColour(juce::Label::textColourId, juce::Colour(0xff8d8f99));
-    dragStatus.setText("Native MIDI output | Start transport in your DAW", juce::dontSendNotification);
+    dragStatus.setColour(juce::Label::textColourId, juce::Colour(melody::nativeMuted));
+    dragStatus.setFont(juce::FontOptions(static_cast<float>(melody::nativeLabelSize)));
+    dragStatus.setText("MIDI clip   /   Follows the selected piano-roll track", juce::dontSendNotification);
     setResizable(true, false);
     setResizeLimits(melody::editorMinWidth, melody::editorMinHeight, 2560, 1600);
     setSize(melody::editorWidth, melody::editorHeight);
     observedEpoch = ownerProcessor.state.generation();
     prepareDragFile();
-    browser.goToURL(juce::WebBrowserComponent::getResourceProviderRoot());
+    const auto options = browserOptions();
+#if JUCE_WINDOWS
+    if (!juce::WebBrowserComponent::areOptionsSupported(options)) {
+        dragStatus.setText("WebView2 Runtime is required. Install it, then reopen this editor.", juce::dontSendNotification);
+    } else
+#endif
+    {
+        browser = std::make_unique<LocalBrowser>(options);
+        addAndMakeVisible(*browser);
+        browser->setBounds(getLocalBounds().withTrimmedTop(melody::nativeStripHeight));
+        browser->goToURL(juce::WebBrowserComponent::getResourceProviderRoot());
+    }
     startTimerHz(30);
 }
 MelodyMateEditor::~MelodyMateEditor() {
     stopTimer();
-    // Receivers may read promised files after the editor has closed. macOS owns temp cleanup.
+    // Promised files outlive the editor; retain them for late receiver reads.
 }
 void MelodyMateEditor::resized() {
     auto bounds = getLocalBounds();
-    auto strip = bounds.removeFromTop(36).reduced(8, 4);
-    drag.setBounds(strip.removeFromRight(216));
+    auto strip = bounds.removeFromTop(melody::nativeStripHeight).reduced(8, 4);
+    drag.setBounds(strip.removeFromRight(melody::nativeDragWidth));
     dragStatus.setBounds(strip);
-    browser.setBounds(bounds);
+    if (browser != nullptr) browser->setBounds(bounds);
 }
-void MelodyMateEditor::paint(juce::Graphics& graphics) { graphics.fillAll(juce::Colour(0xff15161a)); }
+void MelodyMateEditor::paint(juce::Graphics& graphics) { graphics.fillAll(juce::Colour(melody::nativePanel)); }
 juce::WebBrowserComponent::Options MelodyMateEditor::browserOptions() {
-    return juce::WebBrowserComponent::Options()
+    auto options = juce::WebBrowserComponent::Options()
         .withNativeIntegrationEnabled()
         .withKeepPageLoadedWhenBrowserIsHidden()
         .withResourceProvider([this](const juce::String& path) { return resource(path); })
@@ -60,6 +60,12 @@ juce::WebBrowserComponent::Options MelodyMateEditor::browserOptions() {
                                                 juce::WebBrowserComponent::NativeFunctionCompletion complete) {
             command(args, std::move(complete));
         });
+#if JUCE_WINDOWS
+    options = options.withBackend(juce::WebBrowserComponent::Options::Backend::webview2)
+        .withWinWebView2Options(juce::WebBrowserComponent::Options::WinWebView2()
+            .withUserDataFolder(tempDirectory.getChildFile("WebView2")));
+#endif
+    return options;
 }
 std::optional<juce::WebBrowserComponent::Resource> MelodyMateEditor::resource(const juce::String& path) {
     auto name = path.upToFirstOccurrenceOf("?", false, false).trimCharactersAtStart("/");
@@ -117,22 +123,30 @@ void MelodyMateEditor::prepareDragFile() {
     const auto bytes = ownerProcessor.state.midiBytes();
     const auto filename = ownerProcessor.state.midiFilename();
     if (bytes == preparedMidi && filename == preparedFilename) return;
-    if (bytes.getSize() == 0) { preparedMidi.reset(); preparedFilename.clear(); drag.setFile({}); return; }
-    drag.setFile({});
+    if (bytes.getSize() == 0) { preparedMidi.reset(); preparedFilename = filename; drag.setFile({}, filename); return; }
+    drag.setFile({}, filename);
+    preparedMidi.reset();
+    preparedFilename.clear();
     // A separate immutable file for each revision keeps a drag in progress stable during UI edits.
     const auto directory = tempDirectory.getChildFile(juce::Uuid().toString());
     const auto file = directory.getChildFile(filename);
     if (directory.createDirectory().wasOk() && file.replaceWithData(bytes.getData(), bytes.getSize())) {
-        preparedMidi = bytes; preparedFilename = filename; drag.setFile(file);
+        preparedMidi = bytes; preparedFilename = filename; drag.setFile(file, filename);
+        dragStatus.setText("MIDI clip   /   Follows the selected piano-roll track", juce::dontSendNotification);
     }
-    else { drag.setFile({}); dragStatus.setText("Could not prepare temporary MIDI file", juce::dontSendNotification); }
+    else {
+        directory.deleteRecursively();
+        drag.setFile({}, filename);
+        dragStatus.setText("Could not prepare temporary MIDI file", juce::dontSendNotification);
+    }
 }
 void MelodyMateEditor::timerCallback() {
+    if (browser == nullptr) return;
     const auto generation = ownerProcessor.state.generation();
-    if (generation != observedEpoch && browser.isVisible()) {
+    if (generation != observedEpoch && browser->isVisible()) {
         observedEpoch = generation;
         prepareDragFile();
-        browser.emitEventIfBrowserIsVisible("restore", ownerProcessor.state.read());
+        browser->emitEventIfBrowserIsVisible("restore", ownerProcessor.state.read());
     }
-    browser.emitEventIfBrowserIsVisible("transport", ownerProcessor.transportInfo());
+    browser->emitEventIfBrowserIsVisible("transport", ownerProcessor.transportInfo());
 }

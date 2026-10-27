@@ -1,6 +1,7 @@
 #pragma once
 #include <juce_gui_extra/juce_gui_extra.h>
 #include "PluginProcessor.h"
+#include "MidiDragHandle.h"
 
 class LocalBrowser final : public juce::WebBrowserComponent {
 public:
@@ -9,18 +10,6 @@ public:
         return url.startsWith(getResourceProviderRoot()) || url == "about:blank";
     }
     bool pageLoadHadNetworkError(const juce::String&) override { return false; }
-};
-
-class MelodyDragHandle final : public juce::TextButton {
-public:
-    MelodyDragHandle();
-    ~MelodyDragHandle() override;
-    void setFile(juce::File file);
-    void mouseDown(const juce::MouseEvent& event) override { started = false; TextButton::mouseDown(event); }
-    void mouseDrag(const juce::MouseEvent&) override;
-private:
-    juce::File prepared;
-    bool started = false, preparedWasDragged = false;
 };
 
 class MelodyMateEditor final : public juce::AudioProcessorEditor, private juce::Timer {
@@ -37,10 +26,10 @@ private:
     void timerCallback() override;
     MelodyMateProcessor& ownerProcessor;
     juce::ZipFile assets;
-    LocalBrowser browser;
-    MelodyDragHandle drag;
-    juce::Label dragStatus;
     juce::File tempDirectory;
+    std::unique_ptr<LocalBrowser> browser;
+    MidiDragHandle drag;
+    juce::Label dragStatus;
     juce::MemoryBlock preparedMidi;
     juce::String preparedFilename;
     int observedEpoch = 0;
