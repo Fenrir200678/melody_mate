@@ -313,6 +313,31 @@ describe('plugin MIDI drag export', () => {
 })
 
 describe('plugin session state transfer', () => {
+  it('restores panel layout, module visibility and editing view per instance while accepting older sessions', () => {
+    const first = pluginStores()
+    const originalPlayback = buildPlaybackSnapshot(captureSession(DEFAULT_PLUGIN_OUTPUT))
+    first.ui.setLeftSidebar(false)
+    first.ui.setLeftSidebarWidth(360)
+    first.ui.setRightSidebarWidth(390)
+    first.ui.setRhythmStudioHeight(330)
+    first.ui.setRhythmStudioOpen(true)
+    first.ui.setVelocityLane(true)
+    first.ui.setVelocityLaneHeight(120)
+    first.ui.setStepWidth(48)
+    first.modules.setModuleOpen('motif', true)
+    first.modules.setModuleOpen('rhythm', false)
+    const saved = captureSession(DEFAULT_PLUGIN_OUTPUT)
+    expect(buildPlaybackSnapshot(saved)).toEqual(originalPlayback)
+    const fresh = createPinia()
+    piniae.push(fresh)
+    setActivePinia(fresh)
+    restoreSession(PluginSessionSchema.parse(saved))
+    expect(captureSession(DEFAULT_PLUGIN_OUTPUT).ui).toEqual(saved.ui)
+    expect(pluginStores().modules.isModuleOpen('motif')).toBe(true)
+    const { ui: _ui, ...legacy } = saved
+    expect(() => restoreSession(PluginSessionSchema.parse(legacy))).not.toThrow()
+    expect(pluginStores().modules.isModuleOpen('motif')).toBe(false)
+  })
   it('keeps independent Pinia sessions and restores a complete captured session', () => {
     function populateSession(label: 'A' | 'B') {
       const stores = pluginStores()

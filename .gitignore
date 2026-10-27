@@ -35,5 +35,6 @@ RTK.md
 
 # Native prototype build products
 plugin/build/
+plugin/build-ninja/
 plugin/dist/
 plugin/.cache/

@@ -28,6 +28,8 @@ public:
     juce::var transportInfo() const;
     melody::SessionState state;
     std::atomic<bool> panic { false };
+    // Editor instances can be destroyed when the host switches plugin windows.
+    int editorWidth = 0, editorHeight = 0;
 private:
     melody::MidiScheduler scheduler;
     double rate = 0;

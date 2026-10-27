@@ -1,8 +1,37 @@
 #include "PluginEditor.h"
 #include "BinaryData.h"
 #include "PluginConfig.h"
+#if JUCE_WINDOWS
+#include <windows.h>
+#endif
 
 namespace {
+#if JUCE_WINDOWS
+bool isStudioProHost() {
+    std::array<wchar_t, 32768> path {};
+    const auto length = GetModuleFileNameW(nullptr, path.data(), static_cast<DWORD>(path.size()));
+    if (length == 0 || length >= path.size()) return false;
+    const auto executable = juce::File(juce::String(path.data())).getFileName();
+    return executable.equalsIgnoreCase("Studio Pro.exe") || executable.equalsIgnoreCase("Studio One.exe");
+}
+
+bool forwardSpaceToHost(juce::Component& editor) {
+    if (!isStudioProHost()) return false;
+    const auto* peer = editor.getPeer();
+    if (peer == nullptr) return false;
+    const auto hwnd = static_cast<HWND>(peer->getNativeHandle());
+    const auto host = GetAncestor(hwnd, GA_ROOTOWNER);
+    const auto foreground = GetForegroundWindow();
+    if (host == nullptr || foreground == nullptr || GetAncestor(foreground, GA_ROOTOWNER) != host) return false;
+    const LPARAM down = 1 | (static_cast<LPARAM>(MapVirtualKeyW(VK_SPACE, MAPVK_VK_TO_VSC)) << 16);
+    return PostMessageW(host, WM_KEYDOWN, VK_SPACE, down) != 0
+        && PostMessageW(host, WM_KEYUP, VK_SPACE, down | (static_cast<LPARAM>(3) << 30)) != 0;
+}
+// WebView2 is a native child window and would cover JUCE's corner resizer.
+constexpr int resizeStripHeight = 20;
+#else
+constexpr int resizeStripHeight = 0;
+#endif
 juce::File createEditorTempDirectory() {
     const auto directory = juce::File::getSpecialLocation(juce::File::tempDirectory)
         .getChildFile("MelodyMate-" + juce::Uuid().toString());
@@ -15,14 +44,16 @@ MelodyMateEditor::MelodyMateEditor(MelodyMateProcessor& owner)
     : AudioProcessorEditor(owner), ownerProcessor(owner),
       assets(std::make_unique<juce::MemoryInputStream>(BinaryData::ui_zip, BinaryData::ui_zipSize, false)),
       tempDirectory(createEditorTempDirectory()) {
+    const auto initialWidth = ownerProcessor.editorWidth > 0 ? ownerProcessor.editorWidth : melody::editorWidth;
+    const auto initialHeight = ownerProcessor.editorHeight > 0 ? ownerProcessor.editorHeight : melody::editorHeight;
     addAndMakeVisible(drag);
     addAndMakeVisible(dragStatus);
     dragStatus.setColour(juce::Label::textColourId, juce::Colour(melody::nativeMuted));
     dragStatus.setFont(juce::FontOptions(static_cast<float>(melody::nativeLabelSize)));
     dragStatus.setText("MIDI clip   /   Follows the selected piano-roll track", juce::dontSendNotification);
-    setResizable(true, false);
+    setResizable(true, JUCE_WINDOWS != 0);
     setResizeLimits(melody::editorMinWidth, melody::editorMinHeight, 2560, 1600);
-    setSize(melody::editorWidth, melody::editorHeight);
+    setSize(initialWidth, initialHeight);
     observedEpoch = ownerProcessor.state.generation();
     prepareDragFile();
     const auto options = browserOptions();
@@ -34,7 +65,7 @@ MelodyMateEditor::MelodyMateEditor(MelodyMateProcessor& owner)
     {
         browser = std::make_unique<LocalBrowser>(options);
         addAndMakeVisible(*browser);
-        browser->setBounds(getLocalBounds().withTrimmedTop(melody::nativeStripHeight));
+        browser->setBounds(getLocalBounds().withTrimmedTop(melody::nativeStripHeight).withTrimmedBottom(resizeStripHeight));
         browser->goToURL(juce::WebBrowserComponent::getResourceProviderRoot());
     }
     startTimerHz(30);
@@ -44,10 +75,15 @@ MelodyMateEditor::~MelodyMateEditor() {
     // Promised files outlive the editor; retain them for late receiver reads.
 }
 void MelodyMateEditor::resized() {
+    if (getWidth() > 0 && getHeight() > 0) {
+        ownerProcessor.editorWidth = getWidth();
+        ownerProcessor.editorHeight = getHeight();
+    }
     auto bounds = getLocalBounds();
     auto strip = bounds.removeFromTop(melody::nativeStripHeight).reduced(8, 4);
     drag.setBounds(strip.removeFromRight(melody::nativeDragWidth));
     dragStatus.setBounds(strip);
+    bounds.removeFromBottom(resizeStripHeight);
     if (browser != nullptr) browser->setBounds(bounds);
 }
 void MelodyMateEditor::paint(juce::Graphics& graphics) { graphics.fillAll(juce::Colour(melody::nativePanel)); }
@@ -100,6 +136,18 @@ void MelodyMateEditor::command(const juce::Array<juce::var>& args,
         if (action == "read") {
             reply->setProperty("payload", ownerProcessor.state.read());
             ok = true;
+        } else if (action == "space-capability") {
+#if JUCE_WINDOWS
+            reply->setProperty("payload", isStudioProHost());
+#else
+            reply->setProperty("payload", false);
+#endif
+            ok = true;
+        } else if (action == "forward-space") {
+#if JUCE_WINDOWS
+            ok = forwardSpaceToHost(*this);
+#endif
+            if (!ok) error = "Could not forward space to the host";
         } else if (action == "panic") {
             ownerProcessor.panic.store(true);
             ok = true;

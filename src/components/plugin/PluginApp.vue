@@ -12,12 +12,13 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, defineAsyncComponent } from 'vue'
+  import { computed, defineAsyncComponent, onMounted, onScopeDispose } from 'vue'
   import DawWorkspace from '../layout/DawWorkspace.vue'
   import PluginHeader from './PluginHeader.vue'
   import { usePluginSession } from '@/platform/plugin/usePluginSession'
   import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
   import { useUiStore } from '@/stores/ui.store'
+  import { nativeCall } from '@/platform/plugin/bridge'
 
   const DawShortcutsModal = defineAsyncComponent(() => import('../common/DawShortcutsModal.vue'))
   const DawAboutModal = defineAsyncComponent(() => import('./PluginAboutModal.vue'))
@@ -36,4 +37,20 @@
     }
   })
   useKeyboardShortcuts()
+
+  let forwardSpace = false
+  function onSpace(event: KeyboardEvent) {
+    if (!forwardSpace || event.code !== 'Space' || event.repeat || event.isComposing || event.defaultPrevented ||
+        event.ctrlKey || event.altKey || event.metaKey || event.shiftKey || ui.activeModal) return
+    const target = event.target as Element | null
+    if (target?.closest('input, textarea, select, button, [contenteditable]:not([contenteditable="false"]), [role="dialog"], [data-daw-popover], [role="button"], [role="slider"], [role="listbox"]')) return
+    event.preventDefault()
+    event.stopPropagation()
+    void nativeCall('forward-space').catch(() => {})
+  }
+  onMounted(() => {
+    window.addEventListener('keydown', onSpace)
+    void nativeCall('space-capability').then(value => { forwardSpace = value === true }).catch(() => {})
+  })
+  onScopeDispose(() => window.removeEventListener('keydown', onSpace))
 </script>

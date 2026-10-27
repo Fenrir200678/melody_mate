@@ -17,9 +17,9 @@ pnpm build
 
 The first native configure downloads JUCE **9.0.4**, pinned to commit `3fb5cbc0340758596dac39f7c8de47d562b4896e` and archive SHA-256 `2bb7095497a7bb7269dbdf841a7c6aa0939eaeb2a2bc9724ac4758d3ae3565a7`. Subsequent builds use the CMake cache. The frontend and native binary work offline after building. `@juce-framework/webview` is pinned to 1.0.0, matching this JUCE revision.
 
-The locally verified target is macOS arm64. An Intel build requires an explicit CMake architecture change and its own host checks. A Windows x64 build path is prepared below, but has **not been built or run in this macOS session**. Universal-binary, Windows and Studio One compatibility are not yet established.
+The macOS arm64 and Windows x64 builds have been exercised separately. An Intel Mac build requires an explicit CMake architecture change and its own host checks. Universal-binary and Studio One compatibility are not yet established.
 
-### Windows x64 build (prepared, unverified)
+### Windows x64 build
 
 Install Visual Studio 2022 with **Desktop development with C++** and the Windows SDK, CMake 3.24 or newer, Node/pnpm and the NuGet CLI. Install the [WebView2 Runtime](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution) on the machine that opens the editor. The separate WebView2 SDK package supplies build headers and its static loader; the SDK alone does not provide the runtime.
 
@@ -39,6 +39,21 @@ The SDK version matches the pinned JUCE find-module recommendation; [package ref
 On Windows, copy the **entire** built `Melody Mate Prototype.vst3` directory into a VST3 location scanned by your DAW (commonly `C:\Program Files\Common Files\VST3`), then rescan. `plugin:link-local` remains a macOS development helper and deliberately declines Windows installation; it does not elevate privileges or overwrite an installed Windows plugin. The probe helper selects the Windows `.exe` automatically.
 
 Windows uses an explicit WebView2 backend and statically linked loader, with a unique writable temporary user-data directory per editor. A failed availability check leaves native state/playback intact and displays a runtime-install message. WKWebView remains the macOS backend. Validate real Windows editor startup, native bridge, bundled resources, keyboard focus, drag-out and host state before claiming Windows support.
+
+On the Windows PC tested on 2026-10-27, Visual Studio Build Tools was installed but not registered as a complete installation, so the Visual Studio CMake generator could not find it. The included x64 compiler, Windows SDK, CMake and Ninja worked from the developer command prompt. With the WebView2 SDK already extracted as above, this alternative uses a separate build directory:
+
+```cmd
+call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
+set "PATH=C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin;C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja;%PATH%"
+pnpm build:plugin-ui
+cmake -S plugin -B plugin/build-ninja -G Ninja -DCMAKE_BUILD_TYPE=Release -DJUCE_WEBVIEW2_PACKAGE_LOCATION="%CD%\plugin\.cache\WebView2"
+cmake --build plugin/build-ninja --parallel 4
+ctest --test-dir plugin/build-ninja -C Release --output-on-failure
+```
+
+The resulting bundle is under `plugin/build-ninja/MelodyMatePrototype_artefacts/Release/VST3/`. The scheduler and VST3 host tests passed, as did an editor smoke test confirming that frontend state reached the native plugin. DAW scanning, routing, keyboard focus and MIDI drag-out still require manual verification on Windows.
+
+The editor remembers its resized dimensions for the lifetime of the plugin instance, including when the host destroys and reopens its editor. The size is not currently saved in the DAW project. The Windows editor also provides a bottom-right resize grip.
 
 Output:
 
@@ -98,9 +113,9 @@ The IAC experiment from 0.1.3 has been removed, including its native port select
 
 Host tempo drives playback. The project's stored tempo is retained for generation groove conversion and MIDI-file tempo metadata; file import interpretation belongs to the receiving DAW. Imported clips are independent copies.
 
-The prototype has no browser audition, Sound & Mix, Web MIDI setup, analytics, web download footer or browser project save. Audition controls in reused studios report that a receiving DAW instrument is needed. The editor requests native keyboard focus and consumes its handled editing/studio shortcuts. Space, transport seeks and loop shortcuts are not handled by the plugin; whether the DAW receives them depends on host keyboard focus. Click the DAW workspace to return keyboard control to Live. Editing shortcuts remain available and plugin shortcut help excludes transport/audition entries.
+The prototype has no browser audition, Sound & Mix, Web MIDI setup, analytics, web download footer or browser project save. Audition controls in reused studios report that a receiving DAW instrument is needed. The editor requests native keyboard focus and consumes its handled editing/studio shortcuts. On Windows in Fender Studio Pro or Studio One, an unmodified Space pressed in the editor background is forwarded to the host; editable fields, buttons, sliders and dialogs retain their own keyboard behavior. Start and stop were confirmed by the user in Studio Pro 8.1.0. Transport seeks and loop shortcuts remain host-dependent. Click the DAW workspace to return keyboard control to Live. Editing shortcuts remain available and plugin shortcut help excludes transport/audition entries.
 
-Piano-roll loop markers and **Loop target** remain editing references in this first prototype; native repetition uses **Repeat** and actual host loop positions. Generation work ranges still restrict edits. UI layout/zoom, selection, undo history and uncommitted Arp candidate drafts reset when recreating the editor; musical content, applied notes, generator parameters, variations, chords, takes and custom rhythms are persisted.
+Piano-roll loop markers and **Loop target** remain editing references in this first prototype; native repetition uses **Repeat** and actual host loop positions. Generation work ranges still restrict edits. Module visibility, sidebar sizes and visibility, studio and velocity panel sizes, active studio, editing tool, grid and zoom are stored per instance in the DAW state. Protocol 2 sessions without these optional UI fields remain readable and use defaults. Selection, undo history, scroll position and uncommitted Arp candidate drafts reset when recreating the editor. The native editor window size is retained while the instance exists but is not saved across a DAW restart.
 
 ## Architecture
 
@@ -141,7 +156,7 @@ See the acceptance record below. The automated native probe is a focused JUCE ho
 | PPQ, tempo, stop, seeks, loops, outstanding offs                                   | Focused native scheduler tests, including ASan/UBSan run; VST3 probe passed                                        |
 | Editor-independent state/playback                                                  | Processor owns both; native VST3 probe passed                                                                      |
 | Host MIDI channels, reassignment, None and offline state restore                   | Actual VST3 probe passed on macOS; Studio One channel routing remains a manual check                               |
-| Windows x64 build and WebView2                                                     | Build configuration and setup prepared; Windows compilation/runtime unverified                                     |
+| Windows x64 build and WebView2                                                     | Built on Windows; native tests and WebView2 editor/bridge smoke passed; DAW acceptance remains open                 |
 | Pointer capture, note/knob drags, keyboard focus/resizing                          | Existing handlers reused; manual macOS host check required                                                         |
 | Melody file imported as usable DAW clip                                            | Generated melody drag/import confirmed by the user in Live 12.4.6; broader import edge cases remain open           |
 | Two instances saved in a DAW and restored after DAW restart before opening editors | Native/state coverage is a prerequisite; full DAW project lifecycle requires manual check                          |
@@ -149,7 +164,7 @@ See the acceptance record below. The automated native probe is a focused JUCE ho
 
 Installed host: **Ableton Live 12 Suite 12.4.6**. macOS GUI scripting reports Accessibility/UI automation disabled in this session. Do not infer pointer gestures, drag import or DAW project lifecycle from compilation or scanner success.
 
-Classification: VST3 **Instrument/Synth**, no audio input, silent stereo output, one MIDI event output bus advertising 16 channels, and a compatibility MIDI event input. Live requires that input bus for instrument-class VST3 plugins; incoming MIDI is discarded and does not trigger or pass through the sequencer. Prototype 0.1.4 routes melody and chords through independent selectable host channels. Studio One is the intended multichannel host; its real routing and Windows build/runtime acceptance remain open. Ableton internal track routing still merges channels. This is a prototype layout, not universal DAW certification. Logic is not covered by this VST3 target.
+Classification: VST3 **Instrument/Synth**, no audio input, silent stereo output, one MIDI event output bus advertising 16 channels, and a compatibility MIDI event input. Live requires that input bus for instrument-class VST3 plugins; incoming MIDI is discarded and does not trigger or pass through the sequencer. Prototype 0.1.4 routes melody and chords through independent selectable host channels. Studio One is the intended multichannel host; real DAW routing and Windows host acceptance remain open. Ableton internal track routing still merges channels. This is a prototype layout, not universal DAW certification. Logic is not covered by this VST3 target.
 
 ### Live instrument-input correction (prototype 0.1.1)
 
@@ -165,7 +180,7 @@ Focused tests cover the handled `A` command, unassigned keys, Space passthrough 
 
 ### Additional host acceptance procedure
 
-For Studio One, first complete the multichannel procedure above with two different synths, then test stop, seeks, loops, channel changes, **None**, panic, editor closure, Song restart, offline render and drag-out. Record OS, DAW version, sample rate, buffer size and plugin commit. Windows build/runtime, WebView2, pointer/keyboard behavior and drag targets require their own acceptance.
+For Studio One, first complete the multichannel procedure above with two different synths, then test stop, seeks, loops, channel changes, **None**, panic, editor closure, Song restart, offline render and drag-out. Record OS, DAW version, sample rate, buffer size and plugin commit. Windows DAW integration, pointer/keyboard behavior and drag targets require their own acceptance.
 
 The following Live procedure remains useful for merged-channel playback and existing regressions:
 

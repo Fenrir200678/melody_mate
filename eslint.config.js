@@ -29,6 +29,7 @@ export default tseslint.config(
     ignores: [
       'dist/**',
       'plugin/build/**',
+      'plugin/build-ninja/**',
       'plugin/dist/**',
       'plugin/.cache/**',
       'node_modules/**',

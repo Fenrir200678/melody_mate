@@ -2,7 +2,7 @@ import { getNativeFunction } from '@juce-framework/webview'
 import { z } from 'zod'
 
 const NativeReplySchema = z.object({ ok: z.boolean(), error: z.string().optional(), payload: z.unknown().optional() })
-export type NativeCommand = 'read' | 'commit' | 'panic'
+export type NativeCommand = 'read' | 'commit' | 'panic' | 'space-capability' | 'forward-space'
 const command = getNativeFunction('melodyMate')
 
 export async function nativeCall(action: NativeCommand, payload?: unknown): Promise<unknown> {

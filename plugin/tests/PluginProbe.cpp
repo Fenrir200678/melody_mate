@@ -148,6 +148,18 @@ private:
             pluginStateForSave = savedState(*plugin);
             auto* editor = plugin->createEditorAndMakeActive();
             require(editor != nullptr, "Plugin did not create its editor");
+            if (uiSmoke) {
+                const auto originalWidth = editor->getWidth();
+                const auto originalHeight = editor->getHeight();
+                window = std::make_unique<ProbeWindow>(editor);
+                window->setContentComponentSize(originalWidth + 120, originalHeight + 80);
+                window.reset();
+                editor = plugin->createEditorAndMakeActive();
+                require(editor != nullptr && editor->getWidth() == originalWidth + 120
+                        && editor->getHeight() == originalHeight + 80,
+                        "Editor size was not retained after reopening");
+                std::cout << "Editor size retained after reopening\n";
+            }
             window = std::make_unique<ProbeWindow>(editor);
             playHead.set(0.0, true);
             smokeStartMs = juce::Time::getMillisecondCounter();
@@ -177,9 +189,12 @@ private:
                 const auto project = session.getProperty("project", {});
                 const auto melody = session.getProperty("melody", {});
                 const auto params = melody.getProperty("generatorParams", {});
+                const auto ui = session.getProperty("ui", {});
                 defaultsCommitted = project.getProperty("version", {}).isInt() &&
                     static_cast<int>(project.getProperty("version", {})) == 7 && params.isObject() &&
-                    params.getProperty("minOctave", {}).isInt() && params.getProperty("maxOctave", {}).isInt();
+                    params.getProperty("minOctave", {}).isInt() && params.getProperty("maxOctave", {}).isInt() &&
+                    ui.isObject() && ui.getProperty("modules", {}).isObject() &&
+                    ui.getProperty("leftSidebarWidth", {}).isInt();
             }
             if (defaultsCommitted) {
                 std::cout << "UI smoke passed: frontend defaults reached native state\n";

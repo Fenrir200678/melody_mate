@@ -6,6 +6,28 @@ import { ChordEventSchema } from '../schemas/chord.schema'
 import { GeneratorParamsSchema } from '../schemas/generator.schema'
 import { CustomRhythmPatternSchema, SavedCustomRhythmPresetsSchema } from '../schemas/custom-rhythm.schema'
 import { SeedSchema, TakeSnapshotSchema } from '../schemas/take.schema'
+import { DEFAULT_UI_DIMENSIONS, CANVAS_GRID_BOUNDS } from '../../config/ui-defaults'
+
+const PluginUiSchema = z.object({
+  activeTool: z.enum(['select', 'lasso', 'pencil', 'eraser', 'pan']),
+  activeTrack: z.enum(['melody', 'chords']),
+  isScaleLocked: z.boolean(),
+  followPlayhead: z.boolean(),
+  snapStep: z.number().int().min(1).max(256),
+  stepWidth: z.number().min(CANVAS_GRID_BOUNDS.minStepWidth).max(CANVAS_GRID_BOUNDS.maxStepWidth),
+  rowHeight: z.number().min(CANVAS_GRID_BOUNDS.minRowHeight).max(CANVAS_GRID_BOUNDS.maxRowHeight),
+  wideLeftSidebarOpen: z.boolean(),
+  wideRightSidebarOpen: z.boolean(),
+  leftSidebarWidth: z.number().min(DEFAULT_UI_DIMENSIONS.leftSidebar.minWidth).max(DEFAULT_UI_DIMENSIONS.leftSidebar.maxWidth),
+  rightSidebarWidth: z.number().min(DEFAULT_UI_DIMENSIONS.rightSidebar.minWidth).max(DEFAULT_UI_DIMENSIONS.rightSidebar.maxWidth),
+  activeStudioDock: z.enum(['chord', 'rhythm', 'arp']).nullable(),
+  chordStudioHeight: z.number().min(DEFAULT_UI_DIMENSIONS.chordStudio.minHeight).max(DEFAULT_UI_DIMENSIONS.chordStudio.maxHeight),
+  rhythmStudioHeight: z.number().min(DEFAULT_UI_DIMENSIONS.rhythmStudio.minHeight).max(DEFAULT_UI_DIMENSIONS.rhythmStudio.maxHeight),
+  arpStudioHeight: z.number().min(DEFAULT_UI_DIMENSIONS.arpStudio.minHeight).max(DEFAULT_UI_DIMENSIONS.arpStudio.maxHeight),
+  isVelocityLaneOpen: z.boolean(),
+  velocityLaneHeight: z.number().min(DEFAULT_UI_DIMENSIONS.velocityLane.minHeight).max(DEFAULT_UI_DIMENSIONS.velocityLane.maxHeight),
+  modules: z.record(z.string().max(128), z.boolean()).refine(value => Object.keys(value).length <= 64)
+})
 
 export const PLUGIN_PROTOCOL_VERSION = 2
 export const PluginSessionSchema = z.object({
@@ -47,7 +69,8 @@ export const PluginSessionSchema = z.object({
     repeat: z.boolean(),
     melodyChannel: z.number().int().min(0).max(16),
     chordsChannel: z.number().int().min(0).max(16)
-  })
+  }),
+  ui: PluginUiSchema.optional()
 })
 export type PluginSession = z.infer<typeof PluginSessionSchema>
 
